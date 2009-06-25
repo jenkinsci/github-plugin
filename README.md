@@ -1,15 +1,7 @@
 Hudson Github Plugin
 ====================
 
-This is a WIP Github plugin for the Hudson continuous integration server.
-
-There is no public release yet, it's still an early WIP.
-
-Stay tuned...
-
-
-Homepage: [http://juretta.github.com/hudson-github-plugin/](http://juretta.github.com/hudson-github-plugin/)
-
+Read more: [http://wiki.hudson-ci.org/display/HUDSON/Github+Plugin](http://wiki.hudson-ci.org/display/HUDSON/Github+Plugin)
 
 Issues
 ------
@@ -17,33 +9,6 @@ Issues
 Please use the github issue tracker:
 
 [http://github.com/juretta/hudson-github-plugin/issues](http://github.com/juretta/hudson-github-plugin/issues)
-
-License
--------
-
-	(The MIT License)
-
-	Copyright (c) 2009 Stefan Saasen
-
-	Permission is hereby granted, free of charge, to any person obtaining
-	a copy of this software and associated documentation files (the
-	'Software'), to deal in the Software without restriction, including
-	without limitation the rights to use, copy, modify, merge, publish,
-	distribute, sublicense, and/or sell copies of the Software, and to
-	permit persons to whom the Software is furnished to do so, subject to
-	the following conditions:
-
-	The above copyright notice and this permission notice shall be
-	included in all copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 
 Development
 ===========
@@ -53,7 +18,7 @@ Start the local Hudson instance:
     mvn hpi:run
 
 
-Hudson PLugin Maven goals
+Hudson Plugin Maven goals
 -------------------------
 
 	hpi:create  Creates a skeleton of a new plugin.
@@ -84,11 +49,34 @@ To install:
 2. or use the plugin management console (http://example.com:8080/pluginManager/advanced) to upload the hpi file. You have to restart Hudson in order to find the pluing in the installed plugins list.
 
 
+Plugin releases
+---------------
 
-Ressources
-----------
+	mvn release:prepare release:perform -Dusername=juretta -Dpassword=******
 
-Hudson Plugins:
 
- * http://wiki.hudson-ci.org/display/HUDSON/Plugin+structure
- * http://wiki.hudson-ci.org/display/HUDSON/Extension+points
+License
+-------
+
+	(The MIT License)
+
+	Copyright (c) 2009 Stefan Saasen
+
+	Permission is hereby granted, free of charge, to any person obtaining
+	a copy of this software and associated documentation files (the
+	'Software'), to deal in the Software without restriction, including
+	without limitation the rights to use, copy, modify, merge, publish,
+	distribute, sublicense, and/or sell copies of the Software, and to
+	permit persons to whom the Software is furnished to do so, subject to
+	the following conditions:
+
+	The above copyright notice and this permission notice shall be
+	included in all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

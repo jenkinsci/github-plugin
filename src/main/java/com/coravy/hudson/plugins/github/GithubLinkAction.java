@@ -1,5 +1,5 @@
 /*
- * $Id: GithubLinkAction.java 18781 2009-06-11 00:54:46Z juretta $ 
+ * $Id: GithubLinkAction.java 19213 2009-06-25 06:22:57Z juretta $ 
  */
 package com.coravy.hudson.plugins.github;
 
@@ -31,7 +31,7 @@ public final class GithubLinkAction implements Action {
      * @see hudson.model.Action#getIconFileName()
      */
     public String getIconFileName() {
-        return "/plugin/github/github-octocat.png";
+        return "/plugin/github/logov3.png";
     }
 
     /*
