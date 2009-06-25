@@ -1,6 +1,3 @@
-/*
- * $Id: GithubLinkAction.java 19213 2009-06-25 06:22:57Z juretta $ 
- */
 package com.coravy.hudson.plugins.github;
 
 import hudson.model.Action;

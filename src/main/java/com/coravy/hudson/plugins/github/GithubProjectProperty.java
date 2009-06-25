@@ -1,6 +1,3 @@
-/*
- * $Id: GithubProjectProperty.java 18781 2009-06-11 00:54:46Z juretta $ 
- */
 package com.coravy.hudson.plugins.github;
 
 import hudson.Extension;
