@@ -27,4 +27,10 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<scm>
+		<connection>scm:git:git://github.com/jenkinsci/github-plugin.git</connection>
+		<developerConnection>scm:git:git@github.com:jenkinsci/github-plugin.git</developerConnection>
+		<url>https://github.com/jenkinsci/github-plugin</url>
+	</scm>
 </project>
