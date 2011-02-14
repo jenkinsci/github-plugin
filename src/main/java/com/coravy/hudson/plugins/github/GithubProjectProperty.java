@@ -6,6 +6,8 @@ import hudson.model.Action;
 import hudson.model.Job;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
+import java.util.Collection;
+import java.util.Collections;
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -40,11 +42,11 @@ public final class GithubProjectProperty extends
     }
 
     @Override
-    public Action getJobAction(AbstractProject<?, ?> job) {
+    public Collection<? extends Action> getJobActions(AbstractProject<?, ?> job) {
         if (null != projectUrl) {
-            return new GithubLinkAction(this);
+            return Collections.singleton(new GithubLinkAction(this));
         }
-        return null;
+        return Collections.emptyList();
     }
     /*
     @Override
