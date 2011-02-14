@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.jvnet.hudson.plugins</groupId>
 		<artifactId>plugin</artifactId>
-		<version>1.318</version>
+		<version>1.377</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -12,14 +12,13 @@
 	<packaging>hpi</packaging>
 	<version>0.3-SNAPSHOT</version>
 	<name>Github plugin</name>
-	<url>http://wiki.hudson-ci.org/display/HUDSON/Github+Plugin</url>
-	
+	<url>http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin</url>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.jvnet.hudson.plugins</groupId>
 			<artifactId>git</artifactId>
-			<version>0.5</version>
+			<version>[0.5,)</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jmock</groupId>

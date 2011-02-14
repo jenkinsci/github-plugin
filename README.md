@@ -1,7 +1,7 @@
-Hudson Github Plugin
-====================
+Jenkins Github Plugin
+=====================
 
-Read more: [http://wiki.hudson-ci.org/display/HUDSON/Github+Plugin](http://wiki.hudson-ci.org/display/HUDSON/Github+Plugin)
+Read more: [http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin](http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin)
 
 Issues
 ------
@@ -13,13 +13,13 @@ Please use the github issue tracker:
 Development
 ===========
 
-Start the local Hudson instance:
+Start the local Jenkins instance:
 
     mvn hpi:run
 
 
-Hudson Plugin Maven goals
--------------------------
+Jenkins Plugin Maven goals
+--------------------------
 
 	hpi:create  Creates a skeleton of a new plugin.
 	
@@ -27,7 +27,7 @@ Hudson Plugin Maven goals
 
 	hpi:hpl Generates the .hpl file
 
-	hpi:run Runs Hudson with the current plugin project
+	hpi:run Runs Jenkins with the current plugin project
 
 	hpi:upload Posts the hpi file to java.net. Used during the release.
 	
@@ -44,9 +44,9 @@ to create the plugin .hpi file.
 
 To install:
 
-1. copy the resulting ./target/rdoc.hpi file to the $HUDSON_HOME/plugins directory. Don't forget to restart Hudson afterwards.
+1. copy the resulting ./target/rdoc.hpi file to the $JENKINS_HOME/plugins directory. Don't forget to restart Jenkins afterwards.
 	
-2. or use the plugin management console (http://example.com:8080/pluginManager/advanced) to upload the hpi file. You have to restart Hudson in order to find the pluing in the installed plugins list.
+2. or use the plugin management console (http://example.com:8080/pluginManager/advanced) to upload the hpi file. You have to restart Jenkins in order to find the pluing in the installed plugins list.
 
 
 Plugin releases
