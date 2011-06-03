@@ -20,7 +20,7 @@ public final class GithubLinkAction implements Action {
      * @see hudson.model.Action#getDisplayName()
      */
     public String getDisplayName() {
-        return "Github";
+        return "GitHub";
     }
 
     /*

@@ -69,7 +69,7 @@ public final class GithubProjectProperty extends
         }
 
         public String getDisplayName() {
-            return "Github project page";
+            return "GitHub project page";
         }
 
         @Override

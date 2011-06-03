@@ -11,7 +11,7 @@
 	<artifactId>github</artifactId>
 	<packaging>hpi</packaging>
 	<version>0.5-SNAPSHOT</version>
-	<name>Github plugin</name>
+	<name>GitHub plugin</name>
 	<url>http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin</url>
 
 	<developers>
