@@ -259,7 +259,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements Runna
     /**
      * Set to false to prevent the user from overriding the hook URL.
      */
-    public static boolean ALLOW_HOOKURL_OVERRIDE = false;
+    public static boolean ALLOW_HOOKURL_OVERRIDE = !Boolean.getBoolean(GitHubPushTrigger.class.getName()+".disableOverride");
 
     private static final Logger LOGGER = Logger.getLogger(GitHubPushTrigger.class.getName());
 
