@@ -5,6 +5,7 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
 import hudson.model.RootAction;
+import hudson.model.UnprotectedRootAction;
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
 import net.sf.json.JSONObject;
@@ -25,7 +26,7 @@ import static java.util.logging.Level.*;
  * @author Kohsuke Kawaguchi
  */
 @Extension
-public class GitHubWebHook implements RootAction {
+public class GitHubWebHook implements UnprotectedRootAction {
     public String getIconFileName() {
         return null;
     }
