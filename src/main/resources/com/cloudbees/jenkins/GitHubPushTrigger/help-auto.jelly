@@ -1,0 +1,16 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <l:ajax>
+    <div>
+      In this mode, Jenkins will add/remove hook URLs to GitHub based on the project configuration of Jenkins.
+      Jenkins has a single post-commit hook URL for all the repositories, and this URL will be added to
+      all the GitHub repositories Jenkins is interested in.
+
+      <p>
+        This URL is <tt><a href="${rootURL}/github-webhook/">${app.rootUrl}github-webhook/</a></tt>,
+        and it needs to be accessible from the internet. If you have a firewall and such between GitHub
+        and Jenkins, you can set up a reverse proxy and override the hook URL that Jenkins registers to GitHub,
+        by checking "override hook URL" and specify the URL GitHub should POST to.
+      </p>
+    </div>
+  </l:ajax>
+</j:jelly>
