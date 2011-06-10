@@ -1,0 +1,10 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <l:ajax>
+    <div>
+      If your Jenkins runs inside the firewall and not directly reachable from the internet,
+      set up a reverse proxy, port tunneling, and so on so that GitHub can deliver a POST request
+      to your Jenkins at <tt><a href="${rootURL}/github-webhook/">${app.rootUrl}github-webhook/</a></tt>.
+      Then specify the URL that GitHub should POST to here.
+    </div>
+  </l:ajax>
+</j:jelly>

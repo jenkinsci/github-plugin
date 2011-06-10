@@ -5,7 +5,7 @@
       <f:nested>
         <table style="width:100%">
           <j:if test="${descriptor.allowsHookUrlOverride()}">
-            <f:optionalBlock title="${%Override Hook URL}" name="hookUrl" checked="${instance.hasOverrideURL()}">
+            <f:optionalBlock title="${%Override Hook URL}" field="hookUrl" checked="${instance.hasOverrideURL()}">
               <f:entry>
                 <f:textbox value="${instance.hookUrl}" name="url"/>
               </f:entry>
