@@ -19,8 +19,8 @@ import org.apache.commons.jelly.XMLOutput;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
-import org.eclipse.jgit.transport.RemoteConfig;
-import org.eclipse.jgit.transport.URIish;
+import org.spearce.jgit.transport.RemoteConfig;
+import org.spearce.jgit.transport.URIish;
 
 import java.io.File;
 import java.io.IOException;
@@ -264,8 +264,8 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements Runna
     private static final Logger LOGGER = Logger.getLogger(GitHubPushTrigger.class.getName());
 
     private static final Pattern[] URL_PATTERNS = {
-        Pattern.compile("git@github.com:([^/.]+)/([^/.]+).git"),
-        Pattern.compile("https://[^/.]+@github.com/([^/.]+)/([^/.]+).git"),
-        Pattern.compile("git://github.com/([^/.]+)/([^/.]+).git")
+        Pattern.compile("git@github.com:([^/]+)/([^/]+).git"),
+        Pattern.compile("https://[^/]+@github.com/([^/]+)/([^/]+).git"),
+        Pattern.compile("git://github.com/([^/]+)/([^/]+).git")
     };
 }
