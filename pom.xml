@@ -1,10 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.jenkins-ci.plugins</groupId>
-    <artifactId>plugin</artifactId>
-    <version>1.400</version>
-  </parent>
+	<parent>
+		<groupId>org.jenkins-ci.plugins</groupId>
+		<artifactId>plugin</artifactId>
+		<version>1.400</version>
+	</parent>
 
 	<groupId>com.coravy.hudson.plugins.github</groupId>
 	<artifactId>github</artifactId>
@@ -13,11 +14,19 @@
 	<name>GitHub plugin</name>
 	<url>http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin</url>
 
+	<repositories>
+		<repository>
+			<id>jgit-repository</id>
+			<name>Eclipse JGit Repository</name>
+			<url>http://download.eclipse.org/jgit/maven</url>
+		</repository>
+	</repositories>
+
 	<developers>
-      <developer>
-        <id>kohsuke</id>
-        <name>Kohsuke Kawaguchi</name>
-      </developer>
+		<developer>
+			<id>kohsuke</id>
+			<name>Kohsuke Kawaguchi</name>
+		</developer>
 		<developer>
 			<id>juretta</id>
 			<name>Stefan Saasen</name>
@@ -25,11 +34,11 @@
 	</developers>
 
 	<dependencies>
-    <dependency>
-      <groupId>org.kohsuke</groupId>
-      <artifactId>github-api</artifactId>
-      <version>1.4</version>
-    </dependency>
+		<dependency>
+			<groupId>org.kohsuke</groupId>
+			<artifactId>github-api</artifactId>
+			<version>1.4</version>
+		</dependency>
 		<dependency>
 			<groupId>org.jenkinsci.plugins</groupId>
 			<artifactId>git</artifactId>
@@ -40,6 +49,11 @@
 			<artifactId>jmock-junit4</artifactId>
 			<version>2.5.1</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jgit</groupId>
+			<artifactId>org.eclipse.jgit</artifactId>
+			<version>0.12.1</version>
 		</dependency>
 	</dependencies>
 
