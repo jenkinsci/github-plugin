@@ -266,6 +266,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements Runna
     private static final Pattern[] URL_PATTERNS = {
         Pattern.compile("git@github.com:([^/.]+)/([^/.]+).git"),
         Pattern.compile("https://[^/.]+@github.com/([^/.]+)/([^/.]+).git"),
-        Pattern.compile("git://github.com/([^/.]+)/([^/.]+).git")
+        Pattern.compile("git://github.com/([^/.]+)/([^/.]+).git"),
+        Pattern.compile("ssh://git@github.com/([^/.]+)/([^/.]+).git")
     };
 }
