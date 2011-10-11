@@ -267,6 +267,11 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements Runna
         Pattern.compile("git@github.com:([^/]+)/([^/]+).git"),
         Pattern.compile("https://[^/]+@github.com/([^/]+)/([^/]+).git"),
         Pattern.compile("git://github.com/([^/]+)/([^/]+).git"),
-        Pattern.compile("ssh://git@github.com/([^/]+)/([^/]+).git")
+        Pattern.compile("ssh://git@github.com/([^/]+)/([^/]+).git"),
+
+        Pattern.compile("git@github-([^/]+):([^/]+)/([^/]+).git"),
+        Pattern.compile("https://[^/]+@github-([^/]+)/([^/]+)/([^/]+).git"),
+        Pattern.compile("git://github-([^/]+)/([^/]+)/([^/]+).git"),
+        Pattern.compile("ssh://git@github-([^/]+)/([^/]+)/([^/]+).git")
     };
 }
