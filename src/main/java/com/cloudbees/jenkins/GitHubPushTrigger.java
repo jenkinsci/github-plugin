@@ -104,7 +104,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements Runna
                     for (Pattern p : URL_PATTERNS) {
                         Matcher m = p.matcher(url);
                         if (m.matches())
-                            r.add(new GitHubRepositoryName(m.group(1),m.group(2)));
+                            r.add(new GitHubRepositoryName(m.group(1), m.group(2), m.group(3)));
                     }
                 }
             }
@@ -141,8 +141,12 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements Runna
 
     @Override
     public void stop() {
-        if (getDescriptor().isManageHook())
-            Cleaner.get().onStop(this);
+        if (getDescriptor().isManageHook()) {
+            Cleaner cleaner = Cleaner.get();
+            if (cleaner != null) {
+                cleaner.onStop(this);
+            }
+        }
     }
 
     @Override
@@ -264,9 +268,9 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements Runna
     private static final Logger LOGGER = Logger.getLogger(GitHubPushTrigger.class.getName());
 
     private static final Pattern[] URL_PATTERNS = {
-        Pattern.compile("git@github.com:([^/]+)/([^/]+).git"),
-        Pattern.compile("https://[^/]+@github.com/([^/]+)/([^/]+).git"),
-        Pattern.compile("git://github.com/([^/]+)/([^/]+).git"),
-        Pattern.compile("ssh://git@github.com/([^/]+)/([^/]+).git")
+        Pattern.compile("git@(.+):([^/]+)/([^/]+).git"),
+        Pattern.compile("https://[^/]+@([^/]+)/([^/]+)/([^/]+).git"),
+        Pattern.compile("git://([^/]+)/([^/]+)/([^/]+).git"),
+        Pattern.compile("ssh://git@([^/]+)/([^/]+)/([^/]+).git")
     };
 }
