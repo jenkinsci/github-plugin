@@ -1,6 +1,7 @@
 package com.cloudbees.jenkins;
 
 import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
+
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
@@ -17,6 +18,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.util.logging.Level.*;
 
@@ -27,6 +30,8 @@ import static java.util.logging.Level.*;
  */
 @Extension
 public class GitHubWebHook implements UnprotectedRootAction {
+    private static final Pattern REPOSITORY_NAME_PATTERN = Pattern.compile("https?://([^/]+)/([^/]+)/([^/]+)");
+
     public String getIconFileName() {
         return null;
     }
@@ -42,40 +47,44 @@ public class GitHubWebHook implements UnprotectedRootAction {
     /**
      * Logs in as the given user and returns the connection object.
      */
-    public Iterable<GitHub> login(String userName) {
-        final List<Credential> l = DescriptorImpl.get().getCredentials();
+    public Iterable<GitHub> login(String host, String userName) {
+        if (host.equals("github.com")) {
+            final List<Credential> l = DescriptorImpl.get().getCredentials();
 
-        // if the username is not an organization, we should have the right user account on file
-        for (Credential c : l) {
-            if (c.username.equals(userName))
-                try {
-                    return Collections.singleton(c.login());
-                } catch (IOException e) {
-                    LOGGER.log(WARNING,"Failed to login with username="+c.username,e);
-                    return Collections.emptyList();
-                }
-        }
-
-        // otherwise try all the credentials since we don't know which one would work
-        return new Iterable<GitHub>() {
-            public Iterator<GitHub> iterator() {
-                return new FilterIterator<GitHub>(
-                    new AdaptedIterator<Credential,GitHub>(l) {
-                        protected GitHub adapt(Credential c) {
-                            try {
-                                return c.login();
-                            } catch (IOException e) {
-                                LOGGER.log(WARNING,"Failed to login with username="+c.username,e);
-                                return null;
-                            }
-                        }
-                }) {
-                    protected boolean filter(GitHub g) {
-                        return g!=null;
+            // if the username is not an organization, we should have the right user account on file
+            for (Credential c : l) {
+                if (c.username.equals(userName))
+                    try {
+                        return Collections.singleton(c.login());
+                    } catch (IOException e) {
+                        LOGGER.log(WARNING,"Failed to login with username="+c.username,e);
+                        return Collections.emptyList();
                     }
-                };
             }
-        };
+
+            // otherwise try all the credentials since we don't know which one would work
+            return new Iterable<GitHub>() {
+                public Iterator<GitHub> iterator() {
+                    return new FilterIterator<GitHub>(
+                        new AdaptedIterator<Credential,GitHub>(l) {
+                            protected GitHub adapt(Credential c) {
+                                try {
+                                    return c.login();
+                                } catch (IOException e) {
+                                    LOGGER.log(WARNING,"Failed to login with username="+c.username,e);
+                                    return null;
+                                }
+                            }
+                    }) {
+                        protected boolean filter(GitHub g) {
+                            return g!=null;
+                        }
+                    };
+                }
+            };
+        } else {
+            return Collections.<GitHub> emptyList();
+        }
     }
 
     /*
@@ -136,22 +145,24 @@ public class GitHubWebHook implements UnprotectedRootAction {
         JSONObject o = JSONObject.fromObject(req.getParameter("payload"));
         JSONObject repository = o.getJSONObject("repository");
         String repoUrl = repository.getString("url"); // something like 'https://github.com/kohsuke/foo'
-        String repoName = repository.getString("name"); // 'foo' portion of the above URL
-        String ownerName = repository.getJSONObject("owner").getString("name"); // 'kohsuke' portion of the above URL
-        GitHubRepositoryName changedRepository = new GitHubRepositoryName(ownerName,repoName);
 
         LOGGER.info("Received POST for "+repoUrl);
         LOGGER.fine("Full details of the POST was "+o.toString());
-
-        for (AbstractProject<?,?> job : Hudson.getInstance().getItems(AbstractProject.class)) {
-            GitHubPushTrigger trigger = job.getTrigger(GitHubPushTrigger.class);
-            if (trigger!=null) {
-                LOGGER.fine("Considering to poke "+job.getFullDisplayName());
-                if (trigger.getGitHubRepositories().contains(changedRepository))
-                    trigger.onPost();
-                else
-                    LOGGER.fine("Skipped "+job.getFullDisplayName()+" because it doesn't have a matching repository.");
+        Matcher matcher = REPOSITORY_NAME_PATTERN.matcher(repoUrl);
+        if (matcher.matches()) {
+            GitHubRepositoryName changedRepository = new GitHubRepositoryName(matcher.group(1),matcher.group(2),matcher.group(3));
+            for (AbstractProject<?,?> job : Hudson.getInstance().getItems(AbstractProject.class)) {
+                GitHubPushTrigger trigger = job.getTrigger(GitHubPushTrigger.class);
+                if (trigger!=null) {
+                    LOGGER.fine("Considering to poke "+job.getFullDisplayName());
+                    if (trigger.getGitHubRepositories().contains(changedRepository))
+                        trigger.onPost();
+                    else
+                        LOGGER.fine("Skipped "+job.getFullDisplayName()+" because it doesn't have a matching repository.");
+                }
             }
+        } else {
+            LOGGER.warning("Malformed repo url "+repoUrl);
         }
     }
 

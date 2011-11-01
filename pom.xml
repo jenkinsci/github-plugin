@@ -15,6 +15,11 @@
 
 	<repositories>
 		<repository>
+			<id>jenkins-ci</id>
+			<name>Jenkins-ci repository</name>
+			<url>http://maven.jenkins-ci.org:8081/content/groups/artifacts</url>
+		</repository>
+		<repository>
 			<id>jgit-repository</id>
 			<name>Eclipse JGit Repository</name>
 			<url>http://download.eclipse.org/jgit/maven</url>
