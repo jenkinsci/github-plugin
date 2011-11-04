@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Uniquely identifies a repository on GitHub.
@@ -16,6 +18,32 @@ import java.util.logging.Logger;
  * @author Kohsuke Kawaguchi
  */
 public class GitHubRepositoryName {
+
+    private static final Pattern[] URL_PATTERNS = {
+        Pattern.compile("git@(.+):([^/]+)/([^/]+).git"),
+        Pattern.compile("https://[^/]+@([^/]+)/([^/]+)/([^/]+).git"),
+        Pattern.compile("git://([^/]+)/([^/]+)/([^/]+).git"),
+        Pattern.compile("ssh://git@([^/]+)/([^/]+)/([^/]+).git")
+    };
+
+    /**
+     * Create {@link GitHubRepositoryName} from URL
+     * 
+     * @param url
+     *            must be non-null
+     * @return parsed {@link GitHubRepositoryName} or null if it cannot be
+     *         parsed from the specified URL
+     */
+    public static GitHubRepositoryName create(final String url) {
+        for (Pattern p : URL_PATTERNS) {
+            Matcher m = p.matcher(url);
+            if (m.matches())
+                return new GitHubRepositoryName(m.group(1), m.group(2),
+                        m.group(3));
+        }
+        return null;
+    }
+
     public final String host, userName, repositoryName;
 
     public GitHubRepositoryName(String host, String userName, String repositoryName) {

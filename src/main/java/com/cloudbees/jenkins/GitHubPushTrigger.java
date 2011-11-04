@@ -101,11 +101,10 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements Runna
             for (RemoteConfig rc : git.getRepositories()) {
                 for (URIish uri : rc.getURIs()) {
                     String url = uri.toString();
-                    for (Pattern p : URL_PATTERNS) {
-                        Matcher m = p.matcher(url);
-                        if (m.matches())
-                            r.add(new GitHubRepositoryName(m.group(1), m.group(2), m.group(3)));
-                    }
+                    GitHubRepositoryName repo = GitHubRepositoryName.create(uri
+                            .toString());
+                    if (repo != null)
+                        r.add(repo);
                 }
             }
         }
@@ -266,11 +265,4 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements Runna
     public static boolean ALLOW_HOOKURL_OVERRIDE = !Boolean.getBoolean(GitHubPushTrigger.class.getName()+".disableOverride");
 
     private static final Logger LOGGER = Logger.getLogger(GitHubPushTrigger.class.getName());
-
-    private static final Pattern[] URL_PATTERNS = {
-        Pattern.compile("git@(.+):([^/]+)/([^/]+).git"),
-        Pattern.compile("https://[^/]+@([^/]+)/([^/]+)/([^/]+).git"),
-        Pattern.compile("git://([^/]+)/([^/]+)/([^/]+).git"),
-        Pattern.compile("ssh://git@([^/]+)/([^/]+)/([^/]+).git")
-    };
 }
