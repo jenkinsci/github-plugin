@@ -1,6 +1,7 @@
 package com.cloudbees.jenkins;
 
 import hudson.util.AdaptedIterator;
+import org.kohsuke.github.GHPerson;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 
@@ -58,7 +59,11 @@ public class GitHubRepositoryName {
                 return new AdaptedIterator<GitHub,GHRepository>(GitHubWebHook.get().login(host,userName)) {
                     protected GHRepository adapt(GitHub item) {
                         try {
-                            return item.getUser(userName).getRepository(repositoryName);
+                            GHPerson person = item.getUser(userName);
+                            if (person != null) {
+                                return person.getRepository(repositoryName);
+                            }
+                            return item.getOrganization(userName).getRepository(repositoryName);
                         } catch (IOException e) {
                             LOGGER.log(Level.WARNING,"Failed to obtain repository "+this,e);
                             return null;
