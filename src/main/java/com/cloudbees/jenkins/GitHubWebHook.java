@@ -153,7 +153,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
         Matcher matcher = REPOSITORY_NAME_PATTERN.matcher(repoUrl);
         if (matcher.matches()) {
             GitHubRepositoryName changedRepository = new GitHubRepositoryName(matcher.group(1), ownerName, repoName);
-            for (AbstractProject<?,?> job : Hudson.getInstance().getItems(AbstractProject.class)) {
+            for (AbstractProject<?,?> job : Hudson.getInstance().getAllItems(AbstractProject.class)) {
                 GitHubPushTrigger trigger = job.getTrigger(GitHubPushTrigger.class);
                 if (trigger!=null) {
                     LOGGER.fine("Considering to poke "+job.getFullDisplayName());
