@@ -7,9 +7,12 @@ import hudson.model.AbstractProject;
 import hudson.model.Hudson;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
+import hudson.security.ACL;
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
 import net.sf.json.JSONObject;
+import org.acegisecurity.Authentication;
+import org.acegisecurity.context.SecurityContextHolder;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -152,16 +155,25 @@ public class GitHubWebHook implements UnprotectedRootAction {
         LOGGER.fine("Full details of the POST was "+o.toString());
         Matcher matcher = REPOSITORY_NAME_PATTERN.matcher(repoUrl);
         if (matcher.matches()) {
-            GitHubRepositoryName changedRepository = new GitHubRepositoryName(matcher.group(1), ownerName, repoName);
-            for (AbstractProject<?,?> job : Hudson.getInstance().getAllItems(AbstractProject.class)) {
-                GitHubPushTrigger trigger = job.getTrigger(GitHubPushTrigger.class);
-                if (trigger!=null) {
-                    LOGGER.fine("Considering to poke "+job.getFullDisplayName());
-                    if (trigger.getGitHubRepositories().contains(changedRepository))
-                        trigger.onPost();
-                    else
-                        LOGGER.fine("Skipped "+job.getFullDisplayName()+" because it doesn't have a matching repository.");
+            // run in high privilege to see all the projects anonymous users don't see.
+            // this is safe because when we actually schedule a build, it's a build that can
+            // happen at some random time anyway.
+            Authentication old = SecurityContextHolder.getContext().getAuthentication();
+            SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
+            try {
+                GitHubRepositoryName changedRepository = new GitHubRepositoryName(matcher.group(1), ownerName, repoName);
+                for (AbstractProject<?,?> job : Hudson.getInstance().getAllItems(AbstractProject.class)) {
+                    GitHubPushTrigger trigger = job.getTrigger(GitHubPushTrigger.class);
+                    if (trigger!=null) {
+                        LOGGER.fine("Considering to poke "+job.getFullDisplayName());
+                        if (trigger.getGitHubRepositories().contains(changedRepository))
+                            trigger.onPost();
+                        else
+                            LOGGER.fine("Skipped "+job.getFullDisplayName()+" because it doesn't have a matching repository.");
+                    }
                 }
+            } finally {
+                SecurityContextHolder.getContext().setAuthentication(old);
             }
         } else {
             LOGGER.warning("Malformed repo url "+repoUrl);
