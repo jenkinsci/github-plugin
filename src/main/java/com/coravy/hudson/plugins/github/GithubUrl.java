@@ -20,9 +20,9 @@ public final class GithubUrl {
         if (StringUtils.isBlank(url)) {
             return null;
         }
-        // Strip "tree/..."
-        if (url.contains("tree/")) {
-            url = url.replaceFirst("tree/.*$", "");
+        // Strip "/tree/..."
+        if (url.contains("/tree/")) {
+            url = url.replaceFirst("/tree/.*$", "");
         }
         if (!url.endsWith("/")) {
             url += '/';
