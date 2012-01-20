@@ -167,7 +167,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements Runna
         }
 
         public String getIconFileName() {
-            return "clipboard.gif";
+            return "clipboard.png";
         }
 
         public String getDisplayName() {
