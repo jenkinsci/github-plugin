@@ -239,13 +239,13 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements Runna
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
             JSONObject hookMode = json.getJSONObject("hookMode");
             manageHook = "auto".equals(hookMode.getString("value"));
-            JSONObject o = json.getJSONObject("hookUrl");
+            JSONObject o = hookMode.getJSONObject("hookUrl");
             if (o!=null && !o.isNullObject()) {
                 hookUrl = o.getString("url");
             } else {
                 hookUrl = null;
             }
-            credentials = req.bindJSONToList(Credential.class,json.get("credentials"));
+            credentials = req.bindJSONToList(Credential.class,hookMode.get("credentials"));
             save();
             return true;
         }
