@@ -6,59 +6,65 @@
 		<version>1.445</version>
 	</parent>
 
-	<groupId>com.coravy.hudson.plugins.github</groupId>
-	<artifactId>github</artifactId>
-	<packaging>hpi</packaging>
-	<version>1.1-SNAPSHOT</version>
-	<name>GitHub plugin</name>
-	<url>http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin</url>
+  <groupId>com.coravy.hudson.plugins.github</groupId>
+  <artifactId>github</artifactId>
+  <packaging>hpi</packaging>
+  <version>1.1-SNAPSHOT</version>
+  <name>GitHub plugin</name>
+  <url>http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin</url>
 
-	<repositories>
-		<repository>
-			<id>jgit-repository</id>
-			<name>Eclipse JGit Repository</name>
-			<url>http://download.eclipse.org/jgit/maven</url>
-		</repository>
-	</repositories>
+  <repositories>
+    <repository>
+      <id>jgit-repository</id>
+      <name>Eclipse JGit Repository</name>
+      <url>http://download.eclipse.org/jgit/maven</url>
+    </repository>
+  </repositories>
 
-	<developers>
-		<developer>
-			<id>kohsuke</id>
-			<name>Kohsuke Kawaguchi</name>
-		</developer>
-		<developer>
-			<id>juretta</id>
-			<name>Stefan Saasen</name>
-		</developer>
-	</developers>
+  <developers>
+    <developer>
+      <id>kohsuke</id>
+      <name>Kohsuke Kawaguchi</name>
+    </developer>
+    <developer>
+      <id>juretta</id>
+      <name>Stefan Saasen</name>
+    </developer>
+  </developers>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.jenkins-ci.plugins</groupId>
-			<artifactId>github-api</artifactId>
-			<version>1.16</version>
-		</dependency>
-		<dependency>
-			<groupId>org.jenkinsci.plugins</groupId>
-			<artifactId>git</artifactId>
-			<version>1.1.12</version>
-		</dependency>
-		<dependency>
-			<groupId>org.jmock</groupId>
-			<artifactId>jmock-junit4</artifactId>
-			<version>2.5.1</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jgit</groupId>
-			<artifactId>org.eclipse.jgit</artifactId>
-			<version>0.12.1</version>
-		</dependency>
-	</dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>github-api</artifactId>
+      <version>1.16</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkinsci.plugins</groupId>
+      <artifactId>git</artifactId>
+      <version>1.1.12</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jmock</groupId>
+      <artifactId>jmock-junit4</artifactId>
+      <version>2.5.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit</artifactId>
+      <version>0.12.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>multiple-scms</artifactId>
+      <version>0.2</version>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
 
-	<scm>
-		<connection>scm:git:git://github.com/jenkinsci/github-plugin.git</connection>
-		<developerConnection>scm:git:git@github.com:jenkinsci/github-plugin.git</developerConnection>
-		<url>https://github.com/jenkinsci/github-plugin</url>
-	</scm>
+  <scm>
+    <connection>scm:git:git://github.com/jenkinsci/github-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/github-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/github-plugin</url>
+  </scm>
 </project>
