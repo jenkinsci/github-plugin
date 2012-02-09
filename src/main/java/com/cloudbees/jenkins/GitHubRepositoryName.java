@@ -24,6 +24,7 @@ public class GitHubRepositoryName {
     private static final Pattern[] URL_PATTERNS = {
         Pattern.compile("git@(.+):([^/]+)/([^/]+).git"),
         Pattern.compile("https://[^/]+@([^/]+)/([^/]+)/([^/]+).git"),
+        Pattern.compile("https://([^/]+)/([^/]+)/([^/]+).git"),
         Pattern.compile("git://([^/]+)/([^/]+)/([^/]+).git"),
         Pattern.compile("ssh://git@([^/]+)/([^/]+)/([^/]+).git")
     };
