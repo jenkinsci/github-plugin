@@ -48,7 +48,6 @@
       <groupId>org.jenkins-ci</groupId>
       <artifactId>htmlunit</artifactId>
       <version>2.6-jenkins-6</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.jenkinsci.plugins</groupId>
