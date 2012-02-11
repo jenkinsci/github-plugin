@@ -37,6 +37,12 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>github-api</artifactId>
       <version>1.16</version>
+      <exclusions>
+          <exclusion>
+              <groupId>org.jvnet.hudson</groupId>
+              <artifactId>htmlunit</artifactId>
+          </exclusion>    
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.jenkinsci.plugins</groupId>
