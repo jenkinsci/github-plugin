@@ -8,6 +8,7 @@ import hudson.model.Hudson;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
 import hudson.security.ACL;
+import hudson.triggers.Trigger;
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
 import net.sf.json.JSONObject;
@@ -145,7 +146,11 @@ public class GitHubWebHook implements UnprotectedRootAction {
      * 1 push to 2 branches will result in 2 pushes.
      */
     public void doIndex(StaplerRequest req) {
-        JSONObject o = JSONObject.fromObject(req.getParameter("payload"));
+        processGitHubPayload(req.getParameter("payload"),GitHubPushTrigger.class);
+    }
+    
+    public void processGitHubPayload(String payload, Class<? extends Trigger> triggerClass) {
+        JSONObject o = JSONObject.fromObject(payload);
         JSONObject repository = o.getJSONObject("repository");
         String repoUrl = repository.getString("url"); // something like 'https://github.com/kohsuke/foo'
         String repoName = repository.getString("name"); // 'foo' portion of the above URL
@@ -163,7 +168,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
             try {
                 GitHubRepositoryName changedRepository = new GitHubRepositoryName(matcher.group(1), ownerName, repoName);
                 for (AbstractProject<?,?> job : Hudson.getInstance().getAllItems(AbstractProject.class)) {
-                    GitHubPushTrigger trigger = job.getTrigger(GitHubPushTrigger.class);
+                    GitHubTrigger trigger = (GitHubTrigger) job.getTrigger(triggerClass);
                     if (trigger!=null) {
                         LOGGER.fine("Considering to poke "+job.getFullDisplayName());
                         if (trigger.getGitHubRepositories().contains(changedRepository))
