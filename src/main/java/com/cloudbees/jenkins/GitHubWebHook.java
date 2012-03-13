@@ -170,7 +170,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
                 for (AbstractProject<?,?> job : Hudson.getInstance().getAllItems(AbstractProject.class)) {
                     GitHubTrigger trigger = (GitHubTrigger) job.getTrigger(triggerClass);
                     if (trigger!=null) {
-                        LOGGER.info("Considering to poke "+job.getFullDisplayName());
+                        LOGGER.fine("Considering to poke "+job.getFullDisplayName());
                         if (trigger.getGitHubRepositories().contains(changedRepository))
                             trigger.onPost();
                         else
