@@ -48,7 +48,7 @@ import org.kohsuke.stapler.StaplerRequest;
  *
  * @author Kohsuke Kawaguchi
  */
-public class GitHubPushTrigger extends Trigger<AbstractProject> implements Runnable {
+public class GitHubPushTrigger extends Trigger<AbstractProject> implements GitHubTrigger, Runnable {
     @DataBoundConstructor
     public GitHubPushTrigger() {
     }
