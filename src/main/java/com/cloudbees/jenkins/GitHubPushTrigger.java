@@ -39,6 +39,8 @@ import org.apache.commons.jelly.XMLOutput;
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.multiplescms.MultiSCM;
+import org.kohsuke.github.GHException;
+import org.kohsuke.github.GHHook;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
@@ -141,7 +143,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements GitHu
                     for (GitHubRepositoryName name : names) {
                         for (GHRepository repo : name.resolve()) {
                             try {
-                                if (repo.getPostCommitHooks().add(getDescriptor().getHookUrl())) {
+                                if(createJenkinsHook(repo,getDescriptor().getHookUrl())) {
                                     LOGGER.info("Added GitHub webhook for "+name);
                                     continue OUTER;
                                 }
@@ -152,6 +154,15 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements GitHu
                     }
                 }
             });
+        }
+    }
+
+    private boolean createJenkinsHook(GHRepository repo, URL url) {
+        try {
+            repo.createHook("jenkins",Collections.singletonMap("jenkins_hook_url",url.toExternalForm()),null,true);
+            return true;
+        } catch (IOException e) {
+            throw new GHException("Failed to update jenkins hooks",e);
         }
     }
 
