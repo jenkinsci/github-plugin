@@ -143,12 +143,12 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements GitHu
                     for (GitHubRepositoryName name : names) {
                         for (GHRepository repo : name.resolve()) {
                             try {
-                                if(createJenkinsHook(repo,getDescriptor().getHookUrl())) {
+                                if(createJenkinsHook(repo, getDescriptor().getHookUrl())) {
                                     LOGGER.info("Added GitHub webhook for "+name);
                                     continue OUTER;
                                 }
                             } catch (Throwable e) {
-                                LOGGER.log(Level.WARNING, "Failed to add GitHub webhook for "+name,e);
+                                LOGGER.log(Level.WARNING, "Failed to add GitHub webhook for "+name, e);
                             }
                         }
                     }
