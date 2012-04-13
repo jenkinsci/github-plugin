@@ -1,10 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.jenkins-ci.plugins</groupId>
-		<artifactId>plugin</artifactId>
-		<version>1.445</version>
-	</parent>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.jenkins-ci.plugins</groupId>
+    <artifactId>plugin</artifactId>
+    <version>1.445</version>
+  </parent>
 
   <groupId>com.coravy.hudson.plugins.github</groupId>
   <artifactId>github</artifactId>
@@ -12,14 +12,6 @@
   <version>1.3-SNAPSHOT</version>
   <name>GitHub plugin</name>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin</url>
-
-  <repositories>
-    <repository>
-      <id>jgit-repository</id>
-      <name>Eclipse JGit Repository</name>
-      <url>http://download.eclipse.org/jgit/maven</url>
-    </repository>
-  </repositories>
 
   <developers>
     <developer>
@@ -36,7 +28,7 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>github-api</artifactId>
-      <version>1.16</version>
+      <version>1.22</version>
       <exclusions>
           <exclusion>
               <groupId>org.jvnet.hudson</groupId>
@@ -52,7 +44,7 @@
     <dependency>
       <groupId>org.jenkinsci.plugins</groupId>
       <artifactId>git</artifactId>
-      <version>1.1.12</version>
+      <version>1.1.17</version>
     </dependency>
     <dependency>
       <groupId>org.jmock</groupId>
@@ -79,11 +71,25 @@
     <url>https://github.com/jenkinsci/github-plugin</url>
   </scm>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <name>Jenkins Repository</name>
+      <url>http://repo.jenkins-ci.org/public/</url>
+    </repository>
+    <repository>
+      <id>jgit-repository</id>
+      <name>Eclipse JGit Repository</name>
+      <url>http://download.eclipse.org/jgit/maven</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>http://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
+    
 </project>  
 
