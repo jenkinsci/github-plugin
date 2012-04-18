@@ -1,6 +1,5 @@
 package com.cloudbees.jenkins;
 
-import hudson.model.Cause;
 import hudson.triggers.SCMTrigger.SCMTriggerCause;
 
 /**
