@@ -7,8 +7,12 @@ import hudson.model.Hudson;
 import hudson.model.PeriodicWork;
 import hudson.triggers.Trigger;
 import hudson.util.TimeUnit2;
+import org.kohsuke.github.GHException;
+import org.kohsuke.github.GHHook;
 import org.kohsuke.github.GHRepository;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -61,14 +65,28 @@ public class Cleaner extends PeriodicWork {
         for (GitHubRepositoryName r : names) {
             for (GHRepository repo : r.resolve()) {
                 try {
-                    repo.getPostCommitHooks().remove(
-                        Trigger.all().get(DescriptorImpl.class).getHookUrl());
+                    removeHook(repo, Trigger.all().get(DescriptorImpl.class).getHookUrl());
                     LOGGER.fine("Removed a hook from "+r+"");
                     continue OUTER;
                 } catch (Throwable e) {
                     LOGGER.log(Level.WARNING,"Failed to remove hook from "+r,e);
                 }
             }
+        }
+    }
+
+    //Maybe we should create a remove hook method in the Github API
+    //something like public void removeHook(String name, Map<String,String> config)
+    private void removeHook(GHRepository repo, URL url) {
+        try {
+            String urlExternalForm = url.toExternalForm();
+            for (GHHook h : repo.getHooks()) {
+                if (h.getName().equals("jenkins") && h.getConfig().get("jenkins_hook_url").equals(urlExternalForm)) {
+                    h.delete();
+                }
+            }
+        } catch (IOException e) {
+            throw new GHException("Failed to update post-commit hooks", e);
         }
     }
 
