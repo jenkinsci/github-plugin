@@ -1,6 +1,7 @@
 package com.cloudbees.jenkins;
 
 import hudson.util.AdaptedIterator;
+import hudson.util.Iterators.FilterIterator;
 import org.kohsuke.github.GHOrganization;
 import org.kohsuke.github.GHPerson;
 import org.kohsuke.github.GHRepository;
@@ -55,10 +56,23 @@ public class GitHubRepositoryName {
         this.repositoryName = repositoryName;
     }
 
+    /**
+     * Resolves this name to the actual reference by {@link GHRepository}.
+     *
+     * <p>
+     * Since the system can store multiple credentials, and only some of them might be able to see this name in question,
+     * this method uses {@link GitHubWebHook#login(String, String)} and attempt to find the right credential that can
+     * access this repository.
+     *
+     * <p>
+     * This method walks multiple repositories for each credential that can access the repository. Depending on
+     * what you are trying to do with the repository, you might have to keep trying until a {@link GHRepository}
+     * with suitable permission is returned.
+     */
     public Iterable<GHRepository> resolve() {
         return new Iterable<GHRepository>() {
             public Iterator<GHRepository> iterator() {
-                return new AdaptedIterator<GitHub,GHRepository>(GitHubWebHook.get().login(host,userName)) {
+                return filterNull(new AdaptedIterator<GitHub,GHRepository>(GitHubWebHook.get().login(host,userName)) {
                     protected GHRepository adapt(GitHub item) {
                         try {
                             GHRepository repo = item.getUser(userName).getRepository(repositoryName);
@@ -71,7 +85,16 @@ public class GitHubRepositoryName {
                             return null;
                         }
                     }
-                };
+                });
+            }
+        };
+    }
+
+    private <V> Iterator<V> filterNull(Iterator<V> itr) {
+        return new FilterIterator<V>(itr) {
+            @Override
+            protected boolean filter(V v) {
+                return v!=null;
             }
         };
     }
