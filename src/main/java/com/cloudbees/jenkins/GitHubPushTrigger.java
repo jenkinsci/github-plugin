@@ -237,6 +237,11 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements GitHu
             return manageHook;
         }
 
+        public void setManageHook(boolean v) {
+            manageHook = v;
+            save();
+        }
+
         /**
          * Returns the URL that GitHub should post.
          */
