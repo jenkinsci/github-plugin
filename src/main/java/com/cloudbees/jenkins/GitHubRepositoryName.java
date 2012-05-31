@@ -2,12 +2,15 @@ package com.cloudbees.jenkins;
 
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
+import org.kohsuke.github.GHCommitPointer;
 import org.kohsuke.github.GHOrganization;
 import org.kohsuke.github.GHPerson;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -111,6 +114,28 @@ public class GitHubRepositoryName {
         };
     }
 
+    /**
+     * Does this repository match the repository referenced in the given {@link GHCommitPointer}?
+     */
+    public boolean matches(GHCommitPointer commit) {
+        try {
+            return userName.equals(commit.getUser().getLogin())
+                && repositoryName.equals(commit.getRepository().getName())
+                && host.equals(new URL(commit.getRepository().getUrl()).getHost());
+        } catch (MalformedURLException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Does this repository match the repository referenced in the given {@link GHCommitPointer}?
+     */
+    public boolean matches(GHRepository repo) throws IOException {
+        return userName.equals(repo.getOwner().getLogin()) // TODO: use getOwnerName
+            && repositoryName.equals(repo.getName())
+            && host.equals(new URL(repo.getUrl()).getHost());
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -119,7 +144,6 @@ public class GitHubRepositoryName {
         GitHubRepositoryName that = (GitHubRepositoryName) o;
 
         return repositoryName.equals(that.repositoryName) && userName.equals(that.userName) && host.equals(that.host);
-
     }
 
     @Override
