@@ -90,6 +90,18 @@ public class GitHubRepositoryName {
         };
     }
 
+    /**
+     * Variation of {@link #resolve()} method that just returns the first valid repository object.
+     *
+     * This is useful if the caller only relies on the read access to the repository and doesn't need to
+     * walk possible candidates.
+     */
+    public GHRepository resolveOne() {
+        for (GHRepository r : resolve())
+            return r;
+        return null;
+    }
+
     private <V> Iterator<V> filterNull(Iterator<V> itr) {
         return new FilterIterator<V>(itr) {
             @Override
