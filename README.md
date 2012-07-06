@@ -3,13 +3,6 @@ Jenkins Github Plugin
 
 Read more: [http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin](http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin)
 
-Issues
-------
-
-Please use the github issue tracker:
-
-[http://github.com/juretta/hudson-github-plugin/issues](http://github.com/juretta/hudson-github-plugin/issues)
-
 Development
 ===========
 
