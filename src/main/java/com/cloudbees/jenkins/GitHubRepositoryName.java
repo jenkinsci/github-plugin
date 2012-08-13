@@ -30,7 +30,8 @@ public class GitHubRepositoryName {
         Pattern.compile("https://[^/]+@([^/]+)/([^/]+)/([^/]+).git"),
         Pattern.compile("https://([^/]+)/([^/]+)/([^/]+).git"),
         Pattern.compile("git://([^/]+)/([^/]+)/([^/]+).git"),
-        Pattern.compile("ssh://git@([^/]+)/([^/]+)/([^/]+).git")
+        Pattern.compile("ssh://git@([^/]+)/([^/]+)/([^/]+).git"),
+        Pattern.compile("ssh://git@(.+):([^/]+)/([^/]+).git")
     };
 
     /**
