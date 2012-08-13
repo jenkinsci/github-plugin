@@ -23,6 +23,16 @@ public class GitHubRepositoryNameTest {
     }
 
     @Test
+    public void gitAtUrlGitHubSsh() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("ssh://git@github.com:jenkinsci/jenkins.git");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("github.com", repo.host);
+    }
+
+    @Test
     public void gitAtUrlOtherHost() {
         GitHubRepositoryName repo = GitHubRepositoryName
                 .create("git@gh.company.com:jenkinsci/jenkins.git");
