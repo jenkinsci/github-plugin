@@ -8,8 +8,23 @@ import hudson.triggers.SCMTrigger.SCMTriggerCause;
  * @author Kohsuke Kawaguchi
  */
 public class GitHubPushCause extends SCMTriggerCause {
+    /**
+     * The name of the user who pushed to GitHub.
+     */
+    private String pushedBy;
+
+    public GitHubPushCause(String pusher) {
+        this("", pusher);
+    }
+
+    public GitHubPushCause(String pollingLog, String pusher) {
+        super(pollingLog);
+        pushedBy = pusher;
+    }
+
     @Override
     public String getShortDescription() {
-        return "Started by GitHub push by ";
+        String pusher = pushedBy != null ? pushedBy : "";
+        return "Started by GitHub push by " + pusher;
     }
 }

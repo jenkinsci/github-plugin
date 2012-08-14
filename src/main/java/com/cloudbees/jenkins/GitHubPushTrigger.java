@@ -40,7 +40,6 @@ import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.multiplescms.MultiSCM;
 import org.kohsuke.github.GHException;
-import org.kohsuke.github.GHHook;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
@@ -50,7 +49,7 @@ import org.kohsuke.stapler.StaplerRequest;
  *
  * @author Kohsuke Kawaguchi
  */
-public class GitHubPushTrigger extends Trigger<AbstractProject> implements GitHubTrigger, Runnable {
+public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements GitHubTrigger {
     @DataBoundConstructor
     public GitHubPushTrigger() {
     }
@@ -58,8 +57,41 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements GitHu
     /**
      * Called when a POST is made.
      */
+    @Deprecated
     public void onPost() {
-        getDescriptor().queue.execute(this);
+        onPost("");
+    }
+
+    /**
+     * Called when a POST is made.
+     */
+    public void onPost(String triggeredByUser) {
+        final String pushBy = triggeredByUser;
+        getDescriptor().queue.execute(new Runnable() {
+            public void run() {
+                try {
+                    StreamTaskListener listener = new StreamTaskListener(getLogFile());
+
+                    try {
+                        PrintStream logger = listener.getLogger();
+                        long start = System.currentTimeMillis();
+                        logger.println("Started on "+ DateFormat.getDateTimeInstance().format(new Date()));
+                        boolean result = job.poll(listener).hasChanges();
+                        logger.println("Done. Took "+ Util.getTimeSpanString(System.currentTimeMillis()-start));
+                        if(result) {
+                            logger.println("Changes found");
+                            job.scheduleBuild(new GitHubPushCause(pushBy));
+                        } else {
+                            logger.println("No changes");
+                        }
+                    } finally {
+                        listener.close();
+                    }
+                } catch (IOException e) {
+                    LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
+                }
+            }
+        });
     }
 
     /**
@@ -67,30 +99,6 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements GitHu
      */
     public File getLogFile() {
         return new File(job.getRootDir(),"github-polling.log");
-    }
-
-    public void run() {
-        try {
-            StreamTaskListener listener = new StreamTaskListener(getLogFile());
-
-            try {
-                PrintStream logger = listener.getLogger();
-                long start = System.currentTimeMillis();
-                logger.println("Started on "+ DateFormat.getDateTimeInstance().format(new Date()));
-                boolean result = job.poll(listener).hasChanges();
-                logger.println("Done. Took "+ Util.getTimeSpanString(System.currentTimeMillis()-start));
-                if(result) {
-                    logger.println("Changes found");
-                    job.scheduleBuild(new GitHubPushCause());
-                } else {
-                    logger.println("No changes");
-                }
-            } finally {
-                listener.close();
-            }
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
-        }
     }
 
     /**
@@ -131,7 +139,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject> implements GitHu
     }
 
     @Override
-    public void start(AbstractProject project, boolean newInstance) {
+    public void start(AbstractProject<?,?> project, boolean newInstance) {
         super.start(project, newInstance);
         if (newInstance && getDescriptor().isManageHook()) {
             // make sure we have hooks installed. do this lazily to avoid blocking the UI thread.
