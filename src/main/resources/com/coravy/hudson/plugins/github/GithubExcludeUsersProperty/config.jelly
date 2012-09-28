@@ -1,0 +1,6 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+  <f:entry title="${%github.excludeUsers}"
+    help="/plugin/github/help-exclude-users.html">
+    <f:textbox name="github.excludeUsers" value="${instance.excludeUsers}" />
+  </f:entry>
+</j:jelly>
