@@ -7,26 +7,21 @@ import hudson.model.AbstractProject;
 import hudson.model.Job;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.logging.Logger;
 
 import net.sf.json.JSONObject;
 
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
 /**
- * Stores the github related project properties.
- * <p>
- * As of now this is only the URL to the github project.
- * 
- * @todo Should we store the GithubUrl instead of the String?
- * @author Stefan Saasen <stefan@coravy.com>
+ * Stores the names of users whose pushes will not casue a build to trigger
  */
 public final class GithubExcludeUsersProperty extends
+
   JobProperty<AbstractProject<?, ?>> {
 
   private static final Logger LOGGER = Logger.getLogger(GithubExcludeUsersProperty.class.getName());
@@ -45,14 +40,16 @@ public final class GithubExcludeUsersProperty extends
   /**
    * @return the users to exclude
    * 
-   *         TODO: Work out how to handle list properties correctly in jekins
-   *         JobProperty
+   *         TODO: Work out how to create this list once. Not sure about how
+   *         marshalling is implemented
    */
   public List<String> getExcludeUsersList() {
     List<String> excludeUsersList = new ArrayList<String>();
-    if (StringUtils.isNotBlank(excludeUsers)) {
-      excludeUsersList = Arrays.asList(StringUtils.split(excludeUsers, EXCLUDE_USERS_DELIMITER));
+    StringTokenizer st = new StringTokenizer(excludeUsers, EXCLUDE_USERS_DELIMITER);
+    while (st.hasMoreTokens()) {
+      excludeUsersList.add(st.nextToken().trim());
     }
+
     return Collections.unmodifiableList(excludeUsersList);
   }
 
@@ -79,7 +76,6 @@ public final class GithubExcludeUsersProperty extends
     @Override
     public JobProperty<?> newInstance(StaplerRequest req,
       JSONObject formData) throws FormException {
-
 
       GithubExcludeUsersProperty tpp = req.bindJSON(
         GithubExcludeUsersProperty.class, formData);
