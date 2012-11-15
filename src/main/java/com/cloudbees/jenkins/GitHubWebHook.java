@@ -145,6 +145,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
     /**
      * 1 push to 2 branches will result in 2 pushes.
      */
+    // XXX probably want (when available in baseline Stapler version): @RequirePOST
     public void doIndex(StaplerRequest req) {
         String payload = req.getParameter("payload");
         if (payload == null) {
