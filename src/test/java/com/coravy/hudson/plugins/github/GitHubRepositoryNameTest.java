@@ -72,6 +72,17 @@ public class GitHubRepositoryNameTest {
         assertEquals("jenkins", repo.repositoryName);
         assertEquals("github.com", repo.host);
     }
+    
+    @Test
+    public void httpsUrlGitHubWithoutUserOrSuffix() {
+        //this is valid for anonymous usage
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("https://github.com/jenkinsci/jenkins");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("github.com", repo.host);
+    }
 
 
     @Test

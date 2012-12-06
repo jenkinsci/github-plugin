@@ -26,11 +26,11 @@ import java.util.regex.Pattern;
 public class GitHubRepositoryName {
 
     private static final Pattern[] URL_PATTERNS = {
-        Pattern.compile("git@(.+):([^/]+)/([^/]+)(\\.git|)"),
-        Pattern.compile("https://[^/]+@([^/]+)/([^/]+)/([^/]+)(\\.git|)"),
-        Pattern.compile("https://([^/]+)/([^/]+)/([^/]+)(\\.git|)"),
-        Pattern.compile("git://([^/]+)/([^/]+)/([^/]+)(\\.git|)"),
-        Pattern.compile("ssh://git@([^/]+)/([^/]+)/([^/]+)(\\.git|)")
+        Pattern.compile("git@(.+):([^/]+)/([^/]+?).git"),
+        Pattern.compile("https://[^/]+@([^/]+)/([^/]+?)/([^/]+).git"),
+        Pattern.compile("https://([^/]+)/([^/]+)/([^/]+?).git"),
+        Pattern.compile("git://([^/]+)/([^/]+)/([^/]+?).git"),
+        Pattern.compile("ssh://git@([^/]+)/([^/]+)/([^/]+?).git")
     };
 
     /**
@@ -41,7 +41,13 @@ public class GitHubRepositoryName {
      * @return parsed {@link GitHubRepositoryName} or null if it cannot be
      *         parsed from the specified URL
      */
-    public static GitHubRepositoryName create(final String url) {
+    public static GitHubRepositoryName create(final String rawurl) {
+    	String url;
+    	if(rawurl.endsWith(".git")) {
+    		url = rawurl;
+    	} else {
+    		url = rawurl + ".git";
+    	}
         for (Pattern p : URL_PATTERNS) {
             Matcher m = p.matcher(url);
             if (m.matches())
