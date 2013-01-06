@@ -197,9 +197,4 @@ public class GitHubWebHook implements UnprotectedRootAction {
     public static GitHubWebHook get() {
         return Hudson.getInstance().getExtensionList(RootAction.class).get(GitHubWebHook.class);
     }
-
-    static {
-        // hide "Bad input type: "search", creating a text input" from createElementNS
-        Logger.getLogger(com.gargoylesoftware.htmlunit.html.InputElementFactory.class.getName()).setLevel(WARNING);
-    }
 }
