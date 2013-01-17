@@ -145,8 +145,13 @@ public class GitHubWebHook implements UnprotectedRootAction {
     /**
      * 1 push to 2 branches will result in 2 pushes.
      */
+    // XXX probably want (when available in baseline Stapler version): @RequirePOST
     public void doIndex(StaplerRequest req) {
-        processGitHubPayload(req.getParameter("payload"),GitHubPushTrigger.class);
+        String payload = req.getParameter("payload");
+        if (payload == null) {
+            throw new IllegalArgumentException("Not intended to be browsed interactively (must specify payload parameter)");
+        }
+        processGitHubPayload(payload,GitHubPushTrigger.class);
     }
     
     public void processGitHubPayload(String payload, Class<? extends Trigger<?>> triggerClass) {
@@ -191,10 +196,5 @@ public class GitHubWebHook implements UnprotectedRootAction {
 
     public static GitHubWebHook get() {
         return Hudson.getInstance().getExtensionList(RootAction.class).get(GitHubWebHook.class);
-    }
-
-    static {
-        // hide "Bad input type: "search", creating a text input" from createElementNS
-        Logger.getLogger(com.gargoylesoftware.htmlunit.html.InputElementFactory.class.getName()).setLevel(WARNING);
     }
 }
