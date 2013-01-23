@@ -48,7 +48,6 @@ public class GitHubCommitNotifier extends Notifier {
         BuildData buildData = build.getAction(BuildData.class);
         String sha1 = ObjectId.toString(buildData.getLastBuiltRevision().getSha1());
 
-        GitHubPushCause cause = build.getCause(GitHubPushCause.class);
         GitHubTrigger trigger = (GitHubTrigger) build.getProject().getTrigger(GitHubPushTrigger.class);
         for (GitHubRepositoryName gitHubRepositoryName : trigger.getGitHubRepositories()) {
             for (GHRepository repository : gitHubRepositoryName.resolve()) {
@@ -82,7 +81,7 @@ public class GitHubCommitNotifier extends Notifier {
         }
 
         public String getDisplayName() {
-            return "Set build status on Github commit";
+            return "Set build status on GitHub commit";
         }
     }
 
