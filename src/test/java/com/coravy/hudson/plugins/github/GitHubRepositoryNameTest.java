@@ -73,11 +73,81 @@ public class GitHubRepositoryNameTest {
         assertEquals("github.com", repo.host);
     }
 
-
     @Test
     public void httpsUrlOtherHost() {
         GitHubRepositoryName repo = GitHubRepositoryName
                 .create("https://employee@gh.company.com/jenkinsci/jenkins.git");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("gh.company.com", repo.host);
+    }
+
+    @Test
+    public void gitAtUrlGitHubNoSuffix() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("git@github.com:jenkinsci/jenkins");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("github.com", repo.host);
+    }
+
+    @Test
+    public void gitAtUrlOtherHostNoSuffix() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("git@gh.company.com:jenkinsci/jenkins");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("gh.company.com", repo.host);
+    }
+
+    @Test
+    public void gitColonUrlGitHubNoSuffix() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("git://github.com/jenkinsci/jenkins");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("github.com", repo.host);
+    }
+
+    @Test
+    public void gitColonUrlOtherHostNoSuffix() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("git://company.net/jenkinsci/jenkins");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("company.net", repo.host);
+    }
+
+    @Test
+    public void httpsUrlGitHubNoSuffix() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("https://user@github.com/jenkinsci/jenkins");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("github.com", repo.host);
+    }
+    
+    @Test
+    public void httpsUrlGitHubWithoutUserNoSuffix() {
+        //this is valid for anonymous usage
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("https://github.com/jenkinsci/jenkins");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("github.com", repo.host);
+    }
+
+    @Test
+    public void httpsUrlOtherHostNoSuffix() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("https://employee@gh.company.com/jenkinsci/jenkins");
         assertNotNull(repo);
         assertEquals("jenkinsci", repo.userName);
         assertEquals("jenkins", repo.repositoryName);
