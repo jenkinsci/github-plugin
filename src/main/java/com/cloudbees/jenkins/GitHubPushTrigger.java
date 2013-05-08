@@ -68,7 +68,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
     public void onPost(String triggeredByUser) {
         final String pushBy = triggeredByUser;
         getDescriptor().queue.execute(new Runnable() {
-            public void run() {
+            private boolean runPolling() {
                 try {
                     StreamTaskListener listener = new StreamTaskListener(getLogFile());
 
@@ -78,17 +78,43 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
                         logger.println("Started on "+ DateFormat.getDateTimeInstance().format(new Date()));
                         boolean result = job.poll(listener).hasChanges();
                         logger.println("Done. Took "+ Util.getTimeSpanString(System.currentTimeMillis()-start));
-                        if(result) {
+                        if(result)
                             logger.println("Changes found");
-                            job.scheduleBuild(new GitHubPushCause(pushBy));
-                        } else {
+                        else
                             logger.println("No changes");
-                        }
+                        return result;
+                    } catch (Error e) {
+                        e.printStackTrace(listener.error("Failed to record SCM polling"));
+                        LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
+                        throw e;
+                    } catch (RuntimeException e) {
+                        e.printStackTrace(listener.error("Failed to record SCM polling"));
+                        LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
+                        throw e;
                     } finally {
                         listener.close();
                     }
                 } catch (IOException e) {
                     LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
+                }
+                return false;
+            }
+
+            public void run() {
+                if (runPolling()) {
+                    String name = " #"+job.getNextBuildNumber();
+                    GitHubPushCause cause;
+                    try {
+                        cause = new GitHubPushCause(getLogFile(), pushBy);
+                    } catch (IOException e) {
+                        LOGGER.log(Level.WARNING, "Failed to parse the polling log",e);
+                        cause = new GitHubPushCause(pushBy);
+                    }
+                    if (job.scheduleBuild(cause)) {
+                        LOGGER.info("SCM changes detected in "+ job.getName()+". Triggering "+name);
+                    } else {
+                        LOGGER.info("SCM changes detected in "+ job.getName()+". Job is already in the queue");
+                    }
                 }
             }
         });
