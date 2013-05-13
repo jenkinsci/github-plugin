@@ -1,7 +1,7 @@
 package com.coravy.hudson.plugins.github;
 
 
-import com.cloudbees.jenkins.GitHubPolling;
+import com.cloudbees.jenkins.GitHubSCM;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -14,11 +14,11 @@ import static org.junit.Assert.assertNotNull;
  * Time: 5:12 PM
  * To change this template use File | Settings | File Templates.
  */
-public class GitHubPollingTest {
+public class GitHubSCMTest {
 
     @Test
     public void GitHubPollingCreateTest() {
-        GitHubPolling repo = GitHubPolling.create("https://user:pass@github.com/kenshoo/github-plugin.git");
+        GitHubSCM repo = GitHubSCM.create("https://user:pass@github.com/kenshoo/github-plugin.git");
         assertNotNull(repo);
         assertEquals("user", repo.getUserName());
         assertEquals("pass", repo.getPassword());

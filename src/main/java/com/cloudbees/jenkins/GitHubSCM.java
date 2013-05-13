@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 
 import static java.util.logging.Level.WARNING;
 
-public class GitHubPolling {
+public class GitHubSCM {
 
     private static final Pattern[] URL_PATTERNS = {
             Pattern.compile("https://([^/]+):([^/]+)@.*/([^/]+/[^/]+).git")
@@ -42,9 +42,9 @@ public class GitHubPolling {
         return repositoryName;
     }
 
-    private static final Logger LOGGER = Logger.getLogger(GitHubPolling.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(GitHubSCM.class.getName());
 
-    private GitHubPolling(String url,String userName, String password, String repositoryName){
+    private GitHubSCM(String url, String userName, String password, String repositoryName){
         this.url = url;
         this.userName = userName;
         this.password = password;
@@ -76,11 +76,11 @@ public class GitHubPolling {
         return null;
     }
 
-    public static GitHubPolling create(final String url){
+    public static GitHubSCM create(final String url){
         for (Pattern p : URL_PATTERNS) {
             Matcher m = p.matcher(url);
             if (m.matches()){
-                return new GitHubPolling("https://api.github.com",m.group(1),m.group(2),m.group(3));
+                return new GitHubSCM("https://api.github.com",m.group(1),m.group(2),m.group(3));
             }
         }
         return null;

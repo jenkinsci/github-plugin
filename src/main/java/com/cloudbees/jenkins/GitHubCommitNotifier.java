@@ -12,13 +12,9 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.transport.RemoteConfig;
-import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.multiplescms.MultiSCM;
 import org.kohsuke.github.GHCommitState;
-import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
@@ -60,23 +56,9 @@ public class GitHubCommitNotifier extends Notifier {
         if (scm instanceof GitSCM) {
             GitSCM gitSCM = (GitSCM) scm;
             for (UserRemoteConfig urc: gitSCM.getUserRemoteConfigs()){
-                GitHubPolling gitHubPolling = GitHubPolling.create(urc.getUrl());
+                GitHubSCM gitHubPolling = GitHubSCM.create(urc.getUrl());
                 GHRepository repository = gitHubPolling.getGitHubRepo();
-                GHCommitState state;
-                String msg;
-                Result result = build.getResult();
-                if (result.isBetterOrEqualTo(SUCCESS)) {
-                    state = GHCommitState.SUCCESS;
-                    msg = "Success";
-                } else if (result.isBetterOrEqualTo(UNSTABLE)) {
-                    state = GHCommitState.FAILURE;
-                    msg = "Unstable";
-                } else {
-                    state = GHCommitState.ERROR;
-                    msg = "Failed";
-                }
-                listener.getLogger().println("setting commit status on Github for " + repository.getUrl() + "/commit/" + sha1);
-                repository.createCommitStatus(sha1, state, "", msg);
+                createStatus(repository, build, listener,sha1);
             }
         }
         return true;
@@ -85,26 +67,30 @@ public class GitHubCommitNotifier extends Notifier {
     private boolean performByTrigger(GitHubTrigger trigger, AbstractBuild<?, ?> build,BuildListener listener,String sha1) throws IOException{
         for (GitHubRepositoryName gitHubRepositoryName : trigger.getGitHubRepositories()) {
             for (GHRepository repository : gitHubRepositoryName.resolve()) {
-                GHCommitState state;
-                String msg;
-
-                Result result = build.getResult();
-                if (result.isBetterOrEqualTo(SUCCESS)) {
-                    state = GHCommitState.SUCCESS;
-                    msg = "Success";
-                } else if (result.isBetterOrEqualTo(UNSTABLE)) {
-                    state = GHCommitState.FAILURE;
-                    msg = "Unstable";
-                } else {
-                    state = GHCommitState.ERROR;
-                    msg = "Failed";
-                }
-
-                listener.getLogger().println("setting commit status on Github for " + repository.getUrl() + "/commit/" + sha1);
-                repository.createCommitStatus(sha1, state, build.getAbsoluteUrl(), msg);
+                createStatus(repository, build, listener,sha1);
             }
         }
         return true;
+    }
+
+    private void createStatus(GHRepository repository, AbstractBuild<?, ?> build, BuildListener listener, String sha1) throws IOException {
+        GHCommitState state;
+        String msg;
+
+        Result result = build.getResult();
+        if (result.isBetterOrEqualTo(SUCCESS)) {
+            state = GHCommitState.SUCCESS;
+            msg = "Success";
+        } else if (result.isBetterOrEqualTo(UNSTABLE)) {
+            state = GHCommitState.FAILURE;
+            msg = "Unstable";
+        } else {
+            state = GHCommitState.ERROR;
+            msg = "Failed";
+        }
+
+        listener.getLogger().println("setting commit status on Github for " + repository.getUrl() + "/commit/" + sha1);
+        repository.createCommitStatus(sha1, state, build.getAbsoluteUrl(), msg);
     }
 
 
