@@ -227,6 +227,16 @@ public class GitHubRepositoryNameTest {
     }
     
     @Test
+    public void trimWhitespace() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("               https://user@github.com/jenkinsci/jenkins/      ");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("github.com", repo.host);
+    }
+
+    @Test
     public void badProtocol() {
         GitHubRepositoryName repo = GitHubRepositoryName
                 .create("gopher://gopher.floodgap.com");

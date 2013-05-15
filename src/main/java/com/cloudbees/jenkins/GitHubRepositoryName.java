@@ -49,7 +49,7 @@ public class GitHubRepositoryName {
     public static GitHubRepositoryName create(final String url) {
         LOGGER.log(Level.FINE, "Constructing from URL {0}", url);
         for (Pattern p : URL_PATTERNS) {
-            Matcher m = p.matcher(url);
+            Matcher m = p.matcher(url.trim());
             if (m.matches()) {
                 LOGGER.log(Level.FINE, "URL matches {0}", m);
                 GitHubRepositoryName ret = new GitHubRepositoryName(m.group(1), m.group(2),
