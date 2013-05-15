@@ -47,14 +47,14 @@ public class GitHubRepositoryName {
      *         parsed from the specified URL
      */
     public static GitHubRepositoryName create(final String url) {
-        LOGGER.log(Level.INFO, "Constructing from URL {0}", url);
+        LOGGER.log(Level.FINE, "Constructing from URL {0}", url);
         for (Pattern p : URL_PATTERNS) {
             Matcher m = p.matcher(url);
             if (m.matches()) {
-                LOGGER.log(Level.INFO, "URL matches {0}", m);
+                LOGGER.log(Level.FINE, "URL matches {0}", m);
                 GitHubRepositoryName ret = new GitHubRepositoryName(m.group(1), m.group(2),
                         m.group(3));
-                LOGGER.log(Level.INFO, "Object is {0}", ret);
+                LOGGER.log(Level.FINE, "Object is {0}", ret);
                 return ret;
             }
         }
