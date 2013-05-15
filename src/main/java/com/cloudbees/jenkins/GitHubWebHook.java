@@ -156,10 +156,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
     
     public void processGitHubPayload(String payload, Class<? extends Trigger<?>> triggerClass) {
         JSONObject o = JSONObject.fromObject(payload);
-        JSONObject repository = o.getJSONObject("repository");
-        String repoUrl = repository.getString("url"); // something like 'https://github.com/kohsuke/foo'
-        String repoName = repository.getString("name"); // 'foo' portion of the above URL
-        String ownerName = repository.getJSONObject("owner").getString("name"); // 'kohsuke' portion of the above URL
+        String repoUrl = o.getJSONObject("repository").getString("url"); // something like 'https://github.com/kohsuke/foo'
         String pusherName = o.getJSONObject("pusher").getString("name");
 
         LOGGER.info("Received POST for "+repoUrl);
@@ -172,7 +169,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
             Authentication old = SecurityContextHolder.getContext().getAuthentication();
             SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
             try {
-                GitHubRepositoryName changedRepository = new GitHubRepositoryName(matcher.group(1), ownerName, repoName);
+                GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl);
                 for (AbstractProject<?,?> job : Hudson.getInstance().getAllItems(AbstractProject.class)) {
                     GitHubTrigger trigger = (GitHubTrigger) job.getTrigger(triggerClass);
                     if (trigger!=null) {
