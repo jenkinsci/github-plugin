@@ -2,6 +2,7 @@ package com.coravy.hudson.plugins.github;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import com.cloudbees.jenkins.GitHubRepositoryName;
 
@@ -153,4 +154,90 @@ public class GitHubRepositoryNameTest {
         assertEquals("jenkins", repo.repositoryName);
         assertEquals("gh.company.com", repo.host);
     }
+    
+    @Test
+    public void gitAtUrlGitHubTrailingSlash() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("git@github.com:jenkinsci/jenkins/");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("github.com", repo.host);
+    }
+
+    @Test
+    public void gitAtUrlOtherHostTrailingSlash() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("git@gh.company.com:jenkinsci/jenkins/");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("gh.company.com", repo.host);
+    }
+
+    @Test
+    public void gitColonUrlGitHubTrailingSlash() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("git://github.com/jenkinsci/jenkins/");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("github.com", repo.host);
+    }
+
+    @Test
+    public void gitColonUrlOtherHostTrailingSlash() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("git://company.net/jenkinsci/jenkins/");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("company.net", repo.host);
+    }
+
+    @Test
+    public void httpsUrlGitHubTrailingSlash() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("https://user@github.com/jenkinsci/jenkins/");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("github.com", repo.host);
+    }
+    
+    @Test
+    public void httpsUrlGitHubWithoutUserTrailingSlash() {
+        //this is valid for anonymous usage
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("https://github.com/jenkinsci/jenkins/");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("github.com", repo.host);
+    }
+
+    @Test
+    public void httpsUrlOtherHostTrailingSlash() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("https://employee@gh.company.com/jenkinsci/jenkins/");
+        assertNotNull(repo);
+        assertEquals("jenkinsci", repo.userName);
+        assertEquals("jenkins", repo.repositoryName);
+        assertEquals("gh.company.com", repo.host);
+    }
+    
+    @Test
+    public void badProtocol() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("gopher://gopher.floodgap.com");
+        assertNull(repo);
+    }
+
+    @Test
+    public void missingColon() {
+        GitHubRepositoryName repo = GitHubRepositoryName
+                .create("https//github.com/jenkinsci/jenkins");
+        assertNull(repo);
+    }
+
 }
