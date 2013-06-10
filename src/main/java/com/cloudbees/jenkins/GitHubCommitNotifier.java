@@ -2,6 +2,7 @@ package com.cloudbees.jenkins;
 
 import hudson.Extension;
 import hudson.Launcher;
+import hudson.Util;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
@@ -48,25 +49,28 @@ public class GitHubCommitNotifier extends Notifier {
         BuildData buildData = build.getAction(BuildData.class);
         String sha1 = ObjectId.toString(buildData.getLastBuiltRevision().getSha1());
 
-        GitHubTrigger trigger = (GitHubTrigger) build.getProject().getTrigger(GitHubPushTrigger.class);
+        GitHubTrigger trigger = build.getProject().getTrigger(GitHubPushTrigger.class);
         for (GitHubRepositoryName gitHubRepositoryName : trigger.getGitHubRepositories()) {
             for (GHRepository repository : gitHubRepositoryName.resolve()) {
                 GHCommitState state;
-                String msg;
+                final String verb;
 
                 Result result = build.getResult();
                 if (result.isBetterOrEqualTo(SUCCESS)) {
                     state = GHCommitState.SUCCESS;
-                    msg = "Success";
+                    verb = "succeeded";
                 } else if (result.isBetterOrEqualTo(UNSTABLE)) {
                     state = GHCommitState.FAILURE;
-                    msg = "Unstable";
+                    verb = "found unstable";
                 } else {
                     state = GHCommitState.ERROR;
-                    msg = "Failed";
+                    verb = "failed";
                 }
 
-                listener.getLogger().println("setting commit status on Github for " + repository.getUrl() + "/commit/" + sha1);
+                // We do not use `build.getDurationString()` because it appends 'and counting' (build is still running)
+                final String timeSpanString = Util.getTimeSpanString(System.currentTimeMillis() - build.getTimeInMillis());
+                final String msg = String.format("Build #%d %s in %s", build.getNumber(), verb, timeSpanString);
+                listener.getLogger().println("Setting commit status on GitHub for " + repository.getUrl() + "/commit/" + sha1);
                 repository.createCommitStatus(sha1, state, build.getAbsoluteUrl(), msg);
             }
         }
