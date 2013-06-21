@@ -48,7 +48,7 @@ public class Credential extends AbstractDescribableImpl<Credential> {
         public FormValidation doValidate(@QueryParameter String apiUrl, @QueryParameter String username, @QueryParameter Secret password, @QueryParameter String oauthAccessToken) throws IOException {
             GitHub gitHub;
             if (Util.fixEmpty(apiUrl) != null) {
-                gitHub = GitHub.connectToEnterprise(apiUrl,username,oauthAccessToken);
+                gitHub = GitHub.connectToEnterprise(apiUrl,oauthAccessToken);
             } else {
                 gitHub = GitHub.connect(username,oauthAccessToken,Secret.toString(password));
             }
