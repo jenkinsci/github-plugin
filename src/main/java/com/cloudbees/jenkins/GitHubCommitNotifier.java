@@ -31,6 +31,8 @@ import java.io.IOException;
 import static hudson.model.Result.*;
 
 /**
+ * Create commit status notifications on the commits based on the outcome of the build.
+ *
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  */
 public class GitHubCommitNotifier extends Notifier {
