@@ -40,11 +40,11 @@ public class GitHubRepositoryName {
 	 * the first set, to avoid any '.git' suffix that may be present being included
 	 * in the repository name.
 	 */
-        Pattern.compile("git@(.+):([^/]+)/([^/]+)"),
-        Pattern.compile("https?://[^/]+@([^/]+)/([^/]+)/([^/]+)"),
-        Pattern.compile("https?://([^/]+)/([^/]+)/([^/]+)"),
-        Pattern.compile("git://([^/]+)/([^/]+)/([^/]+)"),
-        Pattern.compile("ssh://git@([^/]+)/([^/]+)/([^/]+)")
+        Pattern.compile("git@(.+):([^/]+)/([^/]+)/?"),
+        Pattern.compile("https?://[^/]+@([^/]+)/([^/]+)/([^/]+)/?"),
+        Pattern.compile("https?://([^/]+)/([^/]+)/([^/]+)/?"),
+        Pattern.compile("git://([^/]+)/([^/]+)/([^/]+)/?"),
+        Pattern.compile("ssh://git@([^/]+)/([^/]+)/([^/]+)/?")
     };
 
     /**
@@ -56,12 +56,18 @@ public class GitHubRepositoryName {
      *         parsed from the specified URL
      */
     public static GitHubRepositoryName create(final String url) {
+        LOGGER.log(Level.FINE, "Constructing from URL {0}", url);
         for (Pattern p : URL_PATTERNS) {
-            Matcher m = p.matcher(url);
-            if (m.matches())
-                return new GitHubRepositoryName(m.group(1), m.group(2),
+            Matcher m = p.matcher(url.trim());
+            if (m.matches()) {
+                LOGGER.log(Level.FINE, "URL matches {0}", m);
+                GitHubRepositoryName ret = new GitHubRepositoryName(m.group(1), m.group(2),
                         m.group(3));
+                LOGGER.log(Level.FINE, "Object is {0}", ret);
+                return ret;
+            }
         }
+        LOGGER.log(Level.WARNING, "Could not match URL {0}", url);
         return null;
     }
 
