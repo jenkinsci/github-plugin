@@ -9,8 +9,6 @@ import hudson.model.Hudson.MasterComputer;
 import hudson.model.Item;
 import hudson.model.AbstractProject;
 import hudson.model.Project;
-import hudson.plugins.git.GitSCM;
-import hudson.scm.SCM;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.SequentialExecutionQueue;
@@ -36,9 +34,6 @@ import java.util.logging.Logger;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.jelly.XMLOutput;
-import org.eclipse.jgit.transport.RemoteConfig;
-import org.eclipse.jgit.transport.URIish;
-import org.jenkinsci.plugins.multiplescms.MultiSCM;
 import org.kohsuke.github.GHException;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -128,40 +123,11 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
     }
 
     /**
-     * Does this project read from a repository of the given user name and the
-     * given repository name?
+     * @deprecated
+     *      Use {@link GitHubRepositoryName#from(AbstractProject)}
      */
     public Set<GitHubRepositoryName> getGitHubRepositories() {
-        Set<GitHubRepositoryName> r = new HashSet<GitHubRepositoryName>();
-        if (Hudson.getInstance().getPlugin("multiple-scms") != null
-                && job.getScm() instanceof MultiSCM) {
-            MultiSCM multiSCM = (MultiSCM) job.getScm();
-            List<SCM> scmList = multiSCM.getConfiguredSCMs();
-            for (SCM scm : scmList) {
-                addRepositories(r, scm);
-            }
-        } else {
-            addRepositories(r, job.getScm());
-        }
-        return r;
-    }
-
-    /**
-     * @since 1.1
-     */
-    protected void addRepositories(Set<GitHubRepositoryName> r, SCM scm) {
-        if (scm instanceof GitSCM) {
-            GitSCM git = (GitSCM) scm;
-            for (RemoteConfig rc : git.getRepositories()) {
-                for (URIish uri : rc.getURIs()) {
-                    String url = uri.toString();
-                    GitHubRepositoryName repo = GitHubRepositoryName.create(url);
-                    if (repo != null) {
-                        r.add(repo);
-                    }
-                }
-            }
-        }
+        return new HashSet<GitHubRepositoryName>(GitHubRepositoryName.from(job));
     }
 
     @Override
@@ -169,7 +135,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
         super.start(project, newInstance);
         if (newInstance && getDescriptor().isManageHook()) {
             // make sure we have hooks installed. do this lazily to avoid blocking the UI thread.
-            final Set<GitHubRepositoryName> names = getGitHubRepositories();
+            final Collection<GitHubRepositoryName> names = GitHubRepositoryName.from(job);
 
             getDescriptor().queue.execute(new Runnable() {
                 public void run() {
@@ -205,7 +171,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
         if (getDescriptor().isManageHook()) {
             Cleaner cleaner = Cleaner.get();
             if (cleaner != null) {
-                cleaner.onStop(this);
+                cleaner.onStop(job);
             }
         }
     }

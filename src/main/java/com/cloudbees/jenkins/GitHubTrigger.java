@@ -1,5 +1,7 @@
 package com.cloudbees.jenkins;
 
+import hudson.model.AbstractProject;
+
 import java.util.Set;
 
 /**
@@ -12,5 +14,9 @@ public interface GitHubTrigger  {
     @Deprecated
     public void onPost();
     public void onPost(String triggeredByUser);
+    /**
+     * @deprecated
+     *      Use {@link GitHubRepositoryName#from(AbstractProject)}
+     */
     public Set<GitHubRepositoryName> getGitHubRepositories();
 }

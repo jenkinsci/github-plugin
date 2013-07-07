@@ -52,8 +52,7 @@ public class GitHubCommitNotifier extends Notifier {
         BuildData buildData = build.getAction(BuildData.class);
         String sha1 = ObjectId.toString(buildData.getLastBuiltRevision().getSha1());
 
-        GitHubTrigger trigger = build.getProject().getTrigger(GitHubPushTrigger.class);
-        for (GitHubRepositoryName gitHubRepositoryName : trigger.getGitHubRepositories()) {
+        for (GitHubRepositoryName gitHubRepositoryName : GitHubRepositoryName.from(build.getProject())) {
             for (GHRepository repository : gitHubRepositoryName.resolve()) {
                 GHCommitState state;
                 String msg;
