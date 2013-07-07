@@ -5,6 +5,7 @@ import hudson.Util;
 import hudson.console.AnnotatedLargeText;
 import hudson.model.Action;
 import hudson.model.Hudson;
+import hudson.model.Hudson.MasterComputer;
 import hudson.model.Item;
 import hudson.model.AbstractProject;
 import hudson.model.Project;
@@ -29,7 +30,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -255,7 +255,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
 
     @Extension
     public static class DescriptorImpl extends TriggerDescriptor {
-        private transient final SequentialExecutionQueue queue = new SequentialExecutionQueue(Executors.newSingleThreadExecutor());
+        private transient final SequentialExecutionQueue queue = new SequentialExecutionQueue(MasterComputer.threadPoolForRemoting);
 
         private boolean manageHook;
         private String hookUrl;
