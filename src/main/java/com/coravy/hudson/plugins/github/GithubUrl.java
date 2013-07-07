@@ -13,7 +13,6 @@ public final class GithubUrl {
      * <p>
      * Removes unwanted path elements (e.g. <code>tree/master</code>).
      * 
-     * @param input
      * @return URL to the project or null if input is invalid.
      */
     private static String normalize(String url) {

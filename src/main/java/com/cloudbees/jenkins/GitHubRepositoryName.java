@@ -1,18 +1,8 @@
 package com.cloudbees.jenkins;
 
-import hudson.model.AbstractProject;
-import hudson.model.Hudson;
-import hudson.plugins.git.GitSCM;
-import hudson.scm.SCM;
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
-import jenkins.model.Jenkins;
-import org.eclipse.jgit.transport.RemoteConfig;
-import org.eclipse.jgit.transport.URIish;
-import org.jenkinsci.plugins.multiplescms.MultiSCM;
 import org.kohsuke.github.GHCommitPointer;
-import org.kohsuke.github.GHOrganization;
-import org.kohsuke.github.GHPerson;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 
@@ -20,11 +10,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -182,45 +168,6 @@ public class GitHubRepositoryName {
     @Override
     public String toString() {
         return "GitHubRepository[host="+host+",username="+userName+",repository="+repositoryName+"]";
-    }
-
-    /**
-     * Does this project read from a repository of the given user name and the
-     * given repository name?
-     *
-     * If so, return those.
-     */
-    public static Collection<GitHubRepositoryName> from(AbstractProject<?, ?> job) {
-        Set<GitHubRepositoryName> r = new HashSet<GitHubRepositoryName>();
-        if (Jenkins.getInstance().getPlugin("multiple-scms") != null
-                && job.getScm() instanceof MultiSCM) {
-            MultiSCM multiSCM = (MultiSCM) job.getScm();
-            List<SCM> scmList = multiSCM.getConfiguredSCMs();
-            for (SCM scm : scmList) {
-                addRepositories(r, scm);
-            }
-        } else {
-            addRepositories(r, job.getScm());
-        }
-        return r;
-    }
-
-    /**
-     * @since 1.1
-     */
-    private static void addRepositories(Set<GitHubRepositoryName> r, SCM scm) {
-        if (scm instanceof GitSCM) {
-            GitSCM git = (GitSCM) scm;
-            for (RemoteConfig rc : git.getRepositories()) {
-                for (URIish uri : rc.getURIs()) {
-                    String url = uri.toString();
-                    GitHubRepositoryName repo = GitHubRepositoryName.create(url);
-                    if (repo != null) {
-                        r.add(repo);
-                    }
-                }
-            }
-        }
     }
 
     private static final Logger LOGGER = Logger.getLogger(GitHubRepositoryName.class.getName());

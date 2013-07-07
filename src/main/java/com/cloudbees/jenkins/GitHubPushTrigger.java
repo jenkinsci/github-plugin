@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -124,10 +123,10 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
 
     /**
      * @deprecated
-     *      Use {@link GitHubRepositoryName#from(AbstractProject)}
+     *      Use {@link GitHubRepositoryNameContributor#parseAssociatedNames(AbstractProject)}
      */
     public Set<GitHubRepositoryName> getGitHubRepositories() {
-        return new HashSet<GitHubRepositoryName>(GitHubRepositoryName.from(job));
+        return Collections.emptySet();
     }
 
     @Override
@@ -135,7 +134,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
         super.start(project, newInstance);
         if (newInstance && getDescriptor().isManageHook()) {
             // make sure we have hooks installed. do this lazily to avoid blocking the UI thread.
-            final Collection<GitHubRepositoryName> names = GitHubRepositoryName.from(job);
+            final Collection<GitHubRepositoryName> names = GitHubRepositoryNameContributor.parseAssociatedNames(job);
 
             getDescriptor().queue.execute(new Runnable() {
                 public void run() {

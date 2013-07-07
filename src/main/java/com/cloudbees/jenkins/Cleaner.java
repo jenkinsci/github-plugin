@@ -35,7 +35,7 @@ public class Cleaner extends PeriodicWork {
      * Called when a {@link GitHubPushTrigger} is about to be removed.
      */
     synchronized void onStop(AbstractProject<?,?> job) {
-        couldHaveBeenRemoved.addAll(GitHubRepositoryName.from(job));
+        couldHaveBeenRemoved.addAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
     }
 
     @Override
@@ -55,7 +55,7 @@ public class Cleaner extends PeriodicWork {
         for (AbstractProject<?,?> job : Hudson.getInstance().getItems(AbstractProject.class)) {
             GitHubPushTrigger trigger = job.getTrigger(GitHubPushTrigger.class);
             if (trigger!=null) {
-                names.removeAll(GitHubRepositoryName.from(job));
+                names.removeAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
             }
         }
 
