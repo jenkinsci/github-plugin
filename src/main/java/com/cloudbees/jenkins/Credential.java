@@ -20,22 +20,22 @@ import java.io.IOException;
 public class Credential extends AbstractDescribableImpl<Credential> {
     public final String username;
     public final String apiUrl;
-    public final String apiToken;
+    public final String oauthAccessToken;
     public final Secret password;
 
     @DataBoundConstructor
-    public Credential(String username, Secret password, String apiUrl, String apiToken) {
+    public Credential(String username, Secret password, String apiUrl, String oauthAccessToken) {
         this.username = username;
         this.password = password;
         this.apiUrl = apiUrl;
-        this.apiToken = apiToken;
+        this.oauthAccessToken = oauthAccessToken;
     }
 
     public GitHub login() throws IOException {
         if (Util.fixEmpty(apiUrl) != null) {
-            return GitHub.connectToEnterprise(apiUrl,username,apiToken);
+            return GitHub.connectToEnterprise(apiUrl,oauthAccessToken);
         }
-        return GitHub.connect(username,apiToken,password.getPlainText());
+        return GitHub.connect(username,oauthAccessToken,password.getPlainText());
     }
 
     @Extension
@@ -45,12 +45,12 @@ public class Credential extends AbstractDescribableImpl<Credential> {
             return ""; // unused
         }
 
-        public FormValidation doValidate(@QueryParameter String apiUrl, @QueryParameter String username, @QueryParameter Secret password, @QueryParameter String apiToken) throws IOException {
+        public FormValidation doValidate(@QueryParameter String apiUrl, @QueryParameter String username, @QueryParameter Secret password, @QueryParameter String oauthAccessToken) throws IOException {
             GitHub gitHub;
             if (Util.fixEmpty(apiUrl) != null) {
-                gitHub = GitHub.connectToEnterprise(apiUrl,username,apiToken);
+                gitHub = GitHub.connectToEnterprise(apiUrl,oauthAccessToken);
             } else {
-                gitHub = GitHub.connect(username,apiToken,Secret.toString(password));
+                gitHub = GitHub.connect(username,oauthAccessToken,Secret.toString(password));
             }
 
             if (gitHub.isCredentialValid())
