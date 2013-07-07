@@ -19,6 +19,7 @@ import hudson.tasks.Publisher;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
+import org.jvnet.localizer.Localizable;
 import org.kohsuke.github.GHCommitState;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHRepository;
@@ -53,24 +54,24 @@ public class GitHubCommitNotifier extends Notifier {
         for (GitHubRepositoryName gitHubRepositoryName : trigger.getGitHubRepositories()) {
             for (GHRepository repository : gitHubRepositoryName.resolve()) {
                 GHCommitState state;
-                final String verb;
+                String msg;
+
+                // We do not use `build.getDurationString()` because it appends 'and counting' (build is still running)
+                final String duration = Util.getTimeSpanString(System.currentTimeMillis() - build.getTimeInMillis());
 
                 Result result = build.getResult();
                 if (result.isBetterOrEqualTo(SUCCESS)) {
                     state = GHCommitState.SUCCESS;
-                    verb = "succeeded";
+                    msg = Messages.CommitNotifier_Success(build.getDisplayName(), duration);
                 } else if (result.isBetterOrEqualTo(UNSTABLE)) {
                     state = GHCommitState.FAILURE;
-                    verb = "found unstable";
+                    msg = Messages.CommitNotifier_Unstable(build.getDisplayName(), duration);
                 } else {
                     state = GHCommitState.ERROR;
-                    verb = "failed";
+                    msg = Messages.CommitNotifier_Failed(build.getDisplayName(), duration);
                 }
 
-                // We do not use `build.getDurationString()` because it appends 'and counting' (build is still running)
-                final String timeSpanString = Util.getTimeSpanString(System.currentTimeMillis() - build.getTimeInMillis());
-                final String msg = String.format("Build #%d %s in %s", build.getNumber(), verb, timeSpanString);
-                listener.getLogger().println("Setting commit status on GitHub for " + repository.getUrl() + "/commit/" + sha1);
+                listener.getLogger().println(Messages.GitHubCommitNotifier_SettingCommitStatus(repository.getUrl() + "/commit/" + sha1));
                 repository.createCommitStatus(sha1, state, build.getAbsoluteUrl(), msg);
             }
         }
