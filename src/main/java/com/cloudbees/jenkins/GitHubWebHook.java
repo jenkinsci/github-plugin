@@ -52,43 +52,39 @@ public class GitHubWebHook implements UnprotectedRootAction {
      * Logs in as the given user and returns the connection object.
      */
     public Iterable<GitHub> login(String host, String userName) {
-        if (host.equals("github.com")) {
-            final List<Credential> l = DescriptorImpl.get().getCredentials();
+        final List<Credential> l = DescriptorImpl.get().getCredentials();
 
-            // if the username is not an organization, we should have the right user account on file
-            for (Credential c : l) {
-                if (c.username.equals(userName))
-                    try {
-                        return Collections.singleton(c.login());
-                    } catch (IOException e) {
-                        LOGGER.log(WARNING,"Failed to login with username="+c.username,e);
-                        return Collections.emptyList();
-                    }
-            }
-
-            // otherwise try all the credentials since we don't know which one would work
-            return new Iterable<GitHub>() {
-                public Iterator<GitHub> iterator() {
-                    return new FilterIterator<GitHub>(
-                        new AdaptedIterator<Credential,GitHub>(l) {
-                            protected GitHub adapt(Credential c) {
-                                try {
-                                    return c.login();
-                                } catch (IOException e) {
-                                    LOGGER.log(WARNING,"Failed to login with username="+c.username,e);
-                                    return null;
-                                }
-                            }
-                    }) {
-                        protected boolean filter(GitHub g) {
-                            return g!=null;
-                        }
-                    };
+        // if the username is not an organization, we should have the right user account on file
+        for (Credential c : l) {
+            if (c.username.equals(userName))
+                try {
+                    return Collections.singleton(c.login());
+                } catch (IOException e) {
+                    LOGGER.log(WARNING,"Failed to login with username="+c.username,e);
+                    return Collections.emptyList();
                 }
-            };
-        } else {
-            return Collections.<GitHub> emptyList();
         }
+
+        // otherwise try all the credentials since we don't know which one would work
+        return new Iterable<GitHub>() {
+            public Iterator<GitHub> iterator() {
+                return new FilterIterator<GitHub>(
+                    new AdaptedIterator<Credential,GitHub>(l) {
+                        protected GitHub adapt(Credential c) {
+                            try {
+                                return c.login();
+                            } catch (IOException e) {
+                                LOGGER.log(WARNING,"Failed to login with username="+c.username,e);
+                                return null;
+                            }
+                        }
+                }) {
+                    protected boolean filter(GitHub g) {
+                        return g!=null;
+                    }
+                };
+            }
+        };
     }
 
     /*
