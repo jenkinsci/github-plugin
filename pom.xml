@@ -9,7 +9,7 @@
   <groupId>com.coravy.hudson.plugins.github</groupId>
   <artifactId>github</artifactId>
   <packaging>hpi</packaging>
-  <version>1.8-SNAPSHOT</version>
+  <version>1.9-SNAPSHOT</version>
   <name>GitHub plugin</name>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin</url>
 

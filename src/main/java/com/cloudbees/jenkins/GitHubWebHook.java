@@ -3,6 +3,7 @@ package com.cloudbees.jenkins;
 import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
 
 import hudson.Extension;
+import hudson.ExtensionPoint;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
 import hudson.model.RootAction;
@@ -11,6 +12,7 @@ import hudson.security.ACL;
 import hudson.triggers.Trigger;
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContextHolder;
@@ -159,13 +161,18 @@ public class GitHubWebHook implements UnprotectedRootAction {
         LOGGER.fine("Full details of the POST was "+o.toString());
         Matcher matcher = REPOSITORY_NAME_PATTERN.matcher(repoUrl);
         if (matcher.matches()) {
+            GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl);
+            if (changedRepository == null) {
+                LOGGER.warning("Malformed repo url "+repoUrl);
+                return;
+            }
+
             // run in high privilege to see all the projects anonymous users don't see.
             // this is safe because when we actually schedule a build, it's a build that can
             // happen at some random time anyway.
             Authentication old = SecurityContextHolder.getContext().getAuthentication();
             SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
             try {
-                GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl);
                 for (AbstractProject<?,?> job : Hudson.getInstance().getAllItems(AbstractProject.class)) {
                     GitHubTrigger trigger = (GitHubTrigger) job.getTrigger(triggerClass);
                     if (trigger!=null) {
@@ -180,6 +187,9 @@ public class GitHubWebHook implements UnprotectedRootAction {
             } finally {
                 SecurityContextHolder.getContext().setAuthentication(old);
             }
+            for (Listener listener: Jenkins.getInstance().getExtensionList(Listener.class)) {
+                listener.onPushRepositoryChanged(pusherName, changedRepository);
+            }
         } else {
             LOGGER.warning("Malformed repo url "+repoUrl);
         }
@@ -190,4 +200,22 @@ public class GitHubWebHook implements UnprotectedRootAction {
     public static GitHubWebHook get() {
         return Hudson.getInstance().getExtensionList(RootAction.class).get(GitHubWebHook.class);
     }
+
+    /**
+     * Other plugins may be interested in listening for these updates.
+     *
+     * @since 1.8
+     */
+    public static abstract class Listener implements ExtensionPoint {
+
+        /**
+         * Called when there is a change notification on a specific repository.
+         *
+         * @param pusherName        the pusher name.
+         * @param changedRepository the changed repository.
+         * @since 1.8
+         */
+        public abstract void onPushRepositoryChanged(String pusherName, GitHubRepositoryName changedRepository);
+    }
+
 }
