@@ -64,6 +64,7 @@ public final class GithubProjectProperty extends
             load();
         }
 
+        @Override
         public boolean isApplicable(Class<? extends Job> jobType) {
             return AbstractProject.class.isAssignableFrom(jobType);
         }
@@ -75,12 +76,7 @@ public final class GithubProjectProperty extends
         @Override
         public JobProperty<?> newInstance(StaplerRequest req,
                 JSONObject formData) throws FormException {
-            GithubProjectProperty tpp = req.bindJSON(
-                    GithubProjectProperty.class, formData);
-            if (tpp.projectUrl == null) {
-                tpp = null; // not configured
-            }
-            return tpp;
+            return req.bindJSON(GithubProjectProperty.class, formData);
         }
 
     }
