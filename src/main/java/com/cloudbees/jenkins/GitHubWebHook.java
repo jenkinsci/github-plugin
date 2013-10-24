@@ -37,6 +37,7 @@ import static java.util.logging.Level.*;
 @Extension
 public class GitHubWebHook implements UnprotectedRootAction {
     private static final Pattern REPOSITORY_NAME_PATTERN = Pattern.compile("https?://([^/]+)/([^/]+)/([^/]+)");
+    public static final String URLNAME = "github-webhook";
 
     public String getIconFileName() {
         return null;
@@ -47,7 +48,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
     }
 
     public String getUrlName() {
-        return "github-webhook";
+        return URLNAME;
     }
 
     /**
