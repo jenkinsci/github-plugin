@@ -75,12 +75,17 @@ public final class GithubProjectProperty extends
         @Override
         public JobProperty<?> newInstance(StaplerRequest req,
                 JSONObject formData) throws FormException {
-            GithubProjectProperty tpp = req.bindJSON(
+            try{
+                GithubProjectProperty tpp = req.bindJSON(
+            
                     GithubProjectProperty.class, formData);
-            if (tpp.projectUrl == null) {
-                tpp = null; // not configured
+                if (tpp.projectUrl == null) {
+                  tpp = null; // not configured
+                  }
+                return tpp;
+            } catch(NullPointerException e){
+            	return null;
             }
-            return tpp;
         }
 
     }
