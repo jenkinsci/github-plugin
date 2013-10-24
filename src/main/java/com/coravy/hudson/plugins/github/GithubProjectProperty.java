@@ -8,10 +8,14 @@ import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.logging.Logger;
+
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
+
+import com.cloudbees.jenkins.GitHubPushTrigger;
 
 /**
  * Stores the github related project properties.
@@ -84,9 +88,12 @@ public final class GithubProjectProperty extends
                   }
                 return tpp;
             } catch(NullPointerException e){
+            	LOGGER.info("Couldn't find Github project URL");
             	return null;
             }
         }
 
     }
+    
+    private static final Logger LOGGER = Logger.getLogger(GitHubPushTrigger.class.getName());
 }
