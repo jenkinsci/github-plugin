@@ -31,7 +31,7 @@
       <version>1.42</version>
     </dependency>
     <dependency>
-      <groupId>org.jenkinsci.plugins</groupId>
+      <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>git</artifactId>
       <version>1.1.17</version>
     </dependency>
