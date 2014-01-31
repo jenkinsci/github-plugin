@@ -16,16 +16,16 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContextHolder;
+import org.eclipse.jgit.transport.URIish;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.util.logging.Level.*;
 
@@ -36,7 +36,6 @@ import static java.util.logging.Level.*;
  */
 @Extension
 public class GitHubWebHook implements UnprotectedRootAction {
-    private static final Pattern REPOSITORY_NAME_PATTERN = Pattern.compile("https?://([^/]+)/([^/]+)/([^/]+)");
 
     public String getIconFileName() {
         return null;
@@ -160,11 +159,13 @@ public class GitHubWebHook implements UnprotectedRootAction {
         JSONObject o = JSONObject.fromObject(payload);
         String repoUrl = o.getJSONObject("repository").getString("url"); // something like 'https://github.com/kohsuke/foo'
         String pusherName = o.getJSONObject("pusher").getString("name");
+        String ref = o.getString("ref");
+        String sha1 = o.getString("after");
 
         LOGGER.info("Received POST for "+repoUrl);
         LOGGER.fine("Full details of the POST was "+o.toString());
-        Matcher matcher = REPOSITORY_NAME_PATTERN.matcher(repoUrl);
-        if (matcher.matches()) {
+        try {
+            URIish uri = new URIish(repoUrl);
             GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl);
             if (changedRepository == null) {
                 LOGGER.warning("Malformed repo url "+repoUrl);
@@ -183,7 +184,8 @@ public class GitHubWebHook implements UnprotectedRootAction {
                         LOGGER.fine("Considering to poke "+job.getFullDisplayName());
                         if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
                             LOGGER.info("Poked "+job.getFullDisplayName());
-                            trigger.onPost(pusherName);
+
+                            trigger.onPost(pusherName, uri, sha1, ref);
                         } else
                             LOGGER.fine("Skipped "+job.getFullDisplayName()+" because it doesn't have a matching repository.");
                     }
@@ -194,7 +196,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
             for (Listener listener: Jenkins.getInstance().getExtensionList(Listener.class)) {
                 listener.onPushRepositoryChanged(pusherName, changedRepository);
             }
-        } else {
+        } catch (URISyntaxException e) {
             LOGGER.warning("Malformed repo url "+repoUrl);
         }
     }
