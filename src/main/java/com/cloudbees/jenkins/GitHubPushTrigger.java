@@ -76,6 +76,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
                             logger.println("Changes found");
                         else
                             logger.println("No changes");
+                        listener.close();
                         return result;
                     } catch (Error e) {
                         e.printStackTrace(listener.error("Failed to record SCM polling"));
