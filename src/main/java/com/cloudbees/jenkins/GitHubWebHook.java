@@ -31,7 +31,7 @@ import static java.util.logging.Level.*;
 
 /**
  * Receives github hook.
- * 
+ *
  * @author Kohsuke Kawaguchi
  */
 @Extension
@@ -143,19 +143,26 @@ public class GitHubWebHook implements UnprotectedRootAction {
 
      */
 
-    
+
     /**
      * 1 push to 2 branches will result in 2 pushes.
      */
     // XXX probably want (when available in baseline Stapler version): @RequirePOST
     public void doIndex(StaplerRequest req) {
-        String payload = req.getParameter("payload");
-        if (payload == null) {
-            throw new IllegalArgumentException("Not intended to be browsed interactively (must specify payload parameter)");
+        String eventType = req.getHeader("X-GitHub-Event");
+        if ("push".equals(eventType)) {
+            String payload = req.getParameter("payload");
+            if (payload == null) {
+                throw new IllegalArgumentException("Not intended to be browsed interactively (must specify payload parameter). " +
+                        "Make sure payload version is 'application/vnd.github+form'.");
+            }
+            processGitHubPayload(payload,GitHubPushTrigger.class);
+        } else {
+            throw new IllegalArgumentException("Github Webhook event of type " + eventType + " is not supported. " +
+                    "Only push events are current supported");
         }
-        processGitHubPayload(payload,GitHubPushTrigger.class);
     }
-    
+
     public void processGitHubPayload(String payload, Class<? extends Trigger<?>> triggerClass) {
         JSONObject o = JSONObject.fromObject(payload);
         String repoUrl = o.getJSONObject("repository").getString("url"); // something like 'https://github.com/kohsuke/foo'
