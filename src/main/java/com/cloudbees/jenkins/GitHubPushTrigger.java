@@ -9,6 +9,7 @@ import hudson.model.Hudson.MasterComputer;
 import hudson.model.Item;
 import hudson.model.AbstractProject;
 import hudson.model.Project;
+import hudson.plugins.git.GitStatus;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.SequentialExecutionQueue;
@@ -30,9 +31,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.jelly.XMLOutput;
+import org.eclipse.jgit.transport.URIish;
 import org.kohsuke.github.GHException;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -60,58 +63,14 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
      * Called when a POST is made.
      */
     public void onPost(String triggeredByUser) {
-        final String pushBy = triggeredByUser;
-        getDescriptor().queue.execute(new Runnable() {
-            private boolean runPolling() {
-                try {
-                    StreamTaskListener listener = new StreamTaskListener(getLogFile());
+        throw new UnsupportedOperationException("deprecated");
+    }
 
-                    try {
-                        PrintStream logger = listener.getLogger();
-                        long start = System.currentTimeMillis();
-                        logger.println("Started on "+ DateFormat.getDateTimeInstance().format(new Date()));
-                        boolean result = job.poll(listener).hasChanges();
-                        logger.println("Done. Took "+ Util.getTimeSpanString(System.currentTimeMillis()-start));
-                        if(result)
-                            logger.println("Changes found");
-                        else
-                            logger.println("No changes");
-                        return result;
-                    } catch (Error e) {
-                        e.printStackTrace(listener.error("Failed to record SCM polling"));
-                        LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
-                        throw e;
-                    } catch (RuntimeException e) {
-                        e.printStackTrace(listener.error("Failed to record SCM polling"));
-                        LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
-                        throw e;
-                    } finally {
-                        listener.close();
-                    }
-                } catch (IOException e) {
-                    LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
-                }
-                return false;
-            }
-
-            public void run() {
-                if (runPolling()) {
-                    String name = " #"+job.getNextBuildNumber();
-                    GitHubPushCause cause;
-                    try {
-                        cause = new GitHubPushCause(getLogFile(), pushBy);
-                    } catch (IOException e) {
-                        LOGGER.log(Level.WARNING, "Failed to parse the polling log",e);
-                        cause = new GitHubPushCause(pushBy);
-                    }
-                    if (job.scheduleBuild(cause)) {
-                        LOGGER.info("SCM changes detected in "+ job.getName()+". Triggering "+name);
-                    } else {
-                        LOGGER.info("SCM changes detected in "+ job.getName()+". Job is already in the queue");
-                    }
-                }
-            }
-        });
+    public void onPost(String triggeredByUser, URIish repository, String sha1, String ref) {
+        String branch = ref.substring("refs/heads/".length());
+        for (GitStatus.Listener listener : Jenkins.getInstance().getExtensionList(GitStatus.Listener.class)) {
+            listener.onNotifyCommit(repository, sha1, branch);
+        }
     }
 
     /**

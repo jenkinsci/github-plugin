@@ -4,6 +4,7 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.triggers.Trigger;
+import org.eclipse.jgit.transport.URIish;
 
 import java.util.Collection;
 import java.util.Set;
@@ -19,8 +20,11 @@ public interface GitHubTrigger {
     @Deprecated
     public void onPost();
 
-    // TODO: document me
+    @Deprecated
     public void onPost(String triggeredByUser);
+
+    public void onPost(String triggeredByUser, URIish repository, String sha1, String ref);
+
     /**
      * Obtains the list of the repositories that this trigger is looking at.
      *
