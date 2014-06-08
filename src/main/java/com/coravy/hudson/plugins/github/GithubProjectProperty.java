@@ -77,20 +77,18 @@ public final class GithubProjectProperty extends
         }
 
         @Override
-        public JobProperty<?> newInstance(StaplerRequest req,
-                JSONObject formData) throws FormException {
-                GithubProjectProperty tpp = req.bindJSON(
-                    GithubProjectProperty.class, formData);
-                
-                if(tpp == null){
-                	LOGGER.info("Couldn't bind JSON");
-                	return null;
-                }
-                if (tpp.projectUrl == null) {
-                  tpp = null; // not configured
-                  LOGGER.info("projectUrl not found, nullifying GithubProjectProperty");
-                }
-                return tpp;
+        public JobProperty<?> newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+            GithubProjectProperty tpp = req.bindJSON(GithubProjectProperty.class, formData);
+
+            if (tpp == null) {
+                LOGGER.fine("Couldn't bind JSON");
+                return null;
+            }
+            if (tpp.projectUrl == null) {
+                tpp = null; // not configured
+                LOGGER.fine("projectUrl not found, nullifying GithubProjectProperty");
+            }
+            return tpp;
         }
 
     }
