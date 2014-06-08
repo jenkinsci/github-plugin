@@ -8,10 +8,14 @@ import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.logging.Logger;
+
 import net.sf.json.JSONObject;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
+
+import com.cloudbees.jenkins.GitHubPushTrigger;
 
 /**
  * Stores the github related project properties.
@@ -73,15 +77,21 @@ public final class GithubProjectProperty extends
         }
 
         @Override
-        public JobProperty<?> newInstance(StaplerRequest req,
-                JSONObject formData) throws FormException {
-            GithubProjectProperty tpp = req.bindJSON(
-                    GithubProjectProperty.class, formData);
+        public JobProperty<?> newInstance(StaplerRequest req, JSONObject formData) throws FormException {
+            GithubProjectProperty tpp = req.bindJSON(GithubProjectProperty.class, formData);
+
+            if (tpp == null) {
+                LOGGER.fine("Couldn't bind JSON");
+                return null;
+            }
             if (tpp.projectUrl == null) {
                 tpp = null; // not configured
+                LOGGER.fine("projectUrl not found, nullifying GithubProjectProperty");
             }
             return tpp;
         }
 
     }
+    
+    private static final Logger LOGGER = Logger.getLogger(GitHubPushTrigger.class.getName());
 }
