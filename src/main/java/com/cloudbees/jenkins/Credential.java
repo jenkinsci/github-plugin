@@ -21,12 +21,10 @@ public class Credential extends AbstractDescribableImpl<Credential> {
     public final String username;
     public final String apiUrl;
     public final String oauthAccessToken;
-    public final Secret password;
 
     @DataBoundConstructor
-    public Credential(String username, Secret password, String apiUrl, String oauthAccessToken) {
+    public Credential(String username, String apiUrl, String oauthAccessToken) {
         this.username = username;
-        this.password = password;
         this.apiUrl = apiUrl;
         this.oauthAccessToken = oauthAccessToken;
     }
@@ -35,7 +33,7 @@ public class Credential extends AbstractDescribableImpl<Credential> {
         if (Util.fixEmpty(apiUrl) != null) {
             return GitHub.connectToEnterprise(apiUrl,oauthAccessToken);
         }
-        return GitHub.connect(username,oauthAccessToken,password.getPlainText());
+        return GitHub.connect(username,oauthAccessToken);
     }
 
     @Extension
@@ -45,12 +43,12 @@ public class Credential extends AbstractDescribableImpl<Credential> {
             return ""; // unused
         }
 
-        public FormValidation doValidate(@QueryParameter String apiUrl, @QueryParameter String username, @QueryParameter Secret password, @QueryParameter String oauthAccessToken) throws IOException {
+        public FormValidation doValidate(@QueryParameter String apiUrl, @QueryParameter String username, @QueryParameter String oauthAccessToken) throws IOException {
             GitHub gitHub;
             if (Util.fixEmpty(apiUrl) != null) {
                 gitHub = GitHub.connectToEnterprise(apiUrl,oauthAccessToken);
             } else {
-                gitHub = GitHub.connect(username,oauthAccessToken,Secret.toString(password));
+                gitHub = GitHub.connect(username,oauthAccessToken);
             }
 
             if (gitHub.isCredentialValid())

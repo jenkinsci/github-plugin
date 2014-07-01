@@ -26,7 +26,6 @@ public class GitHubPushTriggerConfigSubmitTest extends HudsonTestCase {
         f.getInputByName("_.hookUrl").setChecked(true);
         f.getInputByName("url").setValueAttribute(WEBHOOK_URL);
         f.getInputByName("_.username").setValueAttribute("jenkins");
-        f.getInputByName("_.password").setValueAttribute("password");
         submit(f);
 
         GitHubPushTrigger.DescriptorImpl d = getDescriptor();
@@ -38,7 +37,6 @@ public class GitHubPushTriggerConfigSubmitTest extends HudsonTestCase {
         assertEquals(1, credentials.size());
         Credential credential = credentials.get(0);
         assertEquals("jenkins", credential.username);
-        assertEquals("password", Secret.toString(credential.password));
     }
 
     public void testConfigSubmit_ManuallyManageHook() throws Exception {
