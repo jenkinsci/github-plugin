@@ -148,6 +148,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
      */
     // XXX probably want (when available in baseline Stapler version): @RequirePOST
     public void doIndex(StaplerRequest req) {
+
         String eventType = req.getHeader("X-GitHub-Event");
         if ("push".equals(eventType)) {
             String payload = req.getParameter("payload");
@@ -156,9 +157,17 @@ public class GitHubWebHook implements UnprotectedRootAction {
                         "Make sure payload version is 'application/vnd.github+form'.");
             }
             processGitHubPayload(payload,GitHubPushTrigger.class);
-        } else {
+        } else if (eventType != null && !eventType.isEmpty()) {
             throw new IllegalArgumentException("Github Webhook event of type " + eventType + " is not supported. " +
                     "Only push events are current supported");
+        } else {
+            //Support github services that don't specify a header.
+            //Github webhook specifies a "X-Github-Event" header but services do not.
+            String payload = req.getParameter("payload");
+            if (payload == null) {
+                throw new IllegalArgumentException("Not intended to be browsed interactively (must specify payload parameter)");
+            }
+            processGitHubPayload(payload,GitHubPushTrigger.class);
         }
     }
 
