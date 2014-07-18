@@ -7,9 +7,11 @@ import hudson.ExtensionPoint;
 import hudson.model.AbstractProject;
 import hudson.model.EnvironmentContributor;
 import hudson.model.TaskListener;
+import hudson.plugins.git.BranchSpec;
 import hudson.plugins.git.GitSCM;
 import hudson.scm.SCM;
 import jenkins.model.Jenkins;
+
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.multiplescms.MultiSCM;
@@ -32,6 +34,12 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
      */
     public abstract void parseAssociatedNames(AbstractProject<?,?> job, Collection<GitHubRepositoryName> result);
 
+    /**
+     * Looks at the definition of {@link AbstractProject} and list up its branches, then puts them into
+     * the collection.
+     */
+    public abstract void parseAssociatedBranches(AbstractProject<?,?> job, Collection<GitHubBranch> result);
+
     public static ExtensionList<GitHubRepositoryNameContributor> all() {
         return Jenkins.getInstance().getExtensionList(GitHubRepositoryNameContributor.class);
     }
@@ -43,6 +51,12 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
         return names;
     }
 
+    public static Collection<GitHubBranch> parseAssociatedBranches(AbstractProject<?,?> job) {
+        Set<GitHubBranch> names = new HashSet<GitHubBranch>();
+        for (GitHubRepositoryNameContributor c : all())
+            c.parseAssociatedBranches(job,names);
+        return names;
+    }
 
     static abstract class AbstractFromSCMImpl extends GitHubRepositoryNameContributor {
         protected EnvVars buildEnv(AbstractProject<?, ?> job) {
@@ -71,6 +85,18 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
                 }
             }
         }
+
+        protected static void addBranches(SCM scm, Collection<GitHubBranch> r) {
+            if (scm instanceof GitSCM) {
+                GitSCM git = (GitSCM) scm;
+                for (BranchSpec branch : git.getBranches()) {
+                    GitHubBranch gitHubBranch = GitHubBranch.create(branch);
+                    if (gitHubBranch != null) {
+                        r.add(gitHubBranch);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -81,6 +107,12 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
         @Override
         public void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result) {
             addRepositories(job.getScm(), buildEnv(job), result);
+        }
+
+        @Override
+        public void parseAssociatedBranches(AbstractProject<?, ?> job,
+                Collection<GitHubBranch> result) {
+            addBranches(job.getScm(), result);
         }
     }
 
@@ -102,6 +134,20 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
                 for (SCM scm : scmList) {
                     addRepositories(scm, env, result);
                 }
+            }
+        }
+
+        @Override
+        public void parseAssociatedBranches(AbstractProject<?, ?> job, Collection<GitHubBranch> result) {
+            if (Jenkins.getInstance().getPlugin("multiple-scms") != null
+                    && job.getScm() instanceof MultiSCM) {
+                MultiSCM multiSCM = (MultiSCM) job.getScm();
+                List<SCM> scmList = multiSCM.getConfiguredSCMs();
+                for (SCM scm : scmList) {
+                    addBranches(scm, result);
+                }
+            } else {
+                addBranches(job.getScm(), result);
             }
         }
     }

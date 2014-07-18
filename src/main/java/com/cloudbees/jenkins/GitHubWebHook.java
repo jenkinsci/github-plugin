@@ -1,6 +1,7 @@
 package com.cloudbees.jenkins;
 
 import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
+import com.google.common.annotations.VisibleForTesting;
 
 import hudson.Extension;
 import hudson.ExtensionPoint;
@@ -8,12 +9,14 @@ import hudson.model.AbstractProject;
 import hudson.model.Hudson;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
+import hudson.plugins.git.BranchSpec;
 import hudson.security.ACL;
 import hudson.triggers.Trigger;
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+
 import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.commons.codec.binary.Base64;
@@ -24,6 +27,7 @@ import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.inject.Inject;
+
 import java.io.IOException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Collections;
@@ -188,6 +192,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
         JSONObject o = JSONObject.fromObject(payload);
         String repoUrl = o.getJSONObject("repository").getString("url"); // something like 'https://github.com/kohsuke/foo'
         String pusherName = o.getJSONObject("pusher").getString("name");
+        String ref = o.getString("ref");
 
         LOGGER.info("Received POST for "+repoUrl);
         LOGGER.fine("Full details of the POST was "+o.toString());
@@ -210,9 +215,20 @@ public class GitHubWebHook implements UnprotectedRootAction {
                     if (trigger!=null) {
                         LOGGER.fine("Considering to poke "+job.getFullDisplayName());
                         if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
-                            LOGGER.info("Poked "+job.getFullDisplayName());
-                            trigger.onPost(pusherName);
-                        } else
+                            boolean foundBranch = false;
+                            for (GitHubBranch branch : GitHubRepositoryNameContributor.parseAssociatedBranches(job)) {
+                                LOGGER.fine("Considering to poke branch "+branch.toString());
+                                if (branch.matches(changedRepository, ref)) {
+                                    LOGGER.info("Poked "+job.getFullDisplayName());
+                                    trigger.onPost(pusherName);
+                                    foundBranch = true;
+                                }
+                            }
+                            if (!foundBranch) {
+                                LOGGER.fine("Skipped "+job.getFullDisplayName()+" because it doesn't have a matching branch.");
+                            }
+                        }
+                        else
                             LOGGER.fine("Skipped "+job.getFullDisplayName()+" because it doesn't have a matching repository.");
                     }
                 }

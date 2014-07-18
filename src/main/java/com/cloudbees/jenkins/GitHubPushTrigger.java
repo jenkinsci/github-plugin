@@ -9,6 +9,7 @@ import hudson.model.Hudson.MasterComputer;
 import hudson.model.Item;
 import hudson.model.AbstractProject;
 import hudson.model.Project;
+import hudson.plugins.git.BranchSpec;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.FormValidation;
@@ -134,6 +135,14 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
      *      Use {@link GitHubRepositoryNameContributor#parseAssociatedNames(AbstractProject)}
      */
     public Set<GitHubRepositoryName> getGitHubRepositories() {
+        return Collections.emptySet();
+    }
+
+    /**
+     * @deprecated
+     *      Use {@link GitHubRepositoryNameContributor#parseAssociatedBranches(AbstractProject)}
+     */
+    public Set<GitHubBranch> getGitHubBranches() {
         return Collections.emptySet();
     }
 
