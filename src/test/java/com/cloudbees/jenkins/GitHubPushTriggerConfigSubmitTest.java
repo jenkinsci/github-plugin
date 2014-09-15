@@ -4,7 +4,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import hudson.util.Secret;
 import java.net.URL;
-import java.util.List;
 import org.jvnet.hudson.test.HudsonTestCase;
 import org.kohsuke.stapler.Stapler;
 
@@ -25,18 +24,11 @@ public class GitHubPushTriggerConfigSubmitTest extends HudsonTestCase {
         f.getInputByValue("auto").setChecked(true);
         f.getInputByName("_.hookUrl").setChecked(true);
         f.getInputByName("url").setValueAttribute(WEBHOOK_URL);
-        f.getInputByName("_.username").setValueAttribute("jenkins");
         submit(f);
 
         GitHubPushTrigger.DescriptorImpl d = getDescriptor();
         assertTrue(d.isManageHook());
         assertEquals(new URL(WEBHOOK_URL), d.getHookUrl());
-
-        List<Credential> credentials = d.getCredentials();
-        assertNotNull(credentials);
-        assertEquals(1, credentials.size());
-        Credential credential = credentials.get(0);
-        assertEquals("jenkins", credential.username);
     }
 
     public void testConfigSubmit_ManuallyManageHook() throws Exception {
