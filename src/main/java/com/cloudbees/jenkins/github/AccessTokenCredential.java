@@ -90,5 +90,20 @@ public class AccessTokenCredential extends BaseStandardCredentials implements St
             }
             return candidates;
         }
+
+
+        public FormValidation doValidate(@QueryParameter String apiUrl, @QueryParameter String username, @QueryParameter String oauthAccessToken) throws IOException {
+            GitHub gitHub;
+            if (Util.fixEmpty(apiUrl) != null) {
+                gitHub = GitHub.connectToEnterprise(apiUrl,oauthAccessToken);
+            } else {
+                gitHub = GitHub.connect(username,oauthAccessToken);
+            }
+
+            if (gitHub.isCredentialValid())
+                return FormValidation.ok("Verified");
+            else
+                return FormValidation.error("Failed to validate the account");
+        }
     }
 }
