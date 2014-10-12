@@ -29,6 +29,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import java.io.IOException;
 
 import static hudson.model.Result.*;
+import hudson.plugins.git.Revision;
 
 /**
  * Create commit status notifications on the commits based on the outcome of the build.
@@ -50,8 +51,15 @@ public class GitHubCommitNotifier extends Notifier {
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
 
         BuildData buildData = build.getAction(BuildData.class);
-        String sha1 = ObjectId.toString(buildData.getLastBuiltRevision().getSha1());
-
+        if (buildData == null) {
+            throw new IOException("Cannot retrieve Git metadata for the build");
+        }
+        final Revision lastBuildRevision = buildData.getLastBuiltRevision();
+        final ObjectId sha1 = lastBuildRevision != null ? lastBuildRevision.getSha1() : null;
+        if (sha1 == null) { // Nowhere to report => fail the build
+            throw new IOException("Cannot determine sha1 of the commit. The status cannot be reported");
+        }
+        
         for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(build.getProject())) {
             for (GHRepository repository : name.resolve()) {
                 GHCommitState state;
@@ -73,7 +81,7 @@ public class GitHubCommitNotifier extends Notifier {
                 }
 
                 listener.getLogger().println(Messages.GitHubCommitNotifier_SettingCommitStatus(repository.getUrl() + "/commit/" + sha1));
-                repository.createCommitStatus(sha1, state, build.getAbsoluteUrl(), msg);
+                repository.createCommitStatus(ObjectId.toString(sha1), state, build.getAbsoluteUrl(), msg);
             }
         }
         return true;
