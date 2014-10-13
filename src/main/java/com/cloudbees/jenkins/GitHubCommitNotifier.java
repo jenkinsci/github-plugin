@@ -52,12 +52,12 @@ public class GitHubCommitNotifier extends Notifier {
 
         BuildData buildData = build.getAction(BuildData.class);
         if (buildData == null) {
-            throw new IOException("Cannot retrieve Git metadata for the build");
+            throw new IOException(Messages.GitHubCommitNotifier_NoBuildDataError());
         }
         final Revision lastBuildRevision = buildData.getLastBuiltRevision();
         final ObjectId sha1 = lastBuildRevision != null ? lastBuildRevision.getSha1() : null;
         if (sha1 == null) { // Nowhere to report => fail the build
-            throw new IOException("Cannot determine sha1 of the commit. The status cannot be reported");
+            throw new IOException(Messages.GitHubCommitNotifier_NoLastRevisionError());
         }
         
         for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(build.getProject())) {
