@@ -46,6 +46,20 @@ public class GitHubCommitNotifierTest extends HudsonTestCase {
         assertBuildStatus(Result.FAILURE, b);
         assertLogContains(Messages.GitHubCommitNotifier_NoLastRevisionError(), b);
     }
+   
+    @Bug(25312)
+    public @Test void testMarkUnstableOnCommitNotifierFailure() throws Exception, InterruptedException {
+        FreeStyleProject prj = createFreeStyleProject();
+        prj.getPublishersList().add(new GitHubCommitNotifier(Result.UNSTABLE.toString()));
+        Build b = prj.scheduleBuild2(0).get();
+        assertBuildStatus(Result.UNSTABLE, b);
+    }
     
-    
+    @Bug(25312)
+    public @Test void testMarkSuccessOnCommitNotifierFailure() throws Exception, InterruptedException {
+        FreeStyleProject prj = createFreeStyleProject();
+        prj.getPublishersList().add(new GitHubCommitNotifier(Result.SUCCESS.toString()));
+        Build b = prj.scheduleBuild2(0).get();
+        assertBuildStatus(Result.SUCCESS, b);
+    }
 }
