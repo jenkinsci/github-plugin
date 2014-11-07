@@ -18,9 +18,9 @@ import java.io.IOException;
 import org.jenkinsci.plugins.github.util.BuildDataHelper;
 
 @Extension
-public class GitHubPendingCommitStatus extends Builder {
+public class GitHubSetCommitStatusBuilder extends Builder {
     @DataBoundConstructor
-    public GitHubPendingCommitStatus() {
+    public GitHubSetCommitStatusBuilder() {
     }
 
     @Override
