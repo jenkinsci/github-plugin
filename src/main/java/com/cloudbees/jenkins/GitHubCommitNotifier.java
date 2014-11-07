@@ -109,7 +109,10 @@ public class GitHubCommitNotifier extends Notifier {
                 final String duration = Util.getTimeSpanString(System.currentTimeMillis() - build.getTimeInMillis());
 
                 Result result = build.getResult();
-                if (result.isBetterOrEqualTo(SUCCESS)) {
+                if (result == null) { // Build is ongoing
+                    state = GHCommitState.PENDING;
+                    msg = Messages.CommitNotifier_Pending(build.getDisplayName());
+                } else if (result.isBetterOrEqualTo(SUCCESS)) {
                     state = GHCommitState.SUCCESS;
                     msg = Messages.CommitNotifier_Success(build.getDisplayName(), duration);
                 } else if (result.isBetterOrEqualTo(UNSTABLE)) {
