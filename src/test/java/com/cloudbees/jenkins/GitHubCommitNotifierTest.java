@@ -22,10 +22,6 @@ import org.jvnet.hudson.test.JenkinsRule;
  */
 public class GitHubCommitNotifierTest extends HudsonTestCase {
     
-  //  @Rule
-  //  public JenkinsRule r = new JenkinsRule();
-    
-    
     @Test
     @Bug(23641)
     public void testNoBuildData() throws Exception, InterruptedException  {
@@ -33,7 +29,7 @@ public class GitHubCommitNotifierTest extends HudsonTestCase {
         prj.getPublishersList().add(new GitHubCommitNotifier());
         Build b = prj.scheduleBuild2(0).get();
         assertBuildStatus(Result.FAILURE, b);
-        assertLogContains(Messages.GitHubCommitNotifier_NoBuildDataError(), b);
+        assertLogContains(org.jenkinsci.plugins.github.util.Messages.BuildDataHelper_NoBuildDataError(), b);
     }
     
     @Test
@@ -44,7 +40,7 @@ public class GitHubCommitNotifierTest extends HudsonTestCase {
         prj.getPublishersList().add(new GitHubCommitNotifier());
         Build b = prj.scheduleBuild2(0).get();
         assertBuildStatus(Result.FAILURE, b);
-        assertLogContains(Messages.GitHubCommitNotifier_NoLastRevisionError(), b);
+        assertLogContains(org.jenkinsci.plugins.github.util.Messages.BuildDataHelper_NoLastRevisionError(), b);
     }
    
     @Bug(25312)
