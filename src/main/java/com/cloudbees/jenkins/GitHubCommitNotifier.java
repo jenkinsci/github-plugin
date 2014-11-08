@@ -99,7 +99,7 @@ public class GitHubCommitNotifier extends Notifier {
     }
         
     private void updateCommitStatus(@Nonnull AbstractBuild<?, ?> build, @Nonnull BuildListener listener) throws InterruptedException, IOException {       
-        final ObjectId sha1 = BuildDataHelper.getCommitSHA1(build);  
+        final String sha1 = ObjectId.toString(BuildDataHelper.getCommitSHA1(build));  
         for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(build.getProject())) {
             for (GHRepository repository : name.resolve()) {
                 GHCommitState state;
@@ -124,7 +124,7 @@ public class GitHubCommitNotifier extends Notifier {
                 }
 
                 listener.getLogger().println(Messages.GitHubCommitNotifier_SettingCommitStatus(repository.getUrl() + "/commit/" + sha1));
-                repository.createCommitStatus(ObjectId.toString(sha1), state, build.getAbsoluteUrl(), msg);
+                repository.createCommitStatus(sha1, state, build.getAbsoluteUrl(), msg);
             }
         }
     }
