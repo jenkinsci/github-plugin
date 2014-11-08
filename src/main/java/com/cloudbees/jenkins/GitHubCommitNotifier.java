@@ -32,6 +32,7 @@ import static hudson.model.Result.*;
 import hudson.plugins.git.Revision;
 import hudson.util.ListBoxModel;
 import javax.annotation.Nonnull;
+import org.jenkinsci.plugins.github.util.BuildDataHelper;
 
 /**
  * Create commit status notifications on the commits based on the outcome of the build.
@@ -97,17 +98,8 @@ public class GitHubCommitNotifier extends Notifier {
         return true;
     }
         
-    private void updateCommitStatus(@Nonnull AbstractBuild<?, ?> build, @Nonnull BuildListener listener) throws InterruptedException, IOException {
-        BuildData buildData = build.getAction(BuildData.class);
-        if (buildData == null) {
-            throw new IOException(Messages.GitHubCommitNotifier_NoBuildDataError());
-        }
-        final Revision lastBuildRevision = buildData.getLastBuiltRevision();
-        final ObjectId sha1 = lastBuildRevision != null ? lastBuildRevision.getSha1() : null;
-        if (sha1 == null) { // Nowhere to report => fail the build
-            throw new IOException(Messages.GitHubCommitNotifier_NoLastRevisionError());
-        }
-        
+    private void updateCommitStatus(@Nonnull AbstractBuild<?, ?> build, @Nonnull BuildListener listener) throws InterruptedException, IOException {       
+        final ObjectId sha1 = BuildDataHelper.getCommitSHA1(build);  
         for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(build.getProject())) {
             for (GHRepository repository : name.resolve()) {
                 GHCommitState state;
@@ -117,7 +109,10 @@ public class GitHubCommitNotifier extends Notifier {
                 final String duration = Util.getTimeSpanString(System.currentTimeMillis() - build.getTimeInMillis());
 
                 Result result = build.getResult();
-                if (result.isBetterOrEqualTo(SUCCESS)) {
+                if (result == null) { // Build is ongoing
+                    state = GHCommitState.PENDING;
+                    msg = Messages.CommitNotifier_Pending(build.getDisplayName());
+                } else if (result.isBetterOrEqualTo(SUCCESS)) {
                     state = GHCommitState.SUCCESS;
                     msg = Messages.CommitNotifier_Success(build.getDisplayName(), duration);
                 } else if (result.isBetterOrEqualTo(UNSTABLE)) {
