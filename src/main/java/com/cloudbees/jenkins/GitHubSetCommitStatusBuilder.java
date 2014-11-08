@@ -25,11 +25,11 @@ public class GitHubSetCommitStatusBuilder extends Builder {
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {     
-        final ObjectId sha1 = BuildDataHelper.getCommitSHA1(build);
+        final String sha1 = ObjectId.toString(BuildDataHelper.getCommitSHA1(build)); 
         for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(build.getProject())) {
             for (GHRepository repository : name.resolve()) {
                 listener.getLogger().println(Messages.GitHubCommitNotifier_SettingCommitStatus(repository.getUrl() + "/commit/" + sha1));
-                repository.createCommitStatus(ObjectId.toString(sha1), GHCommitState.PENDING, build.getAbsoluteUrl(), Messages.CommitNotifier_Pending(build.getDisplayName()));
+                repository.createCommitStatus(sha1, GHCommitState.PENDING, build.getAbsoluteUrl(), Messages.CommitNotifier_Pending(build.getDisplayName()));
             }
         }
         return true;
