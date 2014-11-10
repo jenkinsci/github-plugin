@@ -11,9 +11,9 @@
               </f:entry>
             </f:optionalBlock>
           </j:if>
-          <f:section title="${%GitHub Credentials}">
+          <f:section title="${%GitHub API}">
             <f:block>
-              <f:repeatable field="credentials" minimum="${1}" noAddButton="true">
+              <f:repeatable field="configs" minimum="${1}" noAddButton="true">
                 <table style="width:100%">
                   <st:include from="${descriptor}" page="${descriptor.configPage}" />
                   <f:entry>

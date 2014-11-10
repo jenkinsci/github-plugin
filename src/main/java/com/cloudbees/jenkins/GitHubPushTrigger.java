@@ -1,5 +1,6 @@
 package com.cloudbees.jenkins;
 
+import com.cloudbees.jenkins.github.GitHubServerConfig;
 import hudson.Extension;
 import hudson.Util;
 import hudson.console.AnnotatedLargeText;
@@ -8,6 +9,7 @@ import hudson.model.Hudson;
 import hudson.model.Hudson.MasterComputer;
 import hudson.model.Item;
 import hudson.model.AbstractProject;
+import hudson.model.Items;
 import hudson.model.Project;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
@@ -224,9 +226,10 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
 
         private boolean manageHook;
         private String hookUrl;
-        private volatile List<Credential> credentials = new ArrayList<Credential>();
+        private volatile List<GitHubServerConfig> configs = new ArrayList<GitHubServerConfig>();
 
         public DescriptorImpl() {
+            Items.XSTREAM2.aliasAttribute("credentials", "configs");
             load();
         }
 
@@ -263,8 +266,8 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
             return hookUrl!=null;
         }
 
-        public List<Credential> getCredentials() {
-            return credentials;
+        public List<GitHubServerConfig> getConfigs() {
+            return configs;
         }
 
         @Override
@@ -277,7 +280,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
             } else {
                 hookUrl = null;
             }
-            credentials = req.bindJSONToList(Credential.class,hookMode.get("credentials"));
+            configs = req.bindJSONToList(GitHubServerConfig.class,hookMode.get("configs"));
             save();
             return true;
         }

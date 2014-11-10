@@ -1,60 +1,62 @@
 package com.cloudbees.jenkins;
 
-import hudson.Extension;
-import hudson.Util;
-import hudson.model.AbstractDescribableImpl;
-import hudson.model.Descriptor;
-import hudson.util.FormValidation;
-import hudson.util.Secret;
-import org.kohsuke.github.GitHub;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
+import com.cloudbees.jenkins.github.AccessTokenCredential;
+import com.cloudbees.jenkins.github.GitHubServerConfig;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.CredentialsStore;
+import com.cloudbees.plugins.credentials.domains.Domain;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
+import hudson.security.ACL;
+import jenkins.model.Jenkins;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.cloudbees.plugins.credentials.CredentialsScope.GLOBAL;
 
 /**
  * Credential to access GitHub.
  *
  * @author Kohsuke Kawaguchi
  */
-public class Credential extends AbstractDescribableImpl<Credential> {
-    public final String username;
-    public final String apiUrl;
-    public final String oauthAccessToken;
+@Deprecated
+public class Credential extends GitHubServerConfig {
 
-    @DataBoundConstructor
-    public Credential(String username, String apiUrl, String oauthAccessToken) {
-        this.username = username;
-        this.apiUrl = apiUrl;
-        this.oauthAccessToken = oauthAccessToken;
+    public transient String username;
+    public transient String oauthAccessToken;
+
+    private Credential(String apiUrl, String credentialId) {
+        super(apiUrl, credentialId);
     }
 
-    public GitHub login() throws IOException {
-        if (Util.fixEmpty(apiUrl) != null) {
-            return GitHub.connectToEnterprise(apiUrl,oauthAccessToken);
-        }
-        return GitHub.connect(username,oauthAccessToken);
-    }
+    // Migrate legacy data
+    private Object readResolve() {
 
-    @Extension
-    public static class DescriptorImpl extends Descriptor<Credential> {
-        @Override
-        public String getDisplayName() {
-            return ""; // unused
-        }
+        if (credentialId != null) return this;
 
-        public FormValidation doValidate(@QueryParameter String apiUrl, @QueryParameter String username, @QueryParameter String oauthAccessToken) throws IOException {
-            GitHub gitHub;
-            if (Util.fixEmpty(apiUrl) != null) {
-                gitHub = GitHub.connectToEnterprise(apiUrl,oauthAccessToken);
-            } else {
-                gitHub = GitHub.connect(username,oauthAccessToken);
+        if (apiUrl == null) apiUrl = "https://api.github.com"; // org.kohsuke.github.GitHub.GITHUB_URL is private
+
+        // search for existing credentials
+        List<AccessTokenCredential> candidates = CredentialsProvider.lookupCredentials(AccessTokenCredential.class, Jenkins.getInstance(), ACL.SYSTEM,
+                URIRequirementBuilder.fromUri(apiUrl).build());
+        for (AccessTokenCredential candidate : candidates) {
+            if (candidate.getUsername().equals(username)) {
+                return new GitHubServerConfig(apiUrl, candidate.getId());
             }
-
-            if (gitHub.isCredentialValid())
-                return FormValidation.ok("Verified");
-            else
-                return FormValidation.error("Failed to validate the account");
         }
+
+        CredentialsStore store = CredentialsProvider.lookupStores(Jenkins.getInstance()).iterator().next();
+        AccessTokenCredential accessToken = new AccessTokenCredential(GLOBAL, null, apiUrl, apiUrl, username, oauthAccessToken);
+        try {
+            store.addCredentials(Domain.global(), accessToken);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "failed to migrate GitHub OAuth token to credentials store", e);
+        }
+
+        return new GitHubServerConfig(apiUrl, accessToken.getId());
     }
+
+    private static final Logger LOGGER = Logger.getLogger(Credential.class.getName());
 }

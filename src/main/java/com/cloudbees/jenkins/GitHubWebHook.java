@@ -2,6 +2,7 @@ package com.cloudbees.jenkins;
 
 import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
 
+import com.cloudbees.jenkins.github.GitHubServerConfig;
 import hudson.Extension;
 import hudson.ExtensionPoint;
 import hudson.model.AbstractProject;
@@ -55,15 +56,15 @@ public class GitHubWebHook implements UnprotectedRootAction {
      * Logs in as the given user and returns the connection object.
      */
     public Iterable<GitHub> login(String host, String userName) {
-        final List<Credential> l = DescriptorImpl.get().getCredentials();
+        final List<GitHubServerConfig> l = DescriptorImpl.get().getConfigs();
 
         // if the username is not an organization, we should have the right user account on file
-        for (Credential c : l) {
-            if (c.username.equals(userName))
+        for (GitHubServerConfig c : l) {
+            if (c.getAccessToken().getUsername().equals(userName))
                 try {
                     return Collections.singleton(c.login());
                 } catch (IOException e) {
-                    LOGGER.log(WARNING,"Failed to login with username="+c.username,e);
+                    LOGGER.log(WARNING,"Failed to login with credentials="+c.getCredentialId(),e);
                     return Collections.emptyList();
                 }
         }
@@ -72,12 +73,12 @@ public class GitHubWebHook implements UnprotectedRootAction {
         return new Iterable<GitHub>() {
             public Iterator<GitHub> iterator() {
                 return new FilterIterator<GitHub>(
-                    new AdaptedIterator<Credential,GitHub>(l) {
-                        protected GitHub adapt(Credential c) {
+                    new AdaptedIterator<GitHubServerConfig,GitHub>(l) {
+                        protected GitHub adapt(GitHubServerConfig c) {
                             try {
                                 return c.login();
                             } catch (IOException e) {
-                                LOGGER.log(WARNING,"Failed to login with username="+c.username,e);
+                                LOGGER.log(WARNING,"Failed to login with credentials="+c.getCredentialId(),e);
                                 return null;
                             }
                         }

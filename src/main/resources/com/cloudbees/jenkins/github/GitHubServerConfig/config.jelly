@@ -1,0 +1,8 @@
+<j:jelly xmlns:j="jelly:core" xmlns:c="/lib/credentials" xmlns:f="/lib/form">
+  <f:entry title="${%API URL}" field="apiUrl">
+    <f:textbox default="https://api.github.com"/>
+  </f:entry>
+  <f:entry title="${%Credentials}" field="credentialId">
+    <c:select/>
+  </f:entry>
+</j:jelly>
