@@ -14,7 +14,6 @@ import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.multiplescms.MultiSCM;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -45,14 +44,8 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
     }
 
 
-    /**
-     * Default implementation that looks at SCM
-     */
-    @Extension
-    public static class FromSCM extends GitHubRepositoryNameContributor {
-        @Override
-        public void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result) {
-
+    static abstract class AbstractFromSCMImpl extends GitHubRepositoryNameContributor {
+        protected EnvVars buildEnv(AbstractProject<?, ?> job) {
             EnvVars env = new EnvVars();
             for (EnvironmentContributor contributor : EnvironmentContributor.all()) {
                 try {
@@ -61,20 +54,10 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
                     // ignore
                 }
             }
-
-            if (Jenkins.getInstance().getPlugin("multiple-scms") != null
-                    && job.getScm() instanceof MultiSCM) {
-                MultiSCM multiSCM = (MultiSCM) job.getScm();
-                List<SCM> scmList = multiSCM.getConfiguredSCMs();
-                for (SCM scm : scmList) {
-                    addRepositories(scm, env, result);
-                }
-            } else {
-                addRepositories(job.getScm(), env, result);
-            }
+            return env;
         }
 
-        private void addRepositories(SCM scm, EnvVars env, Collection<GitHubRepositoryName> r) {
+        protected static void addRepositories(SCM scm, EnvVars env, Collection<GitHubRepositoryName> r) {
             if (scm instanceof GitSCM) {
                 GitSCM git = (GitSCM) scm;
                 for (RemoteConfig rc : git.getRepositories()) {
@@ -88,6 +71,38 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
                 }
             }
         }
+    }
 
+    /**
+     * Default implementation that looks at SCM
+     */
+    @Extension
+    public static class FromSCM extends AbstractFromSCMImpl {
+        @Override
+        public void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result) {
+            addRepositories(job.getScm(), buildEnv(job), result);
+        }
+    }
+
+    /**
+     * MultiSCM support separated into a different extension point since this is an optional dependency
+     */
+    @Extension(optional=true)
+    public static class FromMultiSCM extends AbstractFromSCMImpl {
+        // make this class fail to load if MultiSCM is not present
+        private MultiSCM signature() { return null; }
+
+        @Override
+        public void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result) {
+            if (job.getScm() instanceof MultiSCM) {
+                EnvVars env = buildEnv(job);
+
+                MultiSCM multiSCM = (MultiSCM) job.getScm();
+                List<SCM> scmList = multiSCM.getConfiguredSCMs();
+                for (SCM scm : scmList) {
+                    addRepositories(scm, env, result);
+                }
+            }
+        }
     }
 }
