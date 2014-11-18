@@ -11,15 +11,18 @@ import hudson.model.AbstractProject;
 import hudson.model.Project;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
+import hudson.util.FormValidation;
 import hudson.util.SequentialExecutionQueue;
 import hudson.util.StreamTaskListener;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.security.interfaces.RSAPublicKey;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,11 +35,16 @@ import java.util.logging.Logger;
 
 import net.sf.json.JSONObject;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.jelly.XMLOutput;
+import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.kohsuke.github.GHException;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+
+import javax.inject.Inject;
 
 /**
  * Triggers a build when we receive a GitHub post-commit webhook.
@@ -226,6 +234,9 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
         private String hookUrl;
         private volatile List<Credential> credentials = new ArrayList<Credential>();
 
+        @Inject
+        private transient InstanceIdentity identity;
+
         public DescriptorImpl() {
             load();
         }
@@ -271,15 +282,42 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
             JSONObject hookMode = json.getJSONObject("hookMode");
             manageHook = "auto".equals(hookMode.getString("value"));
-            JSONObject o = hookMode.getJSONObject("hookUrl");
-            if (o!=null && !o.isNullObject()) {
-                hookUrl = o.getString("url");
+            if (hookMode.optBoolean("hasHookUrl")) {
+                hookUrl = hookMode.optString("hookUrl");
             } else {
                 hookUrl = null;
             }
             credentials = req.bindJSONToList(Credential.class,hookMode.get("credentials"));
             save();
             return true;
+        }
+
+        public FormValidation doCheckHookUrl(@QueryParameter String value) {
+            try {
+                HttpURLConnection con = (HttpURLConnection) new URL(value).openConnection();
+                con.setRequestMethod("POST");
+                con.setRequestProperty(GitHubWebHook.URL_VALIDATION_HEADER, "true");
+                con.connect();
+                if (con.getResponseCode()!=200) {
+                    return FormValidation.error("Got "+con.getResponseCode()+" from "+value);
+                }
+                String v = con.getHeaderField(GitHubWebHook.X_INSTANCE_IDENTITY);
+                if (v==null) {
+                    // people might be running clever apps that's not Jenkins, and that's OK
+                    return FormValidation.warning("It doesn't look like " + value + " is talking to any Jenkins. Are you running your own app?");
+                }
+                RSAPublicKey key = identity.getPublic();
+                String expected = new String(Base64.encodeBase64(key.getEncoded()));
+                if (!expected.equals(v)) {
+                    // if it responds but with a different ID, that's more likely wrong than correct
+                    return FormValidation.error(value+" is connecting to different Jenkins instances");
+                }
+
+                return FormValidation.ok();
+            } catch (IOException e) {
+                return FormValidation.error(e,"Failed to test a connection to "+value);
+            }
+
         }
 
         public static DescriptorImpl get() {

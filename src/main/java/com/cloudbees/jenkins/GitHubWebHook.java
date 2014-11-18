@@ -16,10 +16,16 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContextHolder;
+import org.apache.commons.codec.binary.Base64;
+import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
+import javax.inject.Inject;
 import java.io.IOException;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -36,8 +42,8 @@ import static java.util.logging.Level.*;
  */
 @Extension
 public class GitHubWebHook implements UnprotectedRootAction {
-    private static final Pattern REPOSITORY_NAME_PATTERN = Pattern.compile("https?://([^/]+)/([^/]+)/([^/]+)");
-    public static final String URLNAME = "github-webhook";
+    @Inject
+    InstanceIdentity identity;
 
     public String getIconFileName() {
         return null;
@@ -146,8 +152,15 @@ public class GitHubWebHook implements UnprotectedRootAction {
      *
      * 1 push to 2 branches will result in 2 push notifications.
      */
-    // XXX probably want (when available in baseline Stapler version): @RequirePOST
-    public void doIndex(StaplerRequest req) {
+    @RequirePOST
+    public void doIndex(StaplerRequest req, StaplerResponse rsp) {
+        if (req.getHeader(URL_VALIDATION_HEADER)!=null) {
+            // when the configuration page provides the self-check button, it makes a request with this header.
+            RSAPublicKey key = identity.getPublic();
+            rsp.setHeader(X_INSTANCE_IDENTITY,new String(Base64.encodeBase64(key.getEncoded())));
+            rsp.setStatus(200);
+            return;
+        }
 
         String eventType = req.getHeader("X-GitHub-Event");
         if ("push".equals(eventType)) {
@@ -213,6 +226,13 @@ public class GitHubWebHook implements UnprotectedRootAction {
             LOGGER.warning("Malformed repo url "+repoUrl);
         }
     }
+
+    private static final Pattern REPOSITORY_NAME_PATTERN = Pattern.compile("https?://([^/]+)/([^/]+)/([^/]+)");
+    public static final String URLNAME = "github-webhook";
+
+    // headers used for testing the endpoint configuration
+    /*package*/ static final String URL_VALIDATION_HEADER = "X-Jenkins-Validation";
+    /*package*/ static final String X_INSTANCE_IDENTITY = "X-Instance-Identity";
 
     private static final Logger LOGGER = Logger.getLogger(GitHubWebHook.class.getName());
 
