@@ -90,7 +90,7 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
     @Extension(optional=true)
     public static class FromMultiSCM extends AbstractFromSCMImpl {
         // make this class fail to load if MultiSCM is not present
-        private MultiSCM signature() { return null; }
+        public FromMultiSCM() { MultiSCM.class.toString(); }
 
         @Override
         public void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result) {
