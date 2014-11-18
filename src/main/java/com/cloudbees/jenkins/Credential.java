@@ -44,17 +44,21 @@ public class Credential extends AbstractDescribableImpl<Credential> {
         }
 
         public FormValidation doValidate(@QueryParameter String apiUrl, @QueryParameter String username, @QueryParameter String oauthAccessToken) throws IOException {
-            GitHub gitHub;
-            if (Util.fixEmpty(apiUrl) != null) {
-                gitHub = GitHub.connectToEnterprise(apiUrl,oauthAccessToken);
-            } else {
-                gitHub = GitHub.connect(username,oauthAccessToken);
-            }
+            try {
+                GitHub gitHub;
+                if (Util.fixEmpty(apiUrl) != null) {
+                    gitHub = GitHub.connectToEnterprise(apiUrl,oauthAccessToken);
+                } else {
+                    gitHub = GitHub.connect(username,oauthAccessToken);
+                }
 
-            if (gitHub.isCredentialValid())
-                return FormValidation.ok("Verified");
-            else
-                return FormValidation.error("Failed to validate the account");
+                if (gitHub.isCredentialValid())
+                    return FormValidation.ok("Verified");
+                else
+                    return FormValidation.error("Failed to validate the account");
+            } catch (IOException e) {
+                return FormValidation.error(e,"Failed to validate the account");
+            }
         }
     }
 }
