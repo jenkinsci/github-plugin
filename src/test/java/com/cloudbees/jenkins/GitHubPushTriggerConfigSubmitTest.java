@@ -23,8 +23,8 @@ public class GitHubPushTriggerConfigSubmitTest extends HudsonTestCase {
         HtmlPage p = client.goTo("configure");
         HtmlForm f = p.getFormByName("config");
         f.getInputByValue("auto").setChecked(true);
-        f.getInputByName("_.hookUrl").setChecked(true);
-        f.getInputByName("url").setValueAttribute(WEBHOOK_URL);
+        f.getInputByName("_.hasHookUrl").setChecked(true);
+        f.getInputByName("_.hookUrl").setValueAttribute(WEBHOOK_URL);
         f.getInputByName("_.username").setValueAttribute("jenkins");
         submit(f);
 
