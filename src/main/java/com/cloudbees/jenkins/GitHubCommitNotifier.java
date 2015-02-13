@@ -43,33 +43,22 @@ import org.jenkinsci.plugins.github.util.BuildDataHelper;
 public class GitHubCommitNotifier extends Notifier {
 
     private final String resultOnFailure;
-    private final String statusReporterName;
     private static final Result[] SUPPORTED_RESULTS = {FAILURE, UNSTABLE, SUCCESS};
-    private static final String DEFAULT_STATUS_REPORTER_NAME = "jenkins";
-
+    
     @DataBoundConstructor
-    public GitHubCommitNotifier(String resultOnFailure, String statusReporterName) {
-        this.resultOnFailure = resultOnFailure;
-        this.statusReporterName = statusReporterName;
-    }
-
     public GitHubCommitNotifier(String resultOnFailure) {
-        this(resultOnFailure, DEFAULT_STATUS_REPORTER_NAME);
+        this.resultOnFailure = resultOnFailure;
     }
-
+    
     @Deprecated
     public GitHubCommitNotifier() {
-        this(getDefaultResultOnFailure().toString(), DEFAULT_STATUS_REPORTER_NAME);
+        this(getDefaultResultOnFailure().toString());
     }
 
     public @Nonnull String getResultOnFailure() {
         return resultOnFailure != null ? resultOnFailure : getDefaultResultOnFailure().toString();
     }
-
-    public @Nonnull String getStatusReporterName() {
-        return statusReporterName != null ? statusReporterName : DEFAULT_STATUS_REPORTER_NAME;
-    }
-
+     
     public static @Nonnull Result getDefaultResultOnFailure() {
         return SUPPORTED_RESULTS[0];
     }
@@ -108,9 +97,9 @@ public class GitHubCommitNotifier extends Notifier {
         }
         return true;
     }
-
-    private void updateCommitStatus(@Nonnull AbstractBuild<?, ?> build, @Nonnull BuildListener listener) throws InterruptedException, IOException {
-        final String sha1 = ObjectId.toString(BuildDataHelper.getCommitSHA1(build));
+        
+    private void updateCommitStatus(@Nonnull AbstractBuild<?, ?> build, @Nonnull BuildListener listener) throws InterruptedException, IOException {       
+        final String sha1 = ObjectId.toString(BuildDataHelper.getCommitSHA1(build));  
         for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(build.getProject())) {
             for (GHRepository repository : name.resolve()) {
                 GHCommitState state;
@@ -135,7 +124,7 @@ public class GitHubCommitNotifier extends Notifier {
                 }
 
                 listener.getLogger().println(Messages.GitHubCommitNotifier_SettingCommitStatus(repository.getUrl() + "/commit/" + sha1));
-                repository.createCommitStatus(sha1, state, build.getAbsoluteUrl(), msg, getStatusReporterName());
+                repository.createCommitStatus(sha1, state, build.getAbsoluteUrl(), msg);
             }
         }
     }

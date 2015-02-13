@@ -4,7 +4,4 @@
             <f:select/>
         </f:entry>
     </f:advanced>
-    <f:entry title="${%Status reporter}" field="statusReporterName" default="jenkins">
-        <f:textbox/>
-    </f:entry>
 </j:jelly>
