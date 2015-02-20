@@ -124,7 +124,7 @@ public class GitHubCommitNotifier extends Notifier {
                 }
 
                 listener.getLogger().println(Messages.GitHubCommitNotifier_SettingCommitStatus(repository.getUrl() + "/commit/" + sha1));
-                repository.createCommitStatus(sha1, state, build.getAbsoluteUrl(), msg);
+                repository.createCommitStatus(sha1, state, build.getAbsoluteUrl(), msg, build.getProject().getFullName());
             }
         }
     }
