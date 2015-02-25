@@ -29,7 +29,7 @@ public class GitHubSetCommitStatusBuilder extends Builder {
         for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(build.getProject())) {
             for (GHRepository repository : name.resolve()) {
                 listener.getLogger().println(Messages.GitHubCommitNotifier_SettingCommitStatus(repository.getUrl() + "/commit/" + sha1));
-                repository.createCommitStatus(sha1, GHCommitState.PENDING, build.getAbsoluteUrl(), Messages.CommitNotifier_Pending(build.getDisplayName()));
+                repository.createCommitStatus(sha1, GHCommitState.PENDING, build.getAbsoluteUrl(), Messages.CommitNotifier_Pending(build.getDisplayName()), build.getProject().getFullName());
             }
         }
         return true;
