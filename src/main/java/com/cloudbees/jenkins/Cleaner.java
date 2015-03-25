@@ -52,7 +52,7 @@ public class Cleaner extends PeriodicWork {
         }
 
         // subtract all the live repositories
-        for (AbstractProject<?,?> job : Hudson.getInstance().getItems(AbstractProject.class)) {
+        for (AbstractProject<?,?> job : Hudson.getInstance().getAllItems(AbstractProject.class)) {
             GitHubPushTrigger trigger = job.getTrigger(GitHubPushTrigger.class);
             if (trigger!=null) {
                 names.removeAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
