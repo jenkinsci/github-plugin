@@ -147,12 +147,12 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
             getDescriptor().queue.execute(new Runnable() {
                 public void run() {
                     LOGGER.log(Level.INFO, "Adding GitHub webhooks for {0}", names);
-                    OUTER:
+
                     for (GitHubRepositoryName name : names) {
                         for (GHRepository repo : name.resolve()) {
                             try {
                                 if(createJenkinsHook(repo, getDescriptor().getHookUrl())) {
-                                    continue OUTER;
+                                    break;
                                 }
                             } catch (Throwable e) {
                                 LOGGER.log(Level.WARNING, "Failed to add GitHub webhook for "+name, e);
