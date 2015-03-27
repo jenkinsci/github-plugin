@@ -141,27 +141,31 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
     public void start(AbstractProject<?,?> project, boolean newInstance) {
         super.start(project, newInstance);
         if (newInstance && getDescriptor().isManageHook()) {
-            // make sure we have hooks installed. do this lazily to avoid blocking the UI thread.
-            final Collection<GitHubRepositoryName> names = GitHubRepositoryNameContributor.parseAssociatedNames(job);
+            registerHooks();
+        }
+    }
 
-            getDescriptor().queue.execute(new Runnable() {
-                public void run() {
-                    LOGGER.log(Level.INFO, "Adding GitHub webhooks for {0}", names);
+    public void registerHooks() {
+        // make sure we have hooks installed. do this lazily to avoid blocking the UI thread.
+        final Collection<GitHubRepositoryName> names = GitHubRepositoryNameContributor.parseAssociatedNames(job);
 
-                    for (GitHubRepositoryName name : names) {
-                        for (GHRepository repo : name.resolve()) {
-                            try {
-                                if(createJenkinsHook(repo, getDescriptor().getHookUrl())) {
-                                    break;
-                                }
-                            } catch (Throwable e) {
-                                LOGGER.log(Level.WARNING, "Failed to add GitHub webhook for "+name, e);
+        getDescriptor().queue.execute(new Runnable() {
+            public void run() {
+                LOGGER.log(Level.INFO, "Adding GitHub webhooks for {0}", names);
+
+                for (GitHubRepositoryName name : names) {
+                    for (GHRepository repo : name.resolve()) {
+                        try {
+                            if(createJenkinsHook(repo, getDescriptor().getHookUrl())) {
+                                break;
                             }
+                        } catch (Throwable e) {
+                            LOGGER.log(Level.WARNING, "Failed to add GitHub webhook for "+name, e);
                         }
                     }
                 }
-            });
-        }
+            }
+        });
     }
 
     private boolean createJenkinsHook(GHRepository repo, URL url) {
