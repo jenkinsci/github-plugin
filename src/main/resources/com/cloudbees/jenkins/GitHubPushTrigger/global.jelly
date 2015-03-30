@@ -31,5 +31,6 @@
     </f:radioBlock>
     <f:radioBlock name="hookMode" value="none" title="${%Manually manage hook URLs}" checked="${!instance.isManageHook()}"
                   help="${descriptor.getHelpFile('manual')}"/>
+    <f:validateButton title="${%Re-register hooks for all jobs}" progress="${%Scanning all items...}" method="reRegister"/>
   </f:section>
 </j:jelly>

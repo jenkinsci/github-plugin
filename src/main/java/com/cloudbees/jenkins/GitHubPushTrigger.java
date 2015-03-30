@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.codec.binary.Base64;
@@ -141,27 +142,36 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
     public void start(AbstractProject<?,?> project, boolean newInstance) {
         super.start(project, newInstance);
         if (newInstance && getDescriptor().isManageHook()) {
-            // make sure we have hooks installed. do this lazily to avoid blocking the UI thread.
-            final Collection<GitHubRepositoryName> names = GitHubRepositoryNameContributor.parseAssociatedNames(job);
+            registerHooks();
+        }
+    }
 
-            getDescriptor().queue.execute(new Runnable() {
-                public void run() {
-                    LOGGER.log(Level.INFO, "Adding GitHub webhooks for {0}", names);
-                    OUTER:
-                    for (GitHubRepositoryName name : names) {
-                        for (GHRepository repo : name.resolve()) {
-                            try {
-                                if(createJenkinsHook(repo, getDescriptor().getHookUrl())) {
-                                    continue OUTER;
-                                }
-                            } catch (Throwable e) {
-                                LOGGER.log(Level.WARNING, "Failed to add GitHub webhook for "+name, e);
+    /**
+     * Tries to register hook for current associated job.
+     * Useful for using from groovy scripts.
+     * @since 1.11.2
+     */
+    public void registerHooks() {
+        // make sure we have hooks installed. do this lazily to avoid blocking the UI thread.
+        final Collection<GitHubRepositoryName> names = GitHubRepositoryNameContributor.parseAssociatedNames(job);
+
+        getDescriptor().queue.execute(new Runnable() {
+            public void run() {
+                LOGGER.log(Level.INFO, "Adding GitHub webhooks for {0}", names);
+
+                for (GitHubRepositoryName name : names) {
+                    for (GHRepository repo : name.resolve()) {
+                        try {
+                            if(createJenkinsHook(repo, getDescriptor().getHookUrl())) {
+                                break;
                             }
+                        } catch (Throwable e) {
+                            LOGGER.log(Level.WARNING, "Failed to add GitHub webhook for "+name, e);
                         }
                     }
                 }
-            });
-        }
+            }
+        });
     }
 
     private boolean createJenkinsHook(GHRepository repo, URL url) {
@@ -228,6 +238,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
 
     @Extension
     public static class DescriptorImpl extends TriggerDescriptor {
+        private static final Logger LOGGER = Logger.getLogger(DescriptorImpl.class.getName());
         private transient final SequentialExecutionQueue queue = new SequentialExecutionQueue(MasterComputer.threadPoolForRemoting);
 
         private boolean manageHook;
@@ -318,6 +329,37 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
                 return FormValidation.error(e,"Failed to test a connection to "+value);
             }
 
+        }
+
+        public FormValidation doReRegister() {
+            if (!manageHook) {
+                return FormValidation.error("Works only when Jenkins manages hooks");
+            }
+
+            int triggered = 0;
+            for (AbstractProject<?,?> job : getJenkinsInstance().getAllItems(AbstractProject.class)) {
+                if (!job.isBuildable()) {
+                    continue;
+                }
+
+                GitHubPushTrigger trigger = job.getTrigger(GitHubPushTrigger.class);
+                if (trigger!=null) {
+                    LOGGER.log(Level.FINE, "Calling registerHooks() for {0}", job.getFullName());
+                    trigger.registerHooks();
+                    triggered++;
+                }
+            }
+
+            LOGGER.log(Level.INFO, "Called registerHooks() for {0} jobs", triggered);
+            return FormValidation.ok("Called re-register hooks for " + triggered + " jobs");
+        }
+
+        public static final Jenkins getJenkinsInstance() throws IllegalStateException {
+            Jenkins instance = Jenkins.getInstance();
+            if (instance == null) {
+                throw new IllegalStateException("Jenkins has not been started, or was already shut down");
+            }
+            return instance;
         }
 
         public static DescriptorImpl get() {
