@@ -123,7 +123,7 @@ public class GitHubCommitNotifier extends Notifier {
                     msg = Messages.CommitNotifier_Failed(build.getDisplayName(), duration);
                 }
 
-                listener.getLogger().println(Messages.GitHubCommitNotifier_SettingCommitStatus(repository.getUrl() + "/commit/" + sha1));
+                listener.getLogger().println(Messages.GitHubCommitNotifier_SettingCommitStatus(repository.getHtmlUrl() + "/commit/" + sha1));
                 repository.createCommitStatus(sha1, state, build.getAbsoluteUrl(), msg, build.getProject().getFullName());
             }
         }

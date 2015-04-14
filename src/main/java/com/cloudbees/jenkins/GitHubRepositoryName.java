@@ -138,13 +138,9 @@ public class GitHubRepositoryName {
      * Does this repository match the repository referenced in the given {@link GHCommitPointer}?
      */
     public boolean matches(GHCommitPointer commit) {
-        try {
-            return userName.equals(commit.getUser().getLogin())
-                && repositoryName.equals(commit.getRepository().getName())
-                && host.equals(new URL(commit.getRepository().getUrl()).getHost());
-        } catch (MalformedURLException e) {
-            return false;
-        }
+        return userName.equals(commit.getUser().getLogin())
+            && repositoryName.equals(commit.getRepository().getName())
+            && host.equals(commit.getRepository().getHtmlUrl().getHost());
     }
 
     /**
@@ -153,7 +149,7 @@ public class GitHubRepositoryName {
     public boolean matches(GHRepository repo) throws IOException {
         return userName.equals(repo.getOwner().getLogin()) // TODO: use getOwnerName
             && repositoryName.equals(repo.getName())
-            && host.equals(new URL(repo.getUrl()).getHost());
+            && host.equals(repo.getHtmlUrl().getHost());
     }
 
     @Override
