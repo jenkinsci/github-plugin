@@ -3,6 +3,7 @@ package com.cloudbees.jenkins;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractProject;
+import hudson.plugins.git.BranchSpec;
 import hudson.triggers.Trigger;
 
 import java.util.Collection;
@@ -38,8 +39,25 @@ public interface GitHubTrigger {
     public Set<GitHubRepositoryName> getGitHubRepositories();
 
     /**
+     * Obtains the list of the branches that this trigger is looking at.
+     *
+     * If the implementation of this class maintain its own list of GitHub branches, it should
+     * continue to implement this method for backward compatibility, and it gets picked up by
+     * {@link GitHubRepositoryNameContributor#parseAssociatedBranches(AbstractProject)}.
+     *
+     * <p>
+     * Alternatively, if the implementation doesn't worry about the backward compatibility, it can
+     * implement this method to return an empty collection, then just implement {@link GitHubRepositoryNameContributor}.
+     *
+     * @deprecated
+     *      Call {@link GitHubRepositoryNameContributor#parseAssociatedBranches(AbstractProject)} instead.
+     */
+    public Set<GitHubBranch> getGitHubBranches();
+
+    /**
      * Contributes {@link GitHubRepositoryName} from {@link GitHubTrigger#getGitHubRepositories()}
-     * for backward compatibility
+     * and {@link BranchSpec} from {@link GitHubTrigger#getGitHubBranches()} for
+     * backward compatibility.
      */
     @Extension
     public static class GitHubRepositoryNameContributorImpl extends GitHubRepositoryNameContributor {
@@ -47,6 +65,13 @@ public interface GitHubTrigger {
         public void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result) {
             for (GitHubTrigger ght : Util.filter(job.getTriggers().values(),GitHubTrigger.class)) {
                 result.addAll(ght.getGitHubRepositories());
+            }
+        }
+
+        @Override
+        public void parseAssociatedBranches(AbstractProject<?, ?> job, Collection<GitHubBranch> result) {
+            for (GitHubTrigger ght : Util.filter(job.getTriggers().values(),GitHubTrigger.class)) {
+              result.addAll(ght.getGitHubBranches());
             }
         }
     }
