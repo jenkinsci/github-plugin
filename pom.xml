@@ -9,7 +9,7 @@
   <groupId>com.coravy.hudson.plugins.github</groupId>
   <artifactId>github</artifactId>
   <packaging>hpi</packaging>
-  <version>1.11.3</version>
+  <version>1.11.4-SNAPSHOT</version>
   <name>GitHub plugin</name>
   <url>http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin</url>
 
@@ -82,7 +82,7 @@
     <connection>scm:git:git://github.com/jenkinsci/github-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/github-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/github-plugin</url>
-    <tag>github-1.11.3</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <repositories>
