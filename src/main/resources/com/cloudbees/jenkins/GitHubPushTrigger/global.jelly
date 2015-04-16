@@ -11,6 +11,9 @@
               </f:entry>
             </f:optionalBlock>
           </j:if>
+          <f:optionalBlock title="${%Register hooks using WebHooks and not the Jenkins GitHub Aplication. This allows for several Jenkins instances to register for push notifications.}" inline="true"
+                           field="useWebHooks" checked="${instance.isUseWebHooks()}">
+          </f:optionalBlock>
           <f:section title="${%GitHub Credentials}">
             <f:block>
               <f:repeatable field="credentials" minimum="${1}" noAddButton="true">

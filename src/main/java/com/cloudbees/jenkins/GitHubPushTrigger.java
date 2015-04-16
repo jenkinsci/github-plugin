@@ -176,7 +176,12 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
 
     private boolean createJenkinsHook(GHRepository repo, URL url) {
         try {
-            repo.createHook("jenkins", Collections.singletonMap("jenkins_hook_url", url.toExternalForm()), null, true);
+            if (getDescriptor().isUseWebHooks()) {
+                // No need to pass events since the default event is PUSH
+                repo.createWebHook(new URL(url.toExternalForm()));
+            } else {
+                repo.createHook("jenkins", Collections.singletonMap("jenkins_hook_url", url.toExternalForm()), null, true);
+            }
             return true;
         } catch (IOException e) {
             throw new GHException("Failed to update jenkins hooks", e);
@@ -242,6 +247,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
         private transient final SequentialExecutionQueue queue = new SequentialExecutionQueue(MasterComputer.threadPoolForRemoting);
 
         private boolean manageHook;
+        private boolean useWebHooks;
         private String hookUrl;
         private volatile List<Credential> credentials = new ArrayList<Credential>();
 
@@ -275,6 +281,19 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
         }
 
         /**
+         * True if the plugin should use webhooks as opposed to use the GitHub Jenkins Application to
+         * register hooks.
+         */
+        public boolean isUseWebHooks() {
+            return useWebHooks;
+        }
+
+        public void setUseWebHooks(boolean v) {
+            useWebHooks = v;
+            save();
+        }
+
+        /**
          * Returns the URL that GitHub should post.
          */
         public URL getHookUrl() throws MalformedURLException {
@@ -298,6 +317,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
             } else {
                 hookUrl = null;
             }
+            useWebHooks = hookMode.optBoolean("useWebHooks");
             credentials = req.bindJSONToList(Credential.class,hookMode.get("credentials"));
             save();
             return true;
