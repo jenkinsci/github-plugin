@@ -39,7 +39,6 @@ import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
-import org.kohsuke.github.GHEvent;
 import org.kohsuke.github.GHException;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -178,9 +177,8 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
     private boolean createJenkinsHook(GHRepository repo, URL url) {
         try {
             if (getDescriptor().isUseWebHooks()) {
-                Collection<GHEvent> events = new ArrayList();
-                events.add(GHEvent.PULL_REQUEST);
-                repo.createWebHook(new URL(url.toExternalForm()), events);
+                // No need to pass events since the default event is PUSH
+                repo.createWebHook(new URL(url.toExternalForm()));
             } else {
                 repo.createHook("jenkins", Collections.singletonMap("jenkins_hook_url", url.toExternalForm()), null, true);
             }
