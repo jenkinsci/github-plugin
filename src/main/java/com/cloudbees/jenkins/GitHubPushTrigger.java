@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -39,7 +40,9 @@ import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+import org.kohsuke.github.GHEvent;
 import org.kohsuke.github.GHException;
+import org.kohsuke.github.GHHook;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -53,8 +56,22 @@ import javax.inject.Inject;
  * @author Kohsuke Kawaguchi
  */
 public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements GitHubTrigger {
+
+    private boolean overrideEventTypes;
+    private EnumSet<GHEvent> eventTypes;
+
     @DataBoundConstructor
-    public GitHubPushTrigger() {
+    public GitHubPushTrigger(boolean overrideEventTypes, EnumSet<GHEvent> eventTypes) {
+        this.overrideEventTypes = overrideEventTypes;
+        this.eventTypes = eventTypes;
+    }
+
+    public boolean isOverrideEventTypes() {
+        return overrideEventTypes;
+    }
+
+    public EnumSet<GHEvent> getEventTypes() {
+        return eventTypes;
     }
 
     /**
@@ -68,8 +85,17 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
     /**
      * Called when a POST is made.
      */
-    public void onPost(String triggeredByUser) {
-        final String pushBy = triggeredByUser;
+    @Deprecated
+    public void onPost(String triggerByUser) {
+        onPost("", triggerByUser);
+    }
+
+    /**
+     * Called when a POST is made.
+     */
+    public void onPost(String eventType, String triggeredByUser) {
+        final String event = eventType;
+        final String author = triggeredByUser;
         getDescriptor().queue.execute(new Runnable() {
             private boolean runPolling() {
                 try {
@@ -106,12 +132,12 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
             public void run() {
                 if (runPolling()) {
                     String name = " #"+job.getNextBuildNumber();
-                    GitHubPushCause cause;
+                    GitHubCause cause;
                     try {
-                        cause = new GitHubPushCause(getLogFile(), pushBy);
+                        cause = new GitHubCause(getLogFile(), event, author);
                     } catch (IOException e) {
                         LOGGER.log(Level.WARNING, "Failed to parse the polling log",e);
-                        cause = new GitHubPushCause(pushBy);
+                        cause = new GitHubCause(event, author);
                     }
                     if (job.scheduleBuild(cause)) {
                         LOGGER.info("SCM changes detected in "+ job.getName()+". Triggering "+name);
@@ -174,9 +200,37 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
         });
     }
 
+    private void updateWebHook(GHRepository repo, URL url) {
+        try {
+            String urlExternalForm = url.toExternalForm();
+            GHHook hook = null;
+            for (GHHook h : repo.getHooks()) {
+                if (h.getName().equals("web") && h.getConfig().get("url").equals(urlExternalForm)) {
+                    hook = h;
+                }
+            }
+            if (hook == null) {
+                LOGGER.log(Level.INFO, "Creating WebHook");
+                repo.createWebHook(new URL(url.toExternalForm()), getHookEvents());
+            } else if (!hook.getEvents().equals(getHookEvents())) {
+                LOGGER.log(Level.INFO, "Updating WebHook");
+                hook.delete();
+                repo.createWebHook(new URL(url.toExternalForm()), getHookEvents());
+            } else {
+                LOGGER.log(Level.INFO, "WebHook unchanged");
+            }
+        } catch (IOException e) {
+            throw new GHException("Failed to update post-commit hooks", e);
+        }
+    }
+
     private boolean createJenkinsHook(GHRepository repo, URL url) {
         try {
-            repo.createHook("jenkins", Collections.singletonMap("jenkins_hook_url", url.toExternalForm()), null, true);
+            if (overrideEventTypes || getDescriptor().isUseEventTypes()) {
+                updateWebHook(repo, url);
+            } else {
+                repo.createHook("jenkins", Collections.singletonMap("jenkins_hook_url", url.toExternalForm()), null, true);
+            }
             return true;
         } catch (IOException e) {
             throw new GHException("Failed to update jenkins hooks", e);
@@ -201,6 +255,14 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl)super.getDescriptor();
+    }
+
+    private EnumSet<GHEvent> getHookEvents() {
+        if (overrideEventTypes) {
+            return eventTypes;
+        }
+
+        return getDescriptor().getEventTypes();
     }
 
     /**
@@ -229,6 +291,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
 
         /**
          * Writes the annotated log to the given output.
+         *
          * @since 1.350
          */
         public void writeLogTo(XMLOutput out) throws IOException {
@@ -244,6 +307,8 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
         private boolean manageHook;
         private String hookUrl;
         private volatile List<Credential> credentials = new ArrayList<Credential>();
+        private boolean useEventTypes;
+        private List<GHEvent> eventTypes = new ArrayList<GHEvent>();
 
         @Inject
         private transient InstanceIdentity identity;
@@ -289,6 +354,21 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
             return credentials;
         }
 
+        public boolean isUseEventTypes() {
+            return useEventTypes;
+        }
+
+        public void setUseEventTypes(boolean v) {
+            useEventTypes = v;
+            save();
+        }
+
+        public EnumSet<GHEvent> getEventTypes() {
+            EnumSet<GHEvent> enumSet = EnumSet.noneOf(GHEvent.class);
+            enumSet.addAll(eventTypes);
+            return enumSet;
+        }
+
         @Override
         public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
             JSONObject hookMode = json.getJSONObject("hookMode");
@@ -299,6 +379,14 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
                 hookUrl = null;
             }
             credentials = req.bindJSONToList(Credential.class,hookMode.get("credentials"));
+            useEventTypes = hookMode.optBoolean("useEventTypes");
+            JSONObject eventTypes = (JSONObject) hookMode.get("eventTypes");
+            this.eventTypes.clear();
+            for (Object key : eventTypes.keySet()) {
+                if ("true".equals(eventTypes.getString((String) key))) {
+                    this.eventTypes.add(GHEvent.valueOf((String) key));
+                }
+            }
             save();
             return true;
         }

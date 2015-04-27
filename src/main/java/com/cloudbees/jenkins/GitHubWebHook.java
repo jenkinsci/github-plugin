@@ -18,6 +18,7 @@ import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.commons.codec.binary.Base64;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+import org.kohsuke.github.GHEvent;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -163,16 +164,23 @@ public class GitHubWebHook implements UnprotectedRootAction {
         }
 
         String eventType = req.getHeader("X-GitHub-Event");
-        if ("push".equals(eventType)) {
-            String payload = req.getParameter("payload");
-            if (payload == null) {
-                throw new IllegalArgumentException("Not intended to be browsed interactively (must specify payload parameter). " +
-                        "Make sure payload version is 'application/vnd.github+form'.");
+        if (eventType != null) {
+            if ("ping".equals(eventType)) {
+                LOGGER.info("Got a ping request from GitHub");
+            } else {
+                try {
+                    GHEvent.valueOf(eventType.toUpperCase());
+                    String payload = req.getParameter("payload");
+                    if (payload == null) {
+                        throw new IllegalArgumentException("Not intended to be browsed interactively (must specify payload parameter). " +
+                                "Make sure payload version is 'application/vnd.github+form'.");
+                    }
+
+                    processGitHubPayload(eventType, payload, GitHubPushTrigger.class);
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Github Webhook event of type " + eventType + " is not supported.");
+                }
             }
-            processGitHubPayload(payload,GitHubPushTrigger.class);
-        } else if (eventType != null && !eventType.isEmpty()) {
-            throw new IllegalArgumentException("Github Webhook event of type " + eventType + " is not supported. " +
-                    "Only push events are current supported");
         } else {
             //Support github services that don't specify a header.
             //Github webhook specifies a "X-Github-Event" header but services do not.
@@ -180,14 +188,19 @@ public class GitHubWebHook implements UnprotectedRootAction {
             if (payload == null) {
                 throw new IllegalArgumentException("Not intended to be browsed interactively (must specify payload parameter)");
             }
-            processGitHubPayload(payload,GitHubPushTrigger.class);
+            processGitHubPayload(eventType, payload, GitHubPushTrigger.class);
         }
     }
 
+    @Deprecated
     public void processGitHubPayload(String payload, Class<? extends Trigger<?>> triggerClass) {
+        processGitHubPayload(null, payload, triggerClass);
+    }
+
+    public void processGitHubPayload(String eventType, String payload, Class<? extends Trigger<?>> triggerClass) {
         JSONObject o = JSONObject.fromObject(payload);
-        String repoUrl = o.getJSONObject("repository").getString("url"); // something like 'https://github.com/kohsuke/foo'
-        String pusherName = o.getJSONObject("pusher").getString("name");
+        String repoUrl = o.getJSONObject("repository").getString("html_url"); // something like 'https://github.com/kohsuke/foo'
+        String name = "GitHub Plugin";
 
         LOGGER.info("Received POST for "+repoUrl);
         LOGGER.fine("Full details of the POST was "+o.toString());
@@ -211,7 +224,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
                         LOGGER.fine("Considering to poke "+job.getFullDisplayName());
                         if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
                             LOGGER.info("Poked "+job.getFullDisplayName());
-                            trigger.onPost(pusherName);
+                            trigger.onPost(eventType, name);
                         } else
                             LOGGER.fine("Skipped "+job.getFullDisplayName()+" because it doesn't have a matching repository.");
                     }
@@ -219,8 +232,13 @@ public class GitHubWebHook implements UnprotectedRootAction {
             } finally {
                 SecurityContextHolder.getContext().setAuthentication(old);
             }
-            for (Listener listener: Jenkins.getInstance().getExtensionList(Listener.class)) {
-                listener.onPushRepositoryChanged(pusherName, changedRepository);
+
+            for (Listener listener : Jenkins.getInstance().getExtensionList(Listener.class)) {
+                listener.onRepositoryChanged(eventType, name, changedRepository);
+                if ("push".equals(eventType)) {
+                    String pusherName = o.getJSONObject("pusher").getString("name");
+                    listener.onPushRepositoryChanged(pusherName, changedRepository);
+                }
             }
         } else {
             LOGGER.warning("Malformed repo url "+repoUrl);
@@ -254,7 +272,10 @@ public class GitHubWebHook implements UnprotectedRootAction {
          * @param changedRepository the changed repository.
          * @since 1.8
          */
+        @Deprecated
         public abstract void onPushRepositoryChanged(String pusherName, GitHubRepositoryName changedRepository);
+
+        public abstract void onRepositoryChanged(String eventType, String name, GitHubRepositoryName changedRepository);
     }
 
 }

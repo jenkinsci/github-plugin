@@ -26,6 +26,13 @@
               </f:repeatable>
             </f:block>
           </f:section>
+          <f:advanced>
+            <f:optionalBlock title="${%Override Event Types}" inline="true" checked="${instance.isUseEventTypes()}" field="useEventTypes">
+              <f:entry title="${%Event Types}" field="eventTypes">
+                <f:enumSet/>
+              </f:entry>
+            </f:optionalBlock>
+          </f:advanced>
         </table>
       </f:nested>
     </f:radioBlock>

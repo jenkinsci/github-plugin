@@ -65,6 +65,7 @@ public class Cleaner extends PeriodicWork {
         for (GitHubRepositoryName r : names) {
             for (GHRepository repo : r.resolve()) {
                 try {
+                    removeWebHook(repo, Trigger.all().get(DescriptorImpl.class).getHookUrl());
                     removeHook(repo, Trigger.all().get(DescriptorImpl.class).getHookUrl());
                     LOGGER.fine("Removed a hook from "+r+"");
                     continue OUTER;
@@ -82,6 +83,19 @@ public class Cleaner extends PeriodicWork {
             String urlExternalForm = url.toExternalForm();
             for (GHHook h : repo.getHooks()) {
                 if (h.getName().equals("jenkins") && h.getConfig().get("jenkins_hook_url").equals(urlExternalForm)) {
+                    h.delete();
+                }
+            }
+        } catch (IOException e) {
+            throw new GHException("Failed to update post-commit hooks", e);
+        }
+    }
+
+    private void removeWebHook(GHRepository repo, URL url) {
+        try {
+            String urlExternalForm = url.toExternalForm();
+            for (GHHook h : repo.getHooks()) {
+                if (h.getName().equals("web") && h.getConfig().get("url").equals(urlExternalForm)) {
                     h.delete();
                 }
             }

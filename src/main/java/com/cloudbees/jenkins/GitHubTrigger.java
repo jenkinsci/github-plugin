@@ -19,8 +19,11 @@ public interface GitHubTrigger {
     @Deprecated
     public void onPost();
 
-    // TODO: document me
+    @Deprecated
     public void onPost(String triggeredByUser);
+
+    public void onPost(String eventType, String triggeredByUser);
+
     /**
      * Obtains the list of the repositories that this trigger is looking at.
      *
