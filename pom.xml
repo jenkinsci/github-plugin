@@ -3,7 +3,8 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.532</version>
+      <!--JENKINS-18537-->
+    <version>1.554.1</version>
   </parent>
 
   <groupId>com.coravy.hudson.plugins.github</groupId>
@@ -105,13 +106,20 @@
     </pluginRepository>
   </pluginRepositories>
 
+    <properties>
+        <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
+        <maven-release-plugin.version>2.5.1</maven-release-plugin.version>
+    </properties>
+    
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.5</version>
-      </plugin>
+        <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <source>1.6</source>
+                <target>1.6</target>
+            </configuration>
+        </plugin>
     </plugins>  
   </build>
     
