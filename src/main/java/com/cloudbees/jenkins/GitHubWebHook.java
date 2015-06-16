@@ -1,11 +1,9 @@
 package com.cloudbees.jenkins;
 
 import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
-
 import hudson.Extension;
 import hudson.ExtensionPoint;
 import hudson.model.AbstractProject;
-import hudson.model.Hudson;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
 import hudson.security.ACL;
@@ -22,6 +20,8 @@ import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.interceptor.RequirePOST;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -29,11 +29,9 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.util.logging.Level.*;
 
 /**
  * Receives github hook.
@@ -65,31 +63,32 @@ public class GitHubWebHook implements UnprotectedRootAction {
 
         // if the username is not an organization, we should have the right user account on file
         for (Credential c : l) {
-            if (c.username.equals(userName))
+            if (c.username.equals(userName)) {
                 try {
                     return Collections.singleton(c.login());
                 } catch (IOException e) {
-                    LOGGER.log(WARNING,"Failed to login with username="+c.username,e);
+                    LOGGER.warn("Failed to login with username={}", c.username, e);
                     return Collections.emptyList();
                 }
+            }
         }
 
         // otherwise try all the credentials since we don't know which one would work
         return new Iterable<GitHub>() {
             public Iterator<GitHub> iterator() {
                 return new FilterIterator<GitHub>(
-                    new AdaptedIterator<Credential,GitHub>(l) {
-                        protected GitHub adapt(Credential c) {
-                            try {
-                                return c.login();
-                            } catch (IOException e) {
-                                LOGGER.log(WARNING,"Failed to login with username="+c.username,e);
-                                return null;
+                        new AdaptedIterator<Credential, GitHub>(l) {
+                            protected GitHub adapt(Credential c) {
+                                try {
+                                    return c.login();
+                                } catch (IOException e) {
+                                    LOGGER.warn("Failed to login with username={}", c.username, e);
+                                    return null;
+                                }
                             }
-                        }
-                }) {
+                        }) {
                     protected boolean filter(GitHub g) {
-                        return g!=null;
+                        return g != null;
                     }
                 };
             }
@@ -154,10 +153,10 @@ public class GitHubWebHook implements UnprotectedRootAction {
      */
     @RequirePOST
     public void doIndex(StaplerRequest req, StaplerResponse rsp) {
-        if (req.getHeader(URL_VALIDATION_HEADER)!=null) {
+        if (req.getHeader(URL_VALIDATION_HEADER) != null) {
             // when the configuration page provides the self-check button, it makes a request with this header.
             RSAPublicKey key = identity.getPublic();
-            rsp.setHeader(X_INSTANCE_IDENTITY,new String(Base64.encodeBase64(key.getEncoded())));
+            rsp.setHeader(X_INSTANCE_IDENTITY, new String(Base64.encodeBase64(key.getEncoded())));
             rsp.setStatus(200);
             return;
         }
@@ -169,7 +168,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
                 throw new IllegalArgumentException("Not intended to be browsed interactively (must specify payload parameter). " +
                         "Make sure payload version is 'application/vnd.github+form'.");
             }
-            processGitHubPayload(payload,GitHubPushTrigger.class);
+            processGitHubPayload(payload, GitHubPushTrigger.class);
         } else if (eventType != null && !eventType.isEmpty()) {
             throw new IllegalArgumentException("Github Webhook event of type " + eventType + " is not supported. " +
                     "Only push events are current supported");
@@ -180,7 +179,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
             if (payload == null) {
                 throw new IllegalArgumentException("Not intended to be browsed interactively (must specify payload parameter)");
             }
-            processGitHubPayload(payload,GitHubPushTrigger.class);
+            processGitHubPayload(payload, GitHubPushTrigger.class);
         }
     }
 
@@ -189,13 +188,13 @@ public class GitHubWebHook implements UnprotectedRootAction {
         String repoUrl = o.getJSONObject("repository").getString("url"); // something like 'https://github.com/kohsuke/foo'
         String pusherName = o.getJSONObject("pusher").getString("name");
 
-        LOGGER.info("Received POST for "+repoUrl);
-        LOGGER.fine("Full details of the POST was "+o.toString());
+        LOGGER.info("Received POST for {}", repoUrl);
+        LOGGER.debug("Full details of the POST was {}", o.toString());
         Matcher matcher = REPOSITORY_NAME_PATTERN.matcher(repoUrl);
         if (matcher.matches()) {
             GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl);
             if (changedRepository == null) {
-                LOGGER.warning("Malformed repo url "+repoUrl);
+                LOGGER.warn("Malformed repo url {}", repoUrl);
                 return;
             }
 
@@ -205,25 +204,25 @@ public class GitHubWebHook implements UnprotectedRootAction {
             Authentication old = SecurityContextHolder.getContext().getAuthentication();
             SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
             try {
-                for (AbstractProject<?,?> job : Hudson.getInstance().getAllItems(AbstractProject.class)) {
+                for (AbstractProject<?, ?> job : Jenkins.getInstance().getAllItems(AbstractProject.class)) {
                     GitHubTrigger trigger = (GitHubTrigger) job.getTrigger(triggerClass);
-                    if (trigger!=null) {
-                        LOGGER.fine("Considering to poke "+job.getFullDisplayName());
+                    if (trigger != null) {
+                        LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
                         if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
-                            LOGGER.info("Poked "+job.getFullDisplayName());
+                            LOGGER.info("Poked {}", job.getFullDisplayName());
                             trigger.onPost(pusherName);
                         } else
-                            LOGGER.fine("Skipped "+job.getFullDisplayName()+" because it doesn't have a matching repository.");
+                            LOGGER.debug("Skipped {} because it doesn't have a matching repository.", job.getFullDisplayName());
                     }
                 }
             } finally {
                 SecurityContextHolder.getContext().setAuthentication(old);
             }
-            for (Listener listener: Jenkins.getInstance().getExtensionList(Listener.class)) {
+            for (Listener listener : Jenkins.getInstance().getExtensionList(Listener.class)) {
                 listener.onPushRepositoryChanged(pusherName, changedRepository);
             }
         } else {
-            LOGGER.warning("Malformed repo url "+repoUrl);
+            LOGGER.warn("Malformed repo url {}", repoUrl);
         }
     }
 
@@ -234,10 +233,10 @@ public class GitHubWebHook implements UnprotectedRootAction {
     /*package*/ static final String URL_VALIDATION_HEADER = "X-Jenkins-Validation";
     /*package*/ static final String X_INSTANCE_IDENTITY = "X-Instance-Identity";
 
-    private static final Logger LOGGER = Logger.getLogger(GitHubWebHook.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubWebHook.class);
 
     public static GitHubWebHook get() {
-        return Hudson.getInstance().getExtensionList(RootAction.class).get(GitHubWebHook.class);
+        return Jenkins.getInstance().getExtensionList(RootAction.class).get(GitHubWebHook.class);
     }
 
     /**
@@ -252,6 +251,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
          *
          * @param pusherName        the pusher name.
          * @param changedRepository the changed repository.
+         *
          * @since 1.8
          */
         public abstract void onPushRepositoryChanged(String pusherName, GitHubRepositoryName changedRepository);

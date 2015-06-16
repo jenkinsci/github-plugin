@@ -36,10 +36,11 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
         return Jenkins.getInstance().getExtensionList(GitHubRepositoryNameContributor.class);
     }
 
-    public static Collection<GitHubRepositoryName> parseAssociatedNames(AbstractProject<?,?> job) {
+    public static Collection<GitHubRepositoryName> parseAssociatedNames(AbstractProject<?, ?> job) {
         Set<GitHubRepositoryName> names = new HashSet<GitHubRepositoryName>();
-        for (GitHubRepositoryNameContributor c : all())
-            c.parseAssociatedNames(job,names);
+        for (GitHubRepositoryNameContributor c : all()) {
+            c.parseAssociatedNames(job, names);
+        }
         return names;
     }
 
@@ -77,6 +78,7 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
      * Default implementation that looks at SCM
      */
     @Extension
+    @SuppressWarnings("unused")
     public static class FromSCM extends AbstractFromSCMImpl {
         @Override
         public void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result) {
@@ -88,6 +90,7 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
      * MultiSCM support separated into a different extension point since this is an optional dependency
      */
     @Extension(optional=true)
+    @SuppressWarnings("unused")
     public static class FromMultiSCM extends AbstractFromSCMImpl {
         // make this class fail to load if MultiSCM is not present
         public FromMultiSCM() { MultiSCM.class.toString(); }
