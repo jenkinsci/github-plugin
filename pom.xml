@@ -34,6 +34,13 @@
   </developers>
 
   <dependencies>
+      
+      <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-jdk14</artifactId>
+          <version>1.7.7</version>
+      </dependency>
+      
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>github-api</artifactId>
