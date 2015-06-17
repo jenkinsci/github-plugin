@@ -1,6 +1,5 @@
 package org.jenkinsci.plugins.github.webhook;
 
-import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -32,10 +31,10 @@ import static org.jenkinsci.plugins.github.webhook.GHEventsListener.isApplicable
  * Each manager works with only one hook url (created with {@link #forHookUrl(URL)})
  *
  * @author lanwen (Merkushev Kirill)
- *         Date: 16.06.15
+ * @since 1.11.4
  */
 public class WebhookManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubPushTrigger.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebhookManager.class);
 
     private final URL endpoint;
 

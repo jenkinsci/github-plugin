@@ -13,7 +13,7 @@ import java.util.Collection;
  * Utility class which holds converters or predicates (matchers) to filter or convert job lists
  *
  * @author lanwen (Merkushev Kirill)
- *         Date: 16.06.15
+ * @since 1.11.4
  */
 public final class JobInfoHelpers {
 

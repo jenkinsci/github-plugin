@@ -25,7 +25,7 @@ import static org.kohsuke.github.GHEvent.PUSH;
  * Each time this plugin wants to get events list from contributors it asks for applicable status
  *
  * @author lanwen (Merkushev Kirill)
- *         Date: 16.06.15
+ * @since 1.11.4
  */
 public abstract class GHEventsListener implements ExtensionPoint {
 
