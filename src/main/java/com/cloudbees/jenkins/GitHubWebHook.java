@@ -1,17 +1,28 @@
 package com.cloudbees.jenkins;
 
-import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
 import hudson.Extension;
 import hudson.ExtensionPoint;
-import hudson.model.AbstractProject;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
+import hudson.model.AbstractProject;
 import hudson.security.ACL;
 import hudson.triggers.Trigger;
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
+
+import java.io.IOException;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.inject.Inject;
+
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+
 import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.commons.codec.binary.Base64;
@@ -23,14 +34,7 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.io.IOException;
-import java.security.interfaces.RSAPublicKey;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
 
 
 /**
@@ -186,7 +190,9 @@ public class GitHubWebHook implements UnprotectedRootAction {
     public void processGitHubPayload(String payload, Class<? extends Trigger<?>> triggerClass) {
         JSONObject o = JSONObject.fromObject(payload);
         String repoUrl = o.getJSONObject("repository").getString("url"); // something like 'https://github.com/kohsuke/foo'
-        String pusherName = o.getJSONObject("pusher").getString("name");
+        final JSONObject pusher = o.getJSONObject("pusher");
+        final String pusherName = pusher.getString("name");
+        final String pusherEmail = pusher.getString("email");
 
         LOGGER.info("Received POST for {}", repoUrl);
         LOGGER.debug("Full details of the POST was {}", o.toString());
@@ -207,6 +213,22 @@ public class GitHubWebHook implements UnprotectedRootAction {
                 for (AbstractProject<?, ?> job : Jenkins.getInstance().getAllItems(AbstractProject.class)) {
                     GitHubTrigger trigger = (GitHubTrigger) job.getTrigger(triggerClass);
                     if (trigger != null) {
+                        final String regex = trigger.getIgnorablePusher();
+
+                        if (pusherName != null && !pusherName.isEmpty()
+                                && pusherName.matches(regex)) {
+
+                            LOGGER.info("Ignoring pusher [{}] ...", pusherName);
+                            continue;
+                        }
+
+                        if (pusherEmail != null && !pusherEmail.isEmpty()
+                                && pusherEmail.matches(regex)) {
+
+                            LOGGER.info("Ignoring pusher [{}] ...", pusherEmail);
+                            continue;
+                        }
+
                         LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
                         if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
                             LOGGER.info("Poked {}", job.getFullDisplayName());
