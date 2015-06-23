@@ -1,24 +1,15 @@
 package com.cloudbees.jenkins;
 
+import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
 import hudson.Extension;
 import hudson.ExtensionPoint;
+import hudson.model.AbstractProject;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
-import hudson.model.AbstractProject;
 import hudson.security.ACL;
 import hudson.triggers.Trigger;
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
-
-import java.io.IOException;
-import java.security.interfaces.RSAPublicKey;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.inject.Inject;
 
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
@@ -34,8 +25,14 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
-
+import javax.inject.Inject;
+import java.io.IOException;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Receives github hook.

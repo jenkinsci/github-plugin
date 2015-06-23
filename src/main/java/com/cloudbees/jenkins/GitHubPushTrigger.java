@@ -4,10 +4,10 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.console.AnnotatedLargeText;
 import hudson.model.Action;
-import hudson.model.Item;
-import hudson.model.AbstractProject;
 import hudson.model.Hudson;
 import hudson.model.Hudson.MasterComputer;
+import hudson.model.Item;
+import hudson.model.AbstractProject;
 import hudson.model.Project;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
@@ -33,8 +33,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.inject.Inject;
-
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 
@@ -46,6 +44,8 @@ import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+
+import javax.inject.Inject;
 
 /**
  * Triggers a build when we receive a GitHub post-commit webhook.

@@ -67,7 +67,7 @@ public final class GitHubPushTriggerTestCase {
     }
 
     @Test
-    public void ignorePusher() throws IOException {
+    public void ignore() throws IOException {
         final String repositoryUrl = "https://github.com/OpenDataSpace/parent";
         final SCM scm = new GitSCM(repositoryUrl);
         final FreeStyleProject project = j.createFreeStyleProject();
