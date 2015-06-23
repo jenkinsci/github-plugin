@@ -65,7 +65,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
         this("");
     }
 
-    String pushBy() {
+    public String pushBy() {
         return pushBy;
     }
 
@@ -76,7 +76,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?,?>> implements 
      * @return the regular expression to which the name or email of an ignorable pusher is to be
      *         matched.
      */
-    String getIgnorablePusher() {
+    public String getIgnorablePusher() {
         return ignorablePusher;
     }
 
