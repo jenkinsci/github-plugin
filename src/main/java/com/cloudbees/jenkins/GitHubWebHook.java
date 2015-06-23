@@ -1,31 +1,19 @@
 package com.cloudbees.jenkins;
 
-import static java.util.logging.Level.WARNING;
+import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
+
 import hudson.Extension;
 import hudson.ExtensionPoint;
-import hudson.model.RootAction;
-import hudson.model.UnprotectedRootAction;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
+import hudson.model.RootAction;
+import hudson.model.UnprotectedRootAction;
 import hudson.security.ACL;
 import hudson.triggers.Trigger;
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
-
-import java.io.IOException;
-import java.security.interfaces.RSAPublicKey;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.inject.Inject;
-
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
-
 import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.commons.codec.binary.Base64;
@@ -35,7 +23,17 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
-import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
+import javax.inject.Inject;
+import java.io.IOException;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static java.util.logging.Level.*;
 
 /**
  * Receives github hook.
@@ -211,22 +209,23 @@ public class GitHubWebHook implements UnprotectedRootAction {
             try {
                 for (AbstractProject<?,?> job : Hudson.getInstance().getAllItems(AbstractProject.class)) {
                     GitHubTrigger trigger = (GitHubTrigger) job.getTrigger(triggerClass);
+                    if (trigger!=null) {
+                        if (trigger instanceof GitHubPushTrigger) {
+                            final String regex = ((GitHubPushTrigger) trigger).getIgnorablePusher();
 
-                    if (trigger != null) {
-                        final String regex = trigger.getIgnorablePusher();
+                            if (pusherName != null && !pusherName.isEmpty()
+                                    && pusherName.matches(regex)) {
 
-                        if (pusherName != null && !pusherName.isEmpty()
-                                && pusherName.matches(regex)) {
+                                LOGGER.info("Ignoring pusher [" + pusherName + "] ...");
+                                continue;
+                            }
 
-                            LOGGER.info("Ignoring pusher [" + pusherName + "] ...");
-                            continue;
-                        }
+                            if (pusherEmail != null && !pusherEmail.isEmpty()
+                                    && pusherEmail.matches(regex)) {
 
-                        if (pusherEmail != null && !pusherEmail.isEmpty()
-                                && pusherEmail.matches(regex)) {
-
-                            LOGGER.info("Ignoring pusher [" + pusherEmail + "] ...");
-                            continue;
+                                LOGGER.info("Ignoring pusher [" + pusherEmail + "] ...");
+                                continue;
+                            }
                         }
 
                         LOGGER.fine("Considering to poke "+job.getFullDisplayName());
