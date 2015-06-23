@@ -10,10 +10,8 @@ import hudson.security.ACL;
 import hudson.triggers.Trigger;
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
-
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
-
 import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.commons.codec.binary.Base64;
@@ -210,20 +208,22 @@ public class GitHubWebHook implements UnprotectedRootAction {
                 for (AbstractProject<?, ?> job : Jenkins.getInstance().getAllItems(AbstractProject.class)) {
                     GitHubTrigger trigger = (GitHubTrigger) job.getTrigger(triggerClass);
                     if (trigger != null) {
-                        final String regex = trigger.getIgnorablePusher();
+                        if (trigger instanceof GitHubPushTrigger) {
+                            final String regex = ((GitHubPushTrigger) trigger).getIgnorablePusher();
 
-                        if (pusherName != null && !pusherName.isEmpty()
-                                && pusherName.matches(regex)) {
+                            if (pusherName != null && !pusherName.isEmpty()
+                                    && pusherName.matches(regex)) {
 
-                            LOGGER.info("Ignoring pusher [{}] ...", pusherName);
-                            continue;
-                        }
+                                LOGGER.info("Ignoring pusher [{}] ...", pusherName);
+                                continue;
+                            }
 
-                        if (pusherEmail != null && !pusherEmail.isEmpty()
-                                && pusherEmail.matches(regex)) {
+                            if (pusherEmail != null && !pusherEmail.isEmpty()
+                                    && pusherEmail.matches(regex)) {
 
-                            LOGGER.info("Ignoring pusher [{}] ...", pusherEmail);
-                            continue;
+                                LOGGER.info("Ignoring pusher [{}] ...", pusherEmail);
+                                continue;
+                            }
                         }
 
                         LOGGER.debug("Considering to poke {}", job.getFullDisplayName());

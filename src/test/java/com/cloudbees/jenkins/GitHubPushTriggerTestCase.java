@@ -52,7 +52,7 @@ public final class GitHubPushTriggerTestCase {
 
     @Test
     public void trigger() throws IOException {
-        final String repositoryUrl = "https://github.com/OpenDataSpace/parent";
+        final String repositoryUrl = "https://github.com/kohsuke/foo";
         final SCM scm = new GitSCM(repositoryUrl);
         final FreeStyleProject project = j.createFreeStyleProject();
         project.setScm(scm);
@@ -68,7 +68,7 @@ public final class GitHubPushTriggerTestCase {
 
     @Test
     public void ignore() throws IOException {
-        final String repositoryUrl = "https://github.com/OpenDataSpace/parent";
+        final String repositoryUrl = "https://github.com/kohsuke/foo";
         final SCM scm = new GitSCM(repositoryUrl);
         final FreeStyleProject project = j.createFreeStyleProject();
         project.setScm(scm);

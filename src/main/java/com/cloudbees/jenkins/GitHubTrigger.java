@@ -50,15 +50,4 @@ public interface GitHubTrigger {
             }
         }
     }
-
-    String pushBy();
-
-    /**
-     * Gets the regular expression to which the name or email of an ignorable pusher is to be
-     * matched.
-     *
-     * @return the regular expression to which the name or email of an ignorable pusher is to be
-     *         matched.
-     */
-    String getIgnorablePusher();
 }
