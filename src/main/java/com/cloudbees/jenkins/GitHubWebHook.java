@@ -213,18 +213,16 @@ public class GitHubWebHook implements UnprotectedRootAction {
                         if (trigger instanceof GitHubPushTrigger) {
                             final String regex = ((GitHubPushTrigger) trigger).getIgnorablePusher();
 
-                            if (pusherName != null && !pusherName.isEmpty()
-                                    && pusherName.matches(regex)) {
+                            if (regex != null) {
+                                if (pusherName != null && pusherName.matches(regex)) {
+                                    LOGGER.info("Ignoring pusher [" + pusherName + "] ...");
+                                    continue;
+                                }
 
-                                LOGGER.info("Ignoring pusher [" + pusherName + "] ...");
-                                continue;
-                            }
-
-                            if (pusherEmail != null && !pusherEmail.isEmpty()
-                                    && pusherEmail.matches(regex)) {
-
-                                LOGGER.info("Ignoring pusher [" + pusherEmail + "] ...");
-                                continue;
+                                if (pusherEmail != null && pusherEmail.matches(regex)) {
+                                    LOGGER.info("Ignoring pusher [" + pusherEmail + "] ...");
+                                    continue;
+                                }
                             }
                         }
 
