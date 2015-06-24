@@ -62,10 +62,10 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
     }
 
     public GitHubPushTrigger() {
-        this("");
+        this(null);
     }
 
-    public String pushBy() {
+    String pushBy() {
         return pushBy;
     }
 
