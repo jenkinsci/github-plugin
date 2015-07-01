@@ -5,6 +5,7 @@ import com.google.common.base.Predicate;
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.AbstractProject;
+import hudson.model.Job;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
@@ -41,7 +42,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      *
      * @return true to provide events to register and subscribe for this project
      */
-    protected abstract boolean isApplicable(@Nullable AbstractProject<?, ?> project);
+    protected abstract boolean isApplicable(@Nullable Job<?, ?> project);
 
     /**
      * Should be not null. Should return only events which this extension can parse in {@link #onEvent(GHEvent, String)}
@@ -92,7 +93,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      *
      * @return predicate to use in iterable filtering
      */
-    public static Predicate<GHEventsSubscriber> isApplicableFor(final AbstractProject<?, ?> project) {
+    public static Predicate<GHEventsSubscriber> isApplicableFor(final Job<?, ?> project) {
         return new NullSafePredicate<GHEventsSubscriber>() {
             @Override
             protected boolean applyNullSafe(@Nonnull GHEventsSubscriber subscriber) {

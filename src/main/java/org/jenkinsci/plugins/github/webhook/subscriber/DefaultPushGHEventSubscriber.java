@@ -6,9 +6,11 @@ import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
 import com.cloudbees.jenkins.GitHubTrigger;
 import com.cloudbees.jenkins.GitHubWebHook;
 import hudson.Extension;
-import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.security.ACL;
+import hudson.triggers.Trigger;
 import jenkins.model.Jenkins;
+import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
@@ -43,7 +45,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      * @return true if project has {@link GitHubPushTrigger}
      */
     @Override
-    protected boolean isApplicable(AbstractProject<?, ?> project) {
+    protected boolean isApplicable(Job<?, ?> project) {
         return withTrigger(GitHubPushTrigger.class).apply(project);
     }
 
@@ -83,8 +85,18 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
             ACL.impersonate(ACL.SYSTEM, new Runnable() {
                 @Override
                 public void run() {
-                    for (AbstractProject<?, ?> job : Jenkins.getInstance().getAllItems(AbstractProject.class)) {
-                        GitHubTrigger trigger = job.getTrigger(GitHubPushTrigger.class);
+                    for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
+                        GitHubTrigger trigger = null;
+                        if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
+                            ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
+                            // TODO use standard method in 1.621+
+                            for (Trigger candidate : pJob.getTriggers().values()) {
+                                if (candidate instanceof GitHubTrigger) {
+                                    trigger = (GitHubTrigger) candidate;
+                                    break;
+                                }
+                            }
+                        }
                         if (trigger != null) {
                             LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
                             if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
