@@ -1,7 +1,10 @@
 package com.cloudbees.jenkins;
 
 import com.google.inject.Inject;
+
 import hudson.model.AbstractProject;
+import hudson.model.Job;
+
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.junit.Before;
 import org.junit.Rule;
@@ -108,7 +111,7 @@ public class GitHubWebHookTest {
         }
 
         @Override
-        protected boolean isApplicable(AbstractProject<?, ?> project) {
+        protected boolean isApplicable(Job<?, ?> project) {
             return true;
         }
 
