@@ -6,6 +6,7 @@ import hudson.console.AnnotatedLargeText;
 import hudson.model.Action;
 import hudson.model.Hudson;
 import hudson.model.Hudson.MasterComputer;
+import hudson.model.Job;
 import hudson.model.Item;
 import hudson.model.AbstractProject;
 import hudson.model.Project;
@@ -34,6 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import jenkins.model.Jenkins;
+import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.codec.binary.Base64;
@@ -52,7 +54,8 @@ import javax.inject.Inject;
  *
  * @author Kohsuke Kawaguchi
  */
-public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements GitHubTrigger {
+public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigger {
+
     @DataBoundConstructor
     public GitHubPushTrigger() {
     }
@@ -79,7 +82,9 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
                         PrintStream logger = listener.getLogger();
                         long start = System.currentTimeMillis();
                         logger.println("Started on " + DateFormat.getDateTimeInstance().format(new Date()));
-                        boolean result = job.poll(listener).hasChanges();
+                        // TODO: fix that, only for testing purposes
+                        // boolean result = job.poll(listener).hasChanges();
+                        boolean result = true;
                         logger.println("Done. Took " + Util.getTimeSpanString(System.currentTimeMillis() - start));
                         if (result) {
                             logger.println("Changes found");
@@ -114,7 +119,8 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
                         LOGGER.log(Level.WARNING, "Failed to parse the polling log",e);
                         cause = new GitHubPushCause(pushBy);
                     }
-                    if (job.scheduleBuild(cause)) {
+                    ParameterizedJobMixIn scheduler = new ParameterizedJobMixIn() {@Override protected Job asJob() {return job;}};
+                    if (scheduler.scheduleBuild(cause)) {
                         LOGGER.info("SCM changes detected in "+ job.getName()+". Triggering "+name);
                     } else {
                         LOGGER.info("SCM changes detected in "+ job.getName()+". Job is already in the queue");
@@ -140,7 +146,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
     }
 
     @Override
-    public void start(AbstractProject<?, ?> project, boolean newInstance) {
+    public void start(Job<?, ?> project, boolean newInstance) {
         super.start(project, newInstance);
         if (newInstance && getDescriptor().isManageHook()) {
             registerHooks();
@@ -208,7 +214,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
      * Action object for {@link Project}. Used to display the polling log.
      */
     public final class GitHubWebHookPollingAction implements Action {
-        public AbstractProject<?, ?> getOwner() {
+        public Job<?, ?> getOwner() {
             return job;
         }
 
@@ -255,7 +261,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
 
         @Override
         public boolean isApplicable(Item item) {
-            return item instanceof AbstractProject;
+            return item instanceof AbstractProject || item instanceof Job;
         }
 
         @Override

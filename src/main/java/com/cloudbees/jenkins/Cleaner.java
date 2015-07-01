@@ -1,12 +1,15 @@
 package com.cloudbees.jenkins;
 
 import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
+
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Hudson;
+import hudson.model.Job;
 import hudson.model.PeriodicWork;
 import hudson.triggers.Trigger;
 import hudson.util.TimeUnit2;
+
 import org.kohsuke.github.GHException;
 import org.kohsuke.github.GHHook;
 import org.kohsuke.github.GHRepository;
@@ -34,7 +37,7 @@ public class Cleaner extends PeriodicWork {
     /**
      * Called when a {@link GitHubPushTrigger} is about to be removed.
      */
-    synchronized void onStop(AbstractProject<?,?> job) {
+    synchronized void onStop(Job<?,?> job) {
         couldHaveBeenRemoved.addAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
     }
 

@@ -3,10 +3,13 @@ package com.cloudbees.jenkins;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.triggers.Trigger;
 
 import java.util.Collection;
 import java.util.Set;
+
+import jenkins.model.ParameterizedJobMixIn;
 
 /**
  * Optional interface that can be implemented by {@link Trigger} that watches out for a change in GitHub
@@ -44,8 +47,9 @@ public interface GitHubTrigger {
     @Extension
     public static class GitHubRepositoryNameContributorImpl extends GitHubRepositoryNameContributor {
         @Override
-        public void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result) {
-            for (GitHubTrigger ght : Util.filter(job.getTriggers().values(),GitHubTrigger.class)) {
+        public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
+            ParameterizedJobMixIn.ParameterizedJob p = (ParameterizedJobMixIn.ParameterizedJob) job;
+            for (GitHubTrigger ght : Util.filter(p.getTriggers().values(),GitHubTrigger.class)) {
                 result.addAll(ght.getGitHubRepositories());
             }
         }
