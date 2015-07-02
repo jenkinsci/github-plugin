@@ -36,6 +36,8 @@ import java.util.logging.Logger;
 
 import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
+import jenkins.triggers.SCMTriggerItem;
+import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.codec.binary.Base64;
@@ -82,9 +84,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         PrintStream logger = listener.getLogger();
                         long start = System.currentTimeMillis();
                         logger.println("Started on " + DateFormat.getDateTimeInstance().format(new Date()));
-                        // TODO: fix that, only for testing purposes
-                        // boolean result = job.poll(listener).hasChanges();
-                        boolean result = true;
+                        boolean result = SCMTriggerItems.asSCMTriggerItem(job).poll(listener).hasChanges();
                         logger.println("Done. Took " + Util.getTimeSpanString(System.currentTimeMillis() - start));
                         if (result) {
                             logger.println("Changes found");

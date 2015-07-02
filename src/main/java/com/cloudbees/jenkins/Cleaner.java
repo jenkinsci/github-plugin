@@ -8,6 +8,7 @@ import hudson.model.Hudson;
 import hudson.model.Job;
 import hudson.model.PeriodicWork;
 import hudson.triggers.Trigger;
+import hudson.triggers.TriggerDescriptor;
 import hudson.util.TimeUnit2;
 
 import org.kohsuke.github.GHException;
@@ -19,9 +20,15 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import jenkins.model.Jenkins;
+import jenkins.model.ParameterizedJobMixIn;
+import jenkins.triggers.SCMTriggerItem;
+import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
 
 /**
  * Removes post-commit hooks from repositories that we no longer care.
@@ -55,10 +62,13 @@ public class Cleaner extends PeriodicWork {
         }
 
         // subtract all the live repositories
-        for (AbstractProject<?,?> job : Hudson.getInstance().getAllItems(AbstractProject.class)) {
-            GitHubPushTrigger trigger = job.getTrigger(GitHubPushTrigger.class);
-            if (trigger!=null) {
-                names.removeAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
+        for (Job<?,?> job : Jenkins.getInstance().getAllItems(Job.class)) {
+            ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
+            for (Trigger trigger : pJob.getTriggers().values()) {
+                if(trigger instanceof GitHubPushTrigger) {
+                    names.removeAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
+                    break;
+                }
             }
         }
 
@@ -69,7 +79,7 @@ public class Cleaner extends PeriodicWork {
             for (GHRepository repo : r.resolve()) {
                 try {
                     removeHook(repo, Trigger.all().get(DescriptorImpl.class).getHookUrl());
-                    LOGGER.fine("Removed a hook from "+r+"");
+                    LOGGER.info("Removed a hook from "+r+"");
                     continue OUTER;
                 } catch (Throwable e) {
                     LOGGER.log(Level.WARNING,"Failed to remove hook from "+r,e);

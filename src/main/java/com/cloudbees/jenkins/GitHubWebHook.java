@@ -1,9 +1,11 @@
 package com.cloudbees.jenkins;
 
 import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
+
 import hudson.Extension;
 import hudson.ExtensionPoint;
 import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
 import hudson.security.ACL;
@@ -11,7 +13,9 @@ import hudson.triggers.Trigger;
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
 import jenkins.model.Jenkins;
+import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONObject;
+
 import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.commons.codec.binary.Base64;
@@ -24,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+
 import java.io.IOException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Collections;
@@ -204,13 +209,20 @@ public class GitHubWebHook implements UnprotectedRootAction {
             Authentication old = SecurityContextHolder.getContext().getAuthentication();
             SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
             try {
-                for (AbstractProject<?, ?> job : Jenkins.getInstance().getAllItems(AbstractProject.class)) {
-                    GitHubTrigger trigger = (GitHubTrigger) job.getTrigger(triggerClass);
-                    if (trigger != null) {
+                for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
+                    GitHubTrigger ghTrigger = null;
+                    ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
+                    for (Trigger trigger : pJob.getTriggers().values()) {
+                        if (triggerClass.isInstance(trigger)) {
+                            ghTrigger = (GitHubTrigger) trigger;
+                            break;
+                        }
+                    }
+                    if (ghTrigger != null) {
                         LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
                         if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
                             LOGGER.info("Poked {}", job.getFullDisplayName());
-                            trigger.onPost(pusherName);
+                            ghTrigger.onPost(pusherName);
                         } else
                             LOGGER.debug("Skipped {} because it doesn't have a matching repository.", job.getFullDisplayName());
                     }
