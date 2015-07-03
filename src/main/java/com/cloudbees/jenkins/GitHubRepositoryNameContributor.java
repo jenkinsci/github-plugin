@@ -63,7 +63,7 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
         }
 
         protected static void addRepositories(Collection<? extends SCM> scms, EnvVars env, Collection<GitHubRepositoryName> r) {
-            for(SCM scm : scms) {
+            for (SCM scm : scms) {
                 if (scm instanceof GitSCM) {
                     GitSCM git = (GitSCM) scm;
                     for (RemoteConfig rc : git.getRepositories()) {
@@ -104,7 +104,7 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
         public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
             SCMTriggerItem item = SCMTriggerItems.asSCMTriggerItem(job);
             EnvVars env = buildEnv(job);
-            for(SCM scm : item.getSCMs()) {
+            for (SCM scm : item.getSCMs()) {
                 if (scm instanceof MultiSCM){
                     MultiSCM multiSCM = (MultiSCM) scm;
                     List<SCM> scmList = multiSCM.getConfiguredSCMs();
