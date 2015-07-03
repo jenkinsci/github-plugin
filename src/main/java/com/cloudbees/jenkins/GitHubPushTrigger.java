@@ -20,7 +20,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
-import org.jenkinsci.plugins.github.webhook.WebhookManager;
+import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -152,10 +152,17 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
      * Tries to register hook for current associated job.
      * Do this lazily to avoid blocking the UI thread.
      * Useful for using from groovy scripts.
+     *
      * @since 1.11.2
      */
     public void registerHooks() {
-        URL hookUrl = getDescriptor().getHookUrl();
+        URL hookUrl;
+        try {
+            hookUrl = getDescriptor().getHookUrl();
+        } catch (GHPluginConfigException e) {
+            LOGGER.log(Level.SEVERE, "Skip registration of GHHook ({0})", e.getMessage());
+            return;
+        }
         Runnable hookRegistrator = forHookUrl(hookUrl).registerFor(job);
         getDescriptor().queue.execute(hookRegistrator);
     }
@@ -207,6 +214,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
 
         /**
          * Writes the annotated log to the given output.
+         *
          * @since 1.350
          */
         public void writeLogTo(XMLOutput out) throws IOException {
@@ -255,13 +263,15 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
         /**
          * Returns the URL that GitHub should post.
          */
-        public URL getHookUrl() {
+        public URL getHookUrl() throws GHPluginConfigException {
             try {
                 return hookUrl != null
                         ? new URL(hookUrl)
                         : new URL(Jenkins.getInstance().getRootUrl() + GitHubWebHook.get().getUrlName() + '/');
             } catch (MalformedURLException e) {
-                throw new RuntimeException("Hook url is malformed", e);
+                throw new GHPluginConfigException(
+                        "Mailformed GH hook url in global configuration (%s)", e.getMessage()
+                );
             }
         }
 
