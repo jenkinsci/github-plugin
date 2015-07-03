@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.apache.commons.lang.StringUtils.isNotEmpty;
+
 
 /**
  * Receives github hook.
@@ -169,7 +171,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
                         "Make sure payload version is 'application/vnd.github+form'.");
             }
             processGitHubPayload(payload, GitHubPushTrigger.class);
-        } else if (eventType != null && !eventType.isEmpty()) {
+        } else if (isNotEmpty(eventType)) {
             throw new IllegalArgumentException("Github Webhook event of type " + eventType + " is not supported. " +
                     "Only push events are current supported");
         } else {

@@ -1,10 +1,8 @@
 package org.jenkinsci.plugins.github.webhook;
 
-import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.AbstractProject;
@@ -12,10 +10,6 @@ import jenkins.model.Jenkins;
 import org.kohsuke.github.GHEvent;
 
 import java.util.Set;
-
-import static com.google.common.collect.Sets.immutableEnumSet;
-import static org.jenkinsci.plugins.github.util.JobInfoHelpers.withTrigger;
-import static org.kohsuke.github.GHEvent.PUSH;
 
 /**
  * Extension point to contribute events plugin interested in.
@@ -29,8 +23,18 @@ import static org.kohsuke.github.GHEvent.PUSH;
  */
 public abstract class GHEventsListener implements ExtensionPoint {
 
+    /**
+     * Should return true only if this listener interested in {@link #events()} set for this project
+     *
+     * @param project to check
+     *
+     * @return true to provide events to register and listen for this project
+     */
     public abstract boolean isApplicable(AbstractProject<?, ?> project);
 
+    /**
+     * @return immutable set of events this listener wants to register and then listen to
+     */
     public abstract Set<GHEvent> events();
 
     @Beta
@@ -42,6 +46,11 @@ public abstract class GHEventsListener implements ExtensionPoint {
         return Jenkins.getInstance().getExtensionList(GHEventsListener.class);
     }
 
+    /**
+     * Converts every provider to set of GHEvents
+     *
+     * @return converter to use in iterable manipulations
+     */
     public static Function<GHEventsListener, Set<GHEvent>> extractEvents() {
         return new Function<GHEventsListener, Set<GHEvent>>() {
             @Override
@@ -51,6 +60,13 @@ public abstract class GHEventsListener implements ExtensionPoint {
         };
     }
 
+    /**
+     * Helps to filter only GHEventsListeners that can return TRUE on given project
+     *
+     * @param project to check every GHEventsListener for being applicable
+     *
+     * @return predicate to use in iterable filtering
+     */
     public static Predicate<GHEventsListener> isApplicableFor(final AbstractProject<?, ?> project) {
         return new Predicate<GHEventsListener>() {
             @Override
@@ -59,19 +75,4 @@ public abstract class GHEventsListener implements ExtensionPoint {
             }
         };
     }
-
-    @Extension
-    @SuppressWarnings("unused")
-    public static class DefaultPushGHEventListener extends GHEventsListener {
-        @Override
-        public boolean isApplicable(AbstractProject<?, ?> project) {
-            return withTrigger(GitHubPushTrigger.class).apply(project);
-        }
-
-        @Override
-        public Set<GHEvent> events() {
-            return immutableEnumSet(PUSH);
-        }
-    }
-
 }
