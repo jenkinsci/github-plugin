@@ -1,8 +1,11 @@
 package org.jenkinsci.plugins.github.webhook;
 
+import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
+import hudson.model.FreeStyleProject;
+import hudson.plugins.git.GitSCM;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,6 +21,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.EnumSet;
 
 import static com.google.common.collect.ImmutableList.copyOf;
@@ -43,13 +47,15 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class WebhookManagerTest {
 
+    public static final GitSCM GIT_SCM = new GitSCM("ssh://git@github.com/dummy/dummy.git");
+    public static final URL HOOK_ENDPOINT = endpoint("http://hook.endpoint/");
+    public static final URL ANOTHER_HOOK_ENDPOINT = endpoint("http://another.url/");
+    
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
-
-    public static final String HOOK_ENDPOINT = "http://hook.endpoint/";
-
+    
     @Spy
-    private WebhookManager manager = forHookUrl(endpoint());
+    private WebhookManager manager = forHookUrl(HOOK_ENDPOINT);
 
     @Spy
     private GitHubRepositoryName nonactive = new GitHubRepositoryName("github.com", "dummy", "dummy");
@@ -75,8 +81,8 @@ public class WebhookManagerTest {
 
         manager.unregisterFor(nonactive, newArrayList(active));
 
-        verify(manager, times(1)).serviceWebhookFor(endpoint());
-        verify(manager, times(1)).webhookFor(endpoint());
+        verify(manager, times(1)).serviceWebhookFor(HOOK_ENDPOINT);
+        verify(manager, times(1)).webhookFor(HOOK_ENDPOINT);
         verify(manager, times(1)).fetchHooks();
     }
 
@@ -87,8 +93,8 @@ public class WebhookManagerTest {
 
         manager.unregisterFor(active, newArrayList(active));
 
-        verify(manager, times(1)).serviceWebhookFor(endpoint());
-        verify(manager, never()).webhookFor(endpoint());
+        verify(manager, times(1)).serviceWebhookFor(HOOK_ENDPOINT);
+        verify(manager, never()).webhookFor(HOOK_ENDPOINT);
         verify(manager, times(1)).fetchHooks();
     }
 
@@ -113,9 +119,20 @@ public class WebhookManagerTest {
     public void shouldMatchWebHook() {
         when(repo.hasAdminAccess()).thenReturn(false);
 
-        GHHook hook = hook(PUSH);
+        GHHook hook = hook(HOOK_ENDPOINT, PUSH);
 
-        assertThat("webhook has web name and url prop", manager.webhookFor(endpoint()).apply(hook), is(true));
+        assertThat("webhook has web name and url prop", manager.webhookFor(HOOK_ENDPOINT).apply(hook), is(true));
+    }
+
+    @Test
+    @WithoutJenkins
+    public void shouldNotMatchOtherUrlWebHook() {
+        when(repo.hasAdminAccess()).thenReturn(false);
+
+        GHHook hook = hook(ANOTHER_HOOK_ENDPOINT, PUSH);
+
+        assertThat("webhook has web name and another url prop",
+                manager.webhookFor(HOOK_ENDPOINT).apply(hook), is(false));
     }
 
     @Test
@@ -125,28 +142,48 @@ public class WebhookManagerTest {
         Predicate<GHHook> del = spy(Predicate.class);
         when(manager.deleteWebhook()).thenReturn(del);
 
-        GHHook hook = hook(CREATE);
-        GHHook prhook = hook(PULL_REQUEST);
+        GHHook hook = hook(HOOK_ENDPOINT, CREATE);
+        GHHook prhook = hook(HOOK_ENDPOINT, PULL_REQUEST);
         when(repo.getHooks()).thenReturn(newArrayList(hook, prhook));
 
         manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
         verify(del, times(2)).apply(any(GHHook.class));
-        verify(manager).createWebhook(endpoint(), EnumSet.copyOf(newArrayList(CREATE, PULL_REQUEST, PUSH)));
+        verify(manager).createWebhook(HOOK_ENDPOINT, EnumSet.copyOf(newArrayList(CREATE, PULL_REQUEST, PUSH)));
     }
 
-    private URL endpoint() {
+    @Test
+    public void shouldNotAddPushEventByDefaultForProjectWithoutTrigger() throws IOException {
+        FreeStyleProject project = jenkins.createFreeStyleProject();
+        project.setScm(GIT_SCM);
+
+        manager.registerFor(project).run();
+        verify(manager).createHookSubscribedTo(Collections.<GHEvent>emptyList());
+    }
+
+    @Test
+    public void shouldAddPushEventByDefault() throws IOException {
+        FreeStyleProject project = jenkins.createFreeStyleProject();
+        project.addTrigger(new GitHubPushTrigger());
+        project.setScm(GIT_SCM);
+
+        manager.registerFor(project).run();
+        verify(manager).createHookSubscribedTo(newArrayList(PUSH));
+    }
+
+
+    private GHHook hook(URL endpoint, GHEvent event, GHEvent... events) {
+        GHHook hook = mock(GHHook.class);
+        when(hook.getName()).thenReturn("web");
+        when(hook.getConfig()).thenReturn(ImmutableMap.of("url", endpoint.toExternalForm()));
+        when(hook.getEvents()).thenReturn(EnumSet.copyOf(asList(event, events)));
+        return hook;
+    }
+
+    private static URL endpoint(String endpoint) {
         try {
-            return new URL(HOOK_ENDPOINT);
+            return new URL(endpoint);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private GHHook hook(GHEvent event, GHEvent... events) {
-        GHHook hook = mock(GHHook.class);
-        when(hook.getName()).thenReturn("web");
-        when(hook.getConfig()).thenReturn(ImmutableMap.of("url", endpoint().toExternalForm()));
-        when(hook.getEvents()).thenReturn(EnumSet.copyOf(asList(event, events)));
-        return hook;
     }
 }

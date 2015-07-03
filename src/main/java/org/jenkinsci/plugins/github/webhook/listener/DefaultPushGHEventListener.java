@@ -13,6 +13,8 @@ import static org.jenkinsci.plugins.github.util.JobInfoHelpers.withTrigger;
 import static org.kohsuke.github.GHEvent.PUSH;
 
 /**
+ * By default this plugin interested in push events only when job uses {@link GitHubPushTrigger}
+ *
  * @author lanwen (Merkushev Kirill)
  * @since 1.11.4
  */
