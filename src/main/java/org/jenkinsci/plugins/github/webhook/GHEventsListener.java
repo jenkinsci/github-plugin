@@ -37,11 +37,9 @@ public abstract class GHEventsListener implements ExtensionPoint {
      */
     public abstract Set<GHEvent> events();
 
-    @Beta
-    public void processEvent(GHEvent event, String payload) {
-        // TODO can be changed
-    }
-
+    /**
+     * @return All listener extensions
+     */
     public static ExtensionList<GHEventsListener> all() {
         return Jenkins.getInstance().getExtensionList(GHEventsListener.class);
     }
