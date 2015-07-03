@@ -31,7 +31,7 @@ import static org.jenkinsci.plugins.github.webhook.GHEventsListener.isApplicable
  * Each manager works with only one hook url (created with {@link #forHookUrl(URL)})
  *
  * @author lanwen (Merkushev Kirill)
- * @since 1.11.4
+ * @since TODO
  */
 public class WebhookManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebhookManager.class);

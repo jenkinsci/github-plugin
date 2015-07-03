@@ -19,7 +19,7 @@ import java.util.Set;
  * Each time this plugin wants to get events list from contributors it asks for applicable status
  *
  * @author lanwen (Merkushev Kirill)
- * @since 1.11.4
+ * @since TODO
  */
 public abstract class GHEventsListener implements ExtensionPoint {
 

@@ -35,13 +35,13 @@ public class Cleaner extends PeriodicWork {
      * This queue is thread-safe, so any thread can write or
      * fetch names to this queue without additional sync
      */
-    private final Queue<GitHubRepositoryName> namesq = new ConcurrentLinkedQueue<GitHubRepositoryName>();
+    private final Queue<GitHubRepositoryName> сleanQueue = new ConcurrentLinkedQueue<GitHubRepositoryName>();
 
     /**
      * Called when a {@link GitHubPushTrigger} is about to be removed.
      */
     /* package */ void onStop(AbstractProject<?, ?> job) {
-        namesq.addAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
+        сleanQueue.addAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
     }
 
     @Override
@@ -53,8 +53,6 @@ public class Cleaner extends PeriodicWork {
      * Each run this work fetches alive repo names (which has trigger for it)
      * then if names queue is not empty (any job was reconfigured with GH trigger change),
      * next name passed to {@link WebhookManager} with list of active names to check and unregister old hooks
-     *
-     * @throws Exception
      */
     @Override
     protected void doRun() throws Exception {
@@ -65,8 +63,8 @@ public class Cleaner extends PeriodicWork {
                 .filter(withTrigger(GitHubPushTrigger.class))  // live repos
                 .transformAndConcat(associatedNames()).toList();
 
-        while (!namesq.isEmpty()) {
-            GitHubRepositoryName name = namesq.poll();
+        while (!сleanQueue.isEmpty()) {
+            GitHubRepositoryName name = сleanQueue.poll();
 
             WebhookManager.forHookUrl(url).unregisterFor(name, alive);
         }

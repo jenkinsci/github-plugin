@@ -11,7 +11,6 @@ import static org.hamcrest.Matchers.is;
 
 /**
  * @author lanwen (Merkushev Kirill)
- *         Date: 03.07.15
  */
 public class DefaultPushGHEventListenerTest {
 

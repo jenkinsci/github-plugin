@@ -12,7 +12,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * @author lanwen (Merkushev Kirill)
- *         Date: 03.07.15
  */
 public class JobInfoHelpersTest {
 
