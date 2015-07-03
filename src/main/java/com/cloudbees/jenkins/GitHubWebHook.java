@@ -164,6 +164,12 @@ public class GitHubWebHook implements UnprotectedRootAction {
         }
 
         String eventType = req.getHeader("X-GitHub-Event");
+        
+        if("ping".equals(eventType)) {
+            LOGGER.info("Got a ping request from GitHub");
+            return;
+        }
+        
         if ("push".equals(eventType)) {
             String payload = req.getParameter("payload");
             if (payload == null) {
