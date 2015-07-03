@@ -4,7 +4,6 @@ import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
 
 import hudson.Extension;
 import hudson.ExtensionPoint;
-import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;

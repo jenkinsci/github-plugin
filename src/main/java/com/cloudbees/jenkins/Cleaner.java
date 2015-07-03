@@ -3,12 +3,9 @@ package com.cloudbees.jenkins;
 import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
 
 import hudson.Extension;
-import hudson.model.AbstractProject;
-import hudson.model.Hudson;
 import hudson.model.Job;
 import hudson.model.PeriodicWork;
 import hudson.triggers.Trigger;
-import hudson.triggers.TriggerDescriptor;
 import hudson.util.TimeUnit2;
 
 import org.kohsuke.github.GHException;
@@ -20,15 +17,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
-import jenkins.triggers.SCMTriggerItem;
-import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
 
 /**
  * Removes post-commit hooks from repositories that we no longer care.

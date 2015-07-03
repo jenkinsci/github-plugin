@@ -36,7 +36,6 @@ import java.util.logging.Logger;
 
 import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
-import jenkins.triggers.SCMTriggerItem;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
 import net.sf.json.JSONObject;
 
@@ -261,7 +260,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
         @Override
         public boolean isApplicable(Item item) {
-            return item instanceof AbstractProject || item instanceof Job;
+            return item instanceof Job;
         }
 
         @Override

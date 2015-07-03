@@ -104,7 +104,13 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
         public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
             SCMTriggerItem item = SCMTriggerItems.asSCMTriggerItem(job);
             EnvVars env = buildEnv(job);
-            addRepositories(item.getSCMs(), env, result);
+            for(SCM scm : item.getSCMs()) {
+                if (scm instanceof MultiSCM){
+                    MultiSCM multiSCM = (MultiSCM) scm;
+                    List<SCM> scmList = multiSCM.getConfiguredSCMs();
+                    addRepositories(scmList, env, result);
+                }
+            }
         }
     }
 }
