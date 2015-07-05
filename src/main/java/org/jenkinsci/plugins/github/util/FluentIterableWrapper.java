@@ -132,5 +132,4 @@ public abstract class FluentIterableWrapper<E> implements Iterable<E> {
         return ImmutableSet.copyOf(iterable);
     }
 
-
 }
