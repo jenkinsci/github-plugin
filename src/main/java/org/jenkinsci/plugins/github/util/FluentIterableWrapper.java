@@ -23,6 +23,8 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import javax.annotation.CheckReturnValue;
 import java.util.Iterator;
@@ -33,6 +35,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Mostly copypaste from guava's FluentIterable
  */
+@Restricted(NoExternalUse.class)
 public abstract class FluentIterableWrapper<E> implements Iterable<E> {
     private final Iterable<E> iterable;
 

@@ -94,12 +94,12 @@ public class WebhookManager {
      * since JENKINS-28138 this method permanently removes service hooks
      *
      * So if the trigger for given name was only reconfigured, this method filters only service hooks
-     * (with help of alive names list), otherwise this method removes all hooks for managed url
+     * (with help of aliveRepos names list), otherwise this method removes all hooks for managed url
      *
      * @param name  repository to clean hooks
-     * @param alive repository list which has enabled trigger in jobs
+     * @param aliveRepos repository list which has enabled trigger in jobs
      */
-    public void unregisterFor(GitHubRepositoryName name, List<GitHubRepositoryName> alive) {
+    public void unregisterFor(GitHubRepositoryName name, List<GitHubRepositoryName> aliveRepos) {
         try {
             GHRepository repo = checkNotNull(
                     from(name.resolve()).firstMatch(withAdminAccess()).orNull(),
@@ -108,7 +108,7 @@ public class WebhookManager {
 
             LOGGER.debug("Check {} for redundant hooks...", repo);
 
-            Predicate<GHHook> predicate = alive.contains(name)
+            Predicate<GHHook> predicate = aliveRepos.contains(name)
                     ? serviceWebhookFor(endpoint) // permanently clear service hooks (JENKINS-28138)
                     : or(serviceWebhookFor(endpoint), webhookFor(endpoint));
 

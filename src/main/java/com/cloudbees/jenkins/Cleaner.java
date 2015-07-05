@@ -1,6 +1,5 @@
 package com.cloudbees.jenkins;
 
-import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.PeriodicWork;
@@ -56,17 +55,17 @@ public class Cleaner extends PeriodicWork {
      */
     @Override
     protected void doRun() throws Exception {
-        URL url = Trigger.all().get(DescriptorImpl.class).getHookUrl();
+        URL url = Trigger.all().get(GitHubPushTrigger.DescriptorImpl.class).getHookUrl();
 
         List<AbstractProject> jobs = Jenkins.getInstance().getAllItems(AbstractProject.class);
-        List<GitHubRepositoryName> alive = from(jobs)
+        List<GitHubRepositoryName> aliveRepos = from(jobs)
                 .filter(withTrigger(GitHubPushTrigger.class))  // live repos
                 .transformAndConcat(associatedNames()).toList();
 
         while (!сleanQueue.isEmpty()) {
             GitHubRepositoryName name = сleanQueue.poll();
 
-            WebhookManager.forHookUrl(url).unregisterFor(name, alive);
+            WebhookManager.forHookUrl(url).unregisterFor(name, aliveRepos);
         }
     }
 
