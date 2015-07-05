@@ -5,13 +5,14 @@ import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.triggers.Trigger;
-import org.jenkinsci.plugins.github.webhook.GHEventsListener;
+import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 
 import java.util.Collection;
 
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
-import static org.jenkinsci.plugins.github.webhook.GHEventsListener.isApplicableFor;
+import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
 
 /**
  * Utility class which holds converters or predicates (matchers) to filter or convert job lists
@@ -43,9 +44,9 @@ public final class JobInfoHelpers {
      *
      * @return predicate with true on apply if job is buildable
      */
-    public static Predicate<AbstractProject> isBuildable() {
-        return new Predicate<AbstractProject>() {
-            public boolean apply(AbstractProject job) {
+    public static Predicate<Job> isBuildable() {
+        return new Predicate<Job>() {
+            public boolean apply(Job job) {
                 return job.isBuildable();
             }
         };
@@ -64,8 +65,8 @@ public final class JobInfoHelpers {
 
 
     /**
-     * If any of event listeners interested in hook for job, then return true
-     * By default, push hook listener is interested in job with gh-push-trigger
+     * If any of event subscriber interested in hook for job, then return true
+     * By default, push hook subscriber is interested in job with gh-push-trigger
      * 
      * @return predicate with true if job alive and should have hook 
      */
@@ -73,7 +74,7 @@ public final class JobInfoHelpers {
         return new Predicate<AbstractProject>() {
             @Override
             public boolean apply(AbstractProject job) {
-                return !from(GHEventsListener.all()).filter(isApplicableFor(job)).toList().isEmpty();
+                return !from(GHEventsSubscriber.all()).filter(isApplicableFor(job)).toList().isEmpty();
             }
         };
     }

@@ -5,6 +5,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.AbstractProject;
 import org.apache.commons.lang.Validate;
+import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.github.GHException;
 import org.kohsuke.github.GHHook;
@@ -24,8 +25,8 @@ import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Predicates.or;
 import static java.lang.String.format;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
-import static org.jenkinsci.plugins.github.webhook.GHEventsListener.extractEvents;
-import static org.jenkinsci.plugins.github.webhook.GHEventsListener.isApplicableFor;
+import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.extractEvents;
+import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
 
 /**
  * Class to incapsulate manipulation with webhooks on GH
@@ -60,7 +61,7 @@ public class WebhookManager {
      * For each GH repo name contributed by {@link com.cloudbees.jenkins.GitHubRepositoryNameContributor},
      * this runnable creates hook (with clean old one).
      *
-     * Hook events job interested in, contributes to full set instances of {@link GHEventsListener}.
+     * Hook events job interested in, contributes to full set instances of {@link GHEventsSubscriber}.
      * New events will be merged with old ones from existent hook.
      *
      * By default only push event is registered
@@ -73,7 +74,7 @@ public class WebhookManager {
     public Runnable registerFor(final AbstractProject<?, ?> project) {
         final Collection<GitHubRepositoryName> names = parseAssociatedNames(project);
 
-        final List<GHEvent> events = from(GHEventsListener.all())
+        final List<GHEvent> events = from(GHEventsSubscriber.all())
                 .filter(isApplicableFor(project))
                 .transformAndConcat(extractEvents()).toList();
 

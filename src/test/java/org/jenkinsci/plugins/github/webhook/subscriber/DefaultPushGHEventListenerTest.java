@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.github.webhook.listener;
+package org.jenkinsci.plugins.github.webhook.subscriber;
 
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import hudson.model.FreeStyleProject;
@@ -20,13 +20,13 @@ public class DefaultPushGHEventListenerTest {
     @Test
     public void shouldBeNotApplicableForProjectWithoutTrigger() throws Exception {
         FreeStyleProject prj = jenkins.createFreeStyleProject();
-        assertThat(new DefaultPushGHEventListener().isApplicable(prj), is(false));
+        assertThat(new DefaultPushGHEventSubscriber().isApplicable(prj), is(false));
     }
 
     @Test
     public void shouldBeApplicableForProjectWithTrigger() throws Exception {
         FreeStyleProject prj = jenkins.createFreeStyleProject();
         prj.addTrigger(new GitHubPushTrigger());
-        assertThat(new DefaultPushGHEventListener().isApplicable(prj), is(true));
+        assertThat(new DefaultPushGHEventSubscriber().isApplicable(prj), is(true));
     }
 }

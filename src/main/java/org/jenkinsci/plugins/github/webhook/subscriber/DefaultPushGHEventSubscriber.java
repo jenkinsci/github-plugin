@@ -1,9 +1,9 @@
-package org.jenkinsci.plugins.github.webhook.listener;
+package org.jenkinsci.plugins.github.webhook.subscriber;
 
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import hudson.Extension;
 import hudson.model.AbstractProject;
-import org.jenkinsci.plugins.github.webhook.GHEventsListener;
+import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
 
 import java.util.Set;
@@ -20,9 +20,9 @@ import static org.kohsuke.github.GHEvent.PUSH;
  */
 @Extension
 @SuppressWarnings("unused")
-public class DefaultPushGHEventListener extends GHEventsListener {
+public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
     /**
-     * This listener is applicable only for job with GHPush trigger
+     * This subscriber is applicable only for job with GHPush trigger
      *
      * @param project to check for trigger
      *
