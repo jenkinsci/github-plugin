@@ -6,8 +6,12 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.AbstractProject;
 import hudson.triggers.Trigger;
+import org.jenkinsci.plugins.github.webhook.GHEventsListener;
 
 import java.util.Collection;
+
+import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
+import static org.jenkinsci.plugins.github.webhook.GHEventsListener.isApplicableFor;
 
 /**
  * Utility class which holds converters or predicates (matchers) to filter or convert job lists
@@ -57,4 +61,21 @@ public final class JobInfoHelpers {
             }
         };
     }
+
+
+    /**
+     * If any of event listeners interested in hook for job, then return true
+     * By default, push hook listener is interested in job with gh-push-trigger
+     * 
+     * @return predicate with true if job alive and should have hook 
+     */
+    public static Predicate<AbstractProject> isAlive() {
+        return new Predicate<AbstractProject>() {
+            @Override
+            public boolean apply(AbstractProject job) {
+                return !from(GHEventsListener.all()).filter(isApplicableFor(job)).toList().isEmpty();
+            }
+        };
+    }
+
 }

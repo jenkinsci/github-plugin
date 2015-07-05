@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.associatedNames;
-import static org.jenkinsci.plugins.github.util.JobInfoHelpers.withTrigger;
+import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isAlive;
 
 /**
  * Removes post-commit hooks from repositories that we no longer care.
@@ -59,7 +59,7 @@ public class Cleaner extends PeriodicWork {
 
         List<AbstractProject> jobs = Jenkins.getInstance().getAllItems(AbstractProject.class);
         List<GitHubRepositoryName> aliveRepos = from(jobs)
-                .filter(withTrigger(GitHubPushTrigger.class))  // live repos
+                .filter(isAlive())  // live repos
                 .transformAndConcat(associatedNames()).toList();
 
         while (!сleanQueue.isEmpty()) {

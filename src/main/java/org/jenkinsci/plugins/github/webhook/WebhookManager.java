@@ -4,6 +4,7 @@ import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.AbstractProject;
+import org.apache.commons.lang.Validate;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.github.GHException;
 import org.kohsuke.github.GHHook;
@@ -147,6 +148,8 @@ public class WebhookManager {
                     Set<GHEvent> merged = from(hooks)
                             .transformAndConcat(eventsFromHook())
                             .append(events).toSet();
+
+                    Validate.notEmpty(events, "Events list for hook can't be empty");
 
                     from(hooks)
                             .filter(deleteWebhook())
