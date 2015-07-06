@@ -210,11 +210,13 @@ public class GitHubWebHook implements UnprotectedRootAction {
             try {
                 for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
                     GitHubTrigger ghTrigger = null;
-                    ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
-                    for (Trigger trigger : pJob.getTriggers().values()) {
-                        if (triggerClass.isInstance(trigger)) {
-                            ghTrigger = (GitHubTrigger) trigger;
-                            break;
+                    if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
+                        ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
+                        for (Trigger trigger : pJob.getTriggers().values()) {
+                            if (triggerClass.isInstance(trigger)) {
+                                ghTrigger = (GitHubTrigger) trigger;
+                                break;
+                            }
                         }
                     }
                     if (ghTrigger != null) {

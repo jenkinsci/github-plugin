@@ -48,9 +48,11 @@ public interface GitHubTrigger {
     public static class GitHubRepositoryNameContributorImpl extends GitHubRepositoryNameContributor {
         @Override
         public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
-            ParameterizedJobMixIn.ParameterizedJob p = (ParameterizedJobMixIn.ParameterizedJob) job;
-            for (GitHubTrigger ght : Util.filter(p.getTriggers().values(),GitHubTrigger.class)) {
-                result.addAll(ght.getGitHubRepositories());
+            if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
+                ParameterizedJobMixIn.ParameterizedJob p = (ParameterizedJobMixIn.ParameterizedJob) job;
+                for (GitHubTrigger ght : Util.filter(p.getTriggers().values(),GitHubTrigger.class)) {
+                    result.addAll(ght.getGitHubRepositories());
+                }
             }
         }
     }
