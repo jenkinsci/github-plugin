@@ -43,12 +43,6 @@
       <artifactId>git</artifactId>
       <version>2.0</version>
     </dependency>
-    <dependency>
-      <groupId>org.jmock</groupId>
-      <artifactId>jmock-junit4</artifactId>
-      <version>2.5.1</version>
-      <scope>test</scope>
-    </dependency>
     <dependency><!-- Required for tests -->
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>credentials</artifactId>
