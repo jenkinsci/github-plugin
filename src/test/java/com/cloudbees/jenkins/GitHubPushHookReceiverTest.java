@@ -8,9 +8,12 @@ import hudson.plugins.git.SubmoduleConfig;
 import hudson.plugins.git.BranchSpec;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.UserRemoteConfig;
+import hudson.plugins.git.util.Build;
+import hudson.plugins.git.util.BuildData;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.concurrent.ExecutionException;
 
 import javax.inject.Inject;
@@ -18,6 +21,7 @@ import javax.inject.Inject;
 import org.apache.commons.io.IOUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,7 +74,9 @@ public class GitHubPushHookReceiverTest extends Assert {
             "}"));
 
         // Trigger the build once to register SCMs
-        j.assertBuildStatusSuccess(job.scheduleBuild2(0));
+        WorkflowRun lastRun = j.assertBuildStatusSuccess(job.scheduleBuild2(0));
+        // Testing hack! This will make the polling believe that there was remote changes to build
+        lastRun.getActions(BuildData.class).get(0).buildsByBranchName = new HashMap<String, Build>();
 
         // Then simulate a GitHub push
         String payload = IOUtils.toString(getClass().getResourceAsStream("/com/cloudbees/jenkins/plugins/github/payload2.json"));
