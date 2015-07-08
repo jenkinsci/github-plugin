@@ -1,6 +1,5 @@
 package com.cloudbees.jenkins;
 
-import hudson.model.FreeStyleBuild;
 import hudson.model.Result;
 import hudson.model.FreeStyleProject;
 import hudson.model.Job;
@@ -17,6 +16,8 @@ import java.util.concurrent.ExecutionException;
 import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
+import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,6 +53,29 @@ public class GitHubPushHookReceiverTest extends Assert {
         String payload = IOUtils.toString(getClass().getResourceAsStream("/com/cloudbees/jenkins/plugins/github/payload2.json"));
         receiver.processGitHubPayload(payload, GitHubPushTrigger.class);
         Run build = waitForBuild(1, job);
+        assertTrue("Build was triggered but did not success: " + build.getLog(300), Result.SUCCESS.equals(build.getResult()));
+    }
+
+    @Test
+    public void receivePushHookOnWorkflow() throws Exception {
+        j.jenkins.getInjector().injectMembers(this);
+        WorkflowJob job = j.jenkins.createProject(WorkflowJob.class, "Test Workflow");
+
+        GitHubPushTrigger trigger = new GitHubPushTrigger();
+        trigger.start(job, false);
+        job.addTrigger(trigger);
+        job.setDefinition(new CpsFlowDefinition(
+            "node {\n" +
+            "    git credentialsId: '', url: 'https://github.com/amuniz/github-plugin.git'\n" +
+            "}"));
+
+        // Trigger the build once to register SCMs
+        j.assertBuildStatusSuccess(job.scheduleBuild2(0));
+
+        // Then simulate a GitHub push
+        String payload = IOUtils.toString(getClass().getResourceAsStream("/com/cloudbees/jenkins/plugins/github/payload2.json"));
+        receiver.processGitHubPayload(payload, GitHubPushTrigger.class);
+        Run build = waitForBuild(2, job);
         assertTrue("Build was triggered but did not success: " + build.getLog(300), Result.SUCCESS.equals(build.getResult()));
     }
 
