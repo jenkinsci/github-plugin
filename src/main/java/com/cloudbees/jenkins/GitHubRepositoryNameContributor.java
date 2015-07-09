@@ -34,7 +34,7 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
      * Looks at the definition of {@link AbstractProject} and list up the related github repositories,
      * then puts them into the collection.
      *
-     * @deprecated Use {@link GitHubRepositoryNameContributor#parseAssociatedNames(Job job, Collection result)}
+     * @deprecated Use {@link #parseAssociatedNames(Job, Collection)}
      */
     @Deprecated
     public void parseAssociatedNames(AbstractProject<?,?> job, Collection<GitHubRepositoryName> result) {
@@ -112,9 +112,10 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
         @Override
         public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
             SCMTriggerItem item = SCMTriggerItems.asSCMTriggerItem(job);
+            EnvVars envVars = buildEnv(job);
             if (item != null) {
                 for (SCM scm : item.getSCMs()) {
-                    addRepositories(scm, buildEnv(job), result);
+                    addRepositories(scm, envVars, result);
                 }
             }
         }
