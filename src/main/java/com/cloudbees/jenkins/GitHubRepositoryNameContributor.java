@@ -63,11 +63,7 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
      */
     @Deprecated
     public static Collection<GitHubRepositoryName> parseAssociatedNames(AbstractProject<?, ?> job) {
-        Set<GitHubRepositoryName> names = new HashSet<GitHubRepositoryName>();
-        for (GitHubRepositoryNameContributor c : all()) {
-            c.parseAssociatedNames(job, names);
-        }
-        return names;
+        return parseAssociatedNames((Job) job);
     }
 
     public static Collection<GitHubRepositoryName> parseAssociatedNames(Job<?, ?> job) {

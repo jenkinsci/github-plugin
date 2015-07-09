@@ -70,7 +70,7 @@ public class GitHubPushHookReceiverTest extends Assert {
         job.addTrigger(trigger);
         job.setDefinition(new CpsFlowDefinition(
             "node {\n" +
-            "    git credentialsId: '', url: 'https://github.com/amuniz/github-plugin.git'\n" +
+            "    git 'https://github.com/amuniz/github-plugin.git'\n" +
             "}"));
 
         // Trigger the build once to register SCMs
