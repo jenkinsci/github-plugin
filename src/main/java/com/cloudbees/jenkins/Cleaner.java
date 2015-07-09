@@ -78,7 +78,7 @@ public class Cleaner extends PeriodicWork {
             for (GHRepository repo : r.resolve()) {
                 try {
                     removeHook(repo, Trigger.all().get(DescriptorImpl.class).getHookUrl());
-                    LOGGER.info("Removed a hook from "+r+"");
+                    LOGGER.info("Removed a hook from " + r);
                     continue OUTER;
                 } catch (Throwable e) {
                     LOGGER.log(Level.WARNING,"Failed to remove hook from "+r,e);
