@@ -57,7 +57,7 @@ public class Cleaner extends PeriodicWork {
 
         // subtract all the live repositories
         Jenkins jenkins = Jenkins.getInstance();
-        if(jenkins != null) {
+        if (jenkins != null) {
             for (Job<?,?> job : jenkins.getAllItems(Job.class)) {
                 if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
                     ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
