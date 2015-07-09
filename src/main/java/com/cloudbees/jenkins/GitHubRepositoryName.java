@@ -7,6 +7,8 @@ import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.logging.Level;

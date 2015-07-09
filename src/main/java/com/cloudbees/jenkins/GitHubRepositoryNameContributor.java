@@ -4,6 +4,7 @@ import hudson.EnvVars;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
+import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.model.EnvironmentContributor;
 import hudson.model.Job;
@@ -33,11 +34,41 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
     /**
      * Looks at the definition of {@link AbstractProject} and list up the related github repositories,
      * then puts them into the collection.
+     *
+     * @deprecated Use {@link GitHubRepositoryNameContributor#parseAssociatedNames(Job job, Collection result)}
      */
-    public abstract void parseAssociatedNames(Job<?,?> job, Collection<GitHubRepositoryName> result);
+    @Deprecated
+    public void parseAssociatedNames(AbstractProject<?,?> job, Collection<GitHubRepositoryName> result) {
+        parseAssociatedNames((Job) job, result);
+    }
+
+    /**
+     * Looks at the definition of {@link Job} and list up the related github repositories,
+     * then puts them into the collection.
+     */
+    public /*abstract*/ void parseAssociatedNames(Job<?,?> job, Collection<GitHubRepositoryName> result) {
+        if (Util.isOverridden(GitHubRepositoryNameContributor.class, getClass(),
+                "parseAssociatedNames", AbstractProject.class, Collection.class) && job instanceof AbstractProject) {
+            parseAssociatedNames((AbstractProject) job, result);
+        } else {
+            throw new AbstractMethodError("you must override the new overload of parseAssociatedNames");
+        }
+    }
 
     public static ExtensionList<GitHubRepositoryNameContributor> all() {
         return Jenkins.getInstance().getExtensionList(GitHubRepositoryNameContributor.class);
+    }
+
+    /**
+     * @deprecated Use {@link GitHubRepositoryNameContributor#parseAssociatedNames(Job)}
+     */
+    @Deprecated
+    public static Collection<GitHubRepositoryName> parseAssociatedNames(AbstractProject<?, ?> job) {
+        Set<GitHubRepositoryName> names = new HashSet<GitHubRepositoryName>();
+        for (GitHubRepositoryNameContributor c : all()) {
+            c.parseAssociatedNames(job, names);
+        }
+        return names;
     }
 
     public static Collection<GitHubRepositoryName> parseAssociatedNames(Job<?, ?> job) {
@@ -62,17 +93,15 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
             return env;
         }
 
-        protected static void addRepositories(Collection<? extends SCM> scms, EnvVars env, Collection<GitHubRepositoryName> r) {
-            for (SCM scm : scms) {
-                if (scm instanceof GitSCM) {
-                    GitSCM git = (GitSCM) scm;
-                    for (RemoteConfig rc : git.getRepositories()) {
-                        for (URIish uri : rc.getURIs()) {
-                            String url = env.expand(uri.toString());
-                            GitHubRepositoryName repo = GitHubRepositoryName.create(url);
-                            if (repo != null) {
-                                r.add(repo);
-                            }
+        protected static void addRepositories(SCM scm, EnvVars env, Collection<GitHubRepositoryName> r) {
+            if (scm instanceof GitSCM) {
+                GitSCM git = (GitSCM) scm;
+                for (RemoteConfig rc : git.getRepositories()) {
+                    for (URIish uri : rc.getURIs()) {
+                        String url = env.expand(uri.toString());
+                        GitHubRepositoryName repo = GitHubRepositoryName.create(url);
+                        if (repo != null) {
+                            r.add(repo);
                         }
                     }
                 }
@@ -88,27 +117,9 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
         @Override
         public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
             SCMTriggerItem item = SCMTriggerItems.asSCMTriggerItem(job);
-            addRepositories(item.getSCMs(), buildEnv(job), result);
-        }
-    }
-
-    /**
-     * MultiSCM support separated into a different extension point since this is an optional dependency
-     */
-    @Extension(optional=true)
-    public static class FromMultiSCM extends AbstractFromSCMImpl {
-        // make this class fail to load if MultiSCM is not present
-        public FromMultiSCM() { MultiSCM.class.toString(); }
-
-        @Override
-        public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
-            SCMTriggerItem item = SCMTriggerItems.asSCMTriggerItem(job);
-            EnvVars env = buildEnv(job);
-            for (SCM scm : item.getSCMs()) {
-                if (scm instanceof MultiSCM){
-                    MultiSCM multiSCM = (MultiSCM) scm;
-                    List<SCM> scmList = multiSCM.getConfiguredSCMs();
-                    addRepositories(scmList, env, result);
+            if (item != null) {
+                for (SCM scm : item.getSCMs()) {
+                    addRepositories(scm, buildEnv(job), result);
                 }
             }
         }

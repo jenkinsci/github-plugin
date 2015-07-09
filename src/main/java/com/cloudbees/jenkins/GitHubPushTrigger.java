@@ -264,7 +264,8 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
         @Override
         public boolean isApplicable(Item item) {
-            return item instanceof Job;
+            return item instanceof Job && SCMTriggerItems.asSCMTriggerItem(item) != null
+                    && item instanceof ParameterizedJobMixIn.ParameterizedJob;
         }
 
         @Override

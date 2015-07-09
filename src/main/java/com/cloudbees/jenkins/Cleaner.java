@@ -56,12 +56,17 @@ public class Cleaner extends PeriodicWork {
         }
 
         // subtract all the live repositories
-        for (Job<?,?> job : getActiveInstance().getAllItems(Job.class)) {
-            ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
-            for (Trigger trigger : pJob.getTriggers().values()) {
-                if (trigger instanceof GitHubPushTrigger) {
-                    names.removeAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
-                    break;
+        Jenkins jenkins = Jenkins.getInstance();
+        if(jenkins != null) {
+            for (Job<?,?> job : jenkins.getAllItems(Job.class)) {
+                if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
+                    ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
+                    for (Trigger trigger : pJob.getTriggers().values()) {
+                        if (trigger instanceof GitHubPushTrigger) {
+                            names.removeAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -103,12 +108,4 @@ public class Cleaner extends PeriodicWork {
 
     private static final Logger LOGGER = Logger.getLogger(Cleaner.class.getName());
 
-    // TODO: this method will not be required after upgrading core to 1.596. Call Jenkins.getActiveInstance() directly
-    private static Jenkins getActiveInstance() {
-        Jenkins instance = Jenkins.getInstance();
-        if (instance == null) {
-            throw new IllegalStateException("Jenkins has not been started, or was already shut down");
-        }
-        return instance;
-    }
 }
