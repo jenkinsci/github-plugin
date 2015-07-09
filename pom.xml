@@ -48,12 +48,6 @@
       <artifactId>slf4j-api</artifactId>
       <version>1.6.6</version>
     </dependency>
-    <dependency>
-      <groupId>org.jenkins-ci.plugins</groupId>
-      <artifactId>multiple-scms</artifactId>
-      <version>0.2</version>
-      <optional>true</optional>
-    </dependency>
     <dependency><!-- exists in the core -->
       <groupId>org.jenkins-ci.modules</groupId>
       <artifactId>instance-identity</artifactId>

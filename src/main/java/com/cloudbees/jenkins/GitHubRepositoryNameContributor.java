@@ -17,7 +17,6 @@ import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
 
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
-import org.jenkinsci.plugins.multiplescms.MultiSCM;
 
 import java.util.Collection;
 import java.util.HashSet;
