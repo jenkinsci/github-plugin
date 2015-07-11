@@ -140,9 +140,9 @@ public class GitHubWebHookFullTest {
         return new Header(GHEventHeader.PayloadHandler.EVENT_HEADER, event);
     }
     
-    public String classpath(String path) throws IOException {
-        return IOUtils.toString(getClass().getClassLoader().getResourceAsStream(
-                getClass().getName().replace(PACKAGE_SEPARATOR, File.separator) + File.separator + path
+    public static String classpath(String path) throws IOException {
+        return IOUtils.toString(GitHubWebHookFullTest.class.getClassLoader().getResourceAsStream(
+                GitHubWebHookFullTest.class.getName().replace(PACKAGE_SEPARATOR, File.separator) + File.separator + path
         ), Charsets.UTF_8);
     }
 }
