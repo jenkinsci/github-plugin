@@ -35,7 +35,12 @@
   </developers>
 
   <dependencies>
-      
+      <dependency>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-lang3</artifactId>
+          <version>3.4</version>
+      </dependency>
+
       <dependency>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-jdk14</artifactId>
@@ -100,6 +105,13 @@
           <groupId>org.mockito</groupId>
           <artifactId>mockito-core</artifactId>
           <version>1.10.19</version>
+          <scope>test</scope>
+      </dependency>
+
+      <dependency>
+          <groupId>com.jayway.restassured</groupId>
+          <artifactId>rest-assured</artifactId>
+          <version>2.4.0</version>
           <scope>test</scope>
       </dependency>
 
