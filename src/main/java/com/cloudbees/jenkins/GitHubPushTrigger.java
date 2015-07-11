@@ -43,11 +43,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
-import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isBuildable;
-import static org.jenkinsci.plugins.github.util.JobInfoHelpers.withTrigger;
-import static org.jenkinsci.plugins.github.webhook.WebhookManager.forHookUrl;
-
 /**
  * Triggers a build when we receive a GitHub post-commit webhook.
  *
@@ -156,15 +151,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
      * @since 1.11.2
      */
     public void registerHooks() {
-        URL hookUrl;
-        try {
-            hookUrl = getDescriptor().getHookUrl();
-        } catch (GHPluginConfigException e) {
-            LOGGER.log(Level.SEVERE, "Skip registration of GHHook ({0})", e.getMessage());
-            return;
-        }
-        Runnable hookRegistrator = forHookUrl(hookUrl).registerFor(job);
-        getDescriptor().queue.execute(hookRegistrator);
+        GitHubWebHook.get().registerHookFor(job);
     }
 
 
@@ -331,34 +318,10 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
                 return FormValidation.warning("Works only when Jenkins manages hooks");
             }
 
-            List<GitHubPushTrigger> registered = from(getJenkinsInstance().getAllItems(AbstractProject.class))
-                    .filter(isBuildable())
-                    .filter(withTrigger(GitHubPushTrigger.class))
-                    .transform(reRegisterHooks()).toList();
-
+            List<AbstractProject> registered = GitHubWebHook.get().reRegisterAllHooks();
 
             LOGGER.log(Level.INFO, "Called registerHooks() for {0} jobs", registered.size());
             return FormValidation.ok("Called re-register hooks for %s jobs", registered.size());
-        }
-
-        private Function<AbstractProject, GitHubPushTrigger> reRegisterHooks() {
-            return new Function<AbstractProject, GitHubPushTrigger>() {
-                @Override
-                public GitHubPushTrigger apply(AbstractProject job) {
-                    GitHubPushTrigger trigger = (GitHubPushTrigger) job.getTrigger(GitHubPushTrigger.class);
-                    LOGGER.log(Level.FINE, "Calling registerHooks() for {0}", job.getFullName());
-                    trigger.registerHooks();
-                    return trigger;
-                }
-            };
-        }
-
-        public static final Jenkins getJenkinsInstance() throws IllegalStateException {
-            Jenkins instance = Jenkins.getInstance();
-            if (instance == null) {
-                throw new IllegalStateException("Jenkins has not been started, or was already shut down");
-            }
-            return instance;
         }
 
         public static DescriptorImpl get() {

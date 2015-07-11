@@ -1,8 +1,8 @@
 package com.cloudbees.jenkins;
 
-import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import hudson.model.FreeStyleProject;
 import hudson.util.Secret;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.junit.Rule;
@@ -11,6 +11,7 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.recipes.LocalData;
 import org.kohsuke.stapler.Stapler;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
@@ -68,8 +69,11 @@ public class GitHubPushTriggerConfigSubmitTest {
 
     @Test
     @LocalData
-    public void shouldDontThrowExcMailformedHookUrl() {
-        new GitHubPushTrigger().registerHooks();
+    public void shouldDontThrowExcMailformedHookUrl() throws IOException {
+        FreeStyleProject job = jenkins.createFreeStyleProject();
+        GitHubPushTrigger trigger = new GitHubPushTrigger();
+        trigger.start(job, true);
+        trigger.registerHooks();
     }
 
     @Test(expected = GHPluginConfigException.class)
