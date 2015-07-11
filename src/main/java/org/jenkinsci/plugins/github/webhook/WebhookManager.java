@@ -24,9 +24,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Predicates.or;
 import static java.lang.String.format;
-import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
+import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.extractEvents;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
+import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 
 /**
  * Class to incapsulate manipulation with webhooks on GH
@@ -98,7 +99,7 @@ public class WebhookManager {
      * So if the trigger for given name was only reconfigured, this method filters only service hooks
      * (with help of aliveRepos names list), otherwise this method removes all hooks for managed url
      *
-     * @param name  repository to clean hooks
+     * @param name       repository to clean hooks
      * @param aliveRepos repository list which has enabled trigger in jobs
      */
     public void unregisterFor(GitHubRepositoryName name, List<GitHubRepositoryName> aliveRepos) {
@@ -142,15 +143,21 @@ public class WebhookManager {
                             "There is no admin access to manage hooks on %s", name
                     );
 
+                    Validate.notEmpty(events, "Events list for hook can't be empty");
+
                     Set<GHHook> hooks = from(fetchHooks().apply(repo))
                             .filter(webhookFor(endpoint))
                             .toSet();
 
-                    Set<GHEvent> merged = from(hooks)
-                            .transformAndConcat(eventsFromHook())
-                            .append(events).toSet();
+                    Set<GHEvent> alreadyRegistered = from(hooks)
+                            .transformAndConcat(eventsFromHook()).toSet();
 
-                    Validate.notEmpty(events, "Events list for hook can't be empty");
+                    if (hooks.size() == 1 && isEqualCollection(alreadyRegistered, events)) {
+                        LOGGER.debug("Hook already registered for events {}", events);
+                        return null;
+                    }
+
+                    Set<GHEvent> merged = from(alreadyRegistered).append(events).toSet();
 
                     from(hooks)
                             .filter(deleteWebhook())

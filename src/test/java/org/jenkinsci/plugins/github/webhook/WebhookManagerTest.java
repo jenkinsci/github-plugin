@@ -34,6 +34,7 @@ import static org.kohsuke.github.GHEvent.CREATE;
 import static org.kohsuke.github.GHEvent.PULL_REQUEST;
 import static org.kohsuke.github.GHEvent.PUSH;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anySet;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -149,6 +150,19 @@ public class WebhookManagerTest {
         manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
         verify(del, times(2)).apply(any(GHHook.class));
         verify(manager).createWebhook(HOOK_ENDPOINT, EnumSet.copyOf(newArrayList(CREATE, PULL_REQUEST, PUSH)));
+    }
+
+    @Test
+    public void shouldNotReplaceAlreadyRegisteredHook() throws IOException {
+        when(nonactive.resolve()).thenReturn(newArrayList(repo));
+        when(repo.hasAdminAccess()).thenReturn(true);
+
+        GHHook hook = hook(HOOK_ENDPOINT, PUSH);
+        when(repo.getHooks()).thenReturn(newArrayList(hook));
+
+        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
+        verify(manager, never()).deleteWebhook();
+        verify(manager, never()).createWebhook(any(URL.class), anySet());
     }
 
     @Test
