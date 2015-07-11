@@ -43,7 +43,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      * @return true if project has {@link GitHubPushTrigger}
      */
     @Override
-    public boolean isApplicable(AbstractProject<?, ?> project) {
+    protected boolean isApplicable(AbstractProject<?, ?> project) {
         return withTrigger(GitHubPushTrigger.class).apply(project);
     }
 
@@ -51,7 +51,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      * @return set with only push event
      */
     @Override
-    public Set<GHEvent> events() {
+    protected Set<GHEvent> events() {
         return immutableEnumSet(PUSH);
     }
 
@@ -62,7 +62,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      * @param payload payload of gh-event. Never blank
      */
     @Override
-    public void onEvent(GHEvent event, String payload) {
+    protected void onEvent(GHEvent event, String payload) {
         JSONObject json = JSONObject.fromObject(payload);
         String repoUrl = json.getJSONObject("repository").getString("url"); // something like 'https://github.com/kohsuke/foo'
         final String pusherName = json.getJSONObject("pusher").getString("name");

@@ -8,7 +8,11 @@ import hudson.model.AbstractProject;
 import jenkins.model.Jenkins;
 import org.kohsuke.github.GHEvent;
 
+import java.util.HashSet;
 import java.util.Set;
+
+import static java.util.Collections.emptySet;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Extension point to subscribe events from GH, which plugin interested in.
@@ -24,29 +28,32 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
 
     /**
      * Should return true only if this subscriber interested in {@link #events()} set for this project
+     * Don't call it directly, use {@link #isApplicableFor(AbstractProject)} static function
      *
      * @param project to check
      *
      * @return true to provide events to register and subscribe for this project
      */
-    public abstract boolean isApplicable(AbstractProject<?, ?> project);
+    protected abstract boolean isApplicable(AbstractProject<?, ?> project);
 
     /**
      * Should be not null. Should return only events which this extension can parse in {@link #onEvent(GHEvent, String)}
+     * Don't call it directly, use {@link #extractEvents()} or {@link #isInterestedIn(GHEvent)} static functions
      *
      * @return immutable set of events this subscriber wants to register and then subscribe to.
      */
-    public abstract Set<GHEvent> events();
+    protected abstract Set<GHEvent> events();
 
     /**
      * This method called when root action receives webhook from GH and this extension is interested in such
      * events (provided by {@link #events()} method). By default do nothing and can be overrided to implement any
      * parse logic
+     * Don't call it directly, use {@link #processEvent(GHEvent, String)} static function
      *
      * @param event   gh-event (as of PUSH, ISSUE...). One of returned by {@link #events()} method. Never null.
      * @param payload payload of gh-event. Never blank. Can be parsed with help of GitHub#parseEventPayload
      */
-    public void onEvent(GHEvent event, String payload) {
+    protected void onEvent(GHEvent event, String payload) {
         // do nothing by default
     }
 
@@ -65,8 +72,8 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
     public static Function<GHEventsSubscriber, Set<GHEvent>> extractEvents() {
         return new Function<GHEventsSubscriber, Set<GHEvent>>() {
             @Override
-            public Set<GHEvent> apply(GHEventsSubscriber provider) {
-                return provider.events();
+            public Set<GHEvent> apply(GHEventsSubscriber subscriber) {
+                return defaultIfNull(subscriber.events(), new HashSet<GHEvent>());
             }
         };
     }
@@ -81,8 +88,8 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
     public static Predicate<GHEventsSubscriber> isApplicableFor(final AbstractProject<?, ?> project) {
         return new Predicate<GHEventsSubscriber>() {
             @Override
-            public boolean apply(GHEventsSubscriber provider) {
-                return provider.isApplicable(project);
+            public boolean apply(GHEventsSubscriber subscriber) {
+                return subscriber.isApplicable(project);
             }
         };
     }
@@ -98,7 +105,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
         return new Predicate<GHEventsSubscriber>() {
             @Override
             public boolean apply(GHEventsSubscriber subscriber) {
-                return subscriber.events().contains(event);
+                return defaultIfNull(subscriber.events(), emptySet()).contains(event);
             }
         };
     }
@@ -106,7 +113,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
     /**
      * Function which calls {@link #onEvent(GHEvent, String)} for every subscriber on apply
      *
-     * @param event from hook. Applied only with event from {@link #events()} set
+     * @param event   from hook. Applied only with event from {@link #events()} set
      * @param payload string content of hook from GH. Never blank
      *
      * @return function to process {@link GHEventsSubscriber} list. Returns null on apply.
