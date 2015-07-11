@@ -11,11 +11,11 @@ import org.kohsuke.github.GHEvent;
 import java.util.Set;
 
 /**
- * Extension point to contribute events from GH, which plugin interested in.
+ * Extension point to subscribe events from GH, which plugin interested in.
  * This point should return true in {@link #isApplicable(AbstractProject)}
  * only if it can parse hooks with events contributed in {@link #events()}
  *
- * Each time this plugin wants to get events list from contributors it asks for applicable status
+ * Each time this plugin wants to get events list from subscribers it asks for applicable status
  *
  * @author lanwen (Merkushev Kirill)
  * @since TODO
@@ -32,9 +32,23 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
     public abstract boolean isApplicable(AbstractProject<?, ?> project);
 
     /**
-     * @return immutable set of events this subscriber wants to register and then subscribe to
+     * Should be not null. Should return only events which this extension can parse in {@link #onEvent(GHEvent, String)}
+     *
+     * @return immutable set of events this subscriber wants to register and then subscribe to.
      */
     public abstract Set<GHEvent> events();
+
+    /**
+     * This method called when root action receives webhook from GH and this extension is interested in such
+     * events (provided by {@link #events()} method). By default do nothing and can be overrided to implement any
+     * parse logic
+     *
+     * @param event   gh-event (as of PUSH, ISSUE...). One of returned by {@link #events()} method. Never null.
+     * @param payload payload of gh-event. Never blank. Can be parsed with help of GitHub#parseEventPayload
+     */
+    public void onEvent(GHEvent event, String payload) {
+        // do nothing by default
+    }
 
     /**
      * @return All subscriber extensions
@@ -69,6 +83,40 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
             @Override
             public boolean apply(GHEventsSubscriber provider) {
                 return provider.isApplicable(project);
+            }
+        };
+    }
+
+    /**
+     * Predicate which returns true on apply if current subscriber is interested in event
+     *
+     * @param event should be one of {@link #events()} set to return true on apply
+     *
+     * @return predicate to match against {@link GHEventsSubscriber}
+     */
+    public static Predicate<GHEventsSubscriber> isInterestedIn(final GHEvent event) {
+        return new Predicate<GHEventsSubscriber>() {
+            @Override
+            public boolean apply(GHEventsSubscriber subscriber) {
+                return subscriber.events().contains(event);
+            }
+        };
+    }
+
+    /**
+     * Function which calls {@link #onEvent(GHEvent, String)} for every subscriber on apply
+     *
+     * @param event from hook. Applied only with event from {@link #events()} set
+     * @param payload string content of hook from GH. Never blank
+     *
+     * @return function to process {@link GHEventsSubscriber} list. Returns null on apply.
+     */
+    public static Function<GHEventsSubscriber, Void> processEvent(final GHEvent event, final String payload) {
+        return new Function<GHEventsSubscriber, Void>() {
+            @Override
+            public Void apply(GHEventsSubscriber subscriber) {
+                subscriber.onEvent(event, payload);
+                return null;
             }
         };
     }
