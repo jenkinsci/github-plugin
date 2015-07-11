@@ -124,7 +124,8 @@ public @interface RequirePostWithGHHookPayload {
          * @throws InvocationTargetException if any of preconditions is not satisfied
          */
         protected void shouldContainParseablePayload(Object[] arguments) throws InvocationTargetException {
-            isTrue(arguments.length == 2, "GHHook root action should take (GHEvent) event and (String) payload");
+            isTrue(arguments.length == 2, 
+                    "GHHook root action should take <(GHEvent) event> and <(String) payload> only");
 
             FluentIterableWrapper<Object> from = from(newArrayList(arguments));
             isTrue(from.firstMatch(instanceOf(GHEvent.class)).isPresent(), "Hook should contain event type");
