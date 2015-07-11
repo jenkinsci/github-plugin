@@ -68,7 +68,6 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
         final String pusherName = json.getJSONObject("pusher").getString("name");
 
         LOGGER.info("Received POST for {}", repoUrl);
-        LOGGER.debug("Full details of the POST was {}", json.toString());
         Matcher matcher = REPOSITORY_NAME_PATTERN.matcher(repoUrl);
         if (matcher.matches()) {
             final GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl);

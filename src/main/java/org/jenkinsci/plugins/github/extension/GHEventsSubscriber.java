@@ -8,7 +8,7 @@ import hudson.model.AbstractProject;
 import jenkins.model.Jenkins;
 import org.kohsuke.github.GHEvent;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
@@ -73,7 +73,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
         return new Function<GHEventsSubscriber, Set<GHEvent>>() {
             @Override
             public Set<GHEvent> apply(GHEventsSubscriber subscriber) {
-                return defaultIfNull(subscriber.events(), new HashSet<GHEvent>());
+                return defaultIfNull(subscriber.events(), Collections.<GHEvent>emptySet());
             }
         };
     }
