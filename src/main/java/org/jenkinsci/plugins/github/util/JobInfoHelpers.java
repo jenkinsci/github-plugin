@@ -63,7 +63,6 @@ public final class JobInfoHelpers {
         };
     }
 
-
     /**
      * If any of event subscriber interested in hook for job, then return true
      * By default, push hook subscriber is interested in job with gh-push-trigger
@@ -78,5 +77,5 @@ public final class JobInfoHelpers {
             }
         };
     }
-
 }
+

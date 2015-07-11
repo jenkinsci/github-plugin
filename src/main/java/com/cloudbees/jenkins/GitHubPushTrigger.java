@@ -325,9 +325,10 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
 
         }
 
+        @SuppressWarnings("unused")
         public FormValidation doReRegister() {
             if (!manageHook) {
-                return FormValidation.error("Works only when Jenkins manages hooks");
+                return FormValidation.warning("Works only when Jenkins manages hooks");
             }
 
             List<GitHubPushTrigger> registered = from(getJenkinsInstance().getAllItems(AbstractProject.class))
