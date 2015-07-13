@@ -119,7 +119,8 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         cause = new GitHubPushCause(pushBy);
                     }
                     ParameterizedJobMixIn scheduler = new ParameterizedJobMixIn() {
-                        @Override protected Job asJob() {
+                        @Override
+                        protected Job asJob() {
                             return job;
                         }
                     };

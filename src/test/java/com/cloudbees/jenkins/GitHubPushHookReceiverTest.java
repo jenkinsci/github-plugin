@@ -68,10 +68,8 @@ public class GitHubPushHookReceiverTest extends Assert {
         GitHubPushTrigger trigger = new GitHubPushTrigger();
         trigger.start(job, false);
         job.addTrigger(trigger);
-        job.setDefinition(new CpsFlowDefinition(
-            "node {\n" +
-            "    git 'https://github.com/amuniz/github-plugin.git'\n" +
-            "}"));
+        String groovy = IOUtils.toString(getClass().getResourceAsStream("/com/cloudbees/jenkins/plugins/github/groovy-dsl"));
+        job.setDefinition(new CpsFlowDefinition(groovy));
 
         // Trigger the build once to register SCMs
         WorkflowRun lastRun = j.assertBuildStatusSuccess(job.scheduleBuild2(0));
@@ -82,16 +80,13 @@ public class GitHubPushHookReceiverTest extends Assert {
         String payload = IOUtils.toString(getClass().getResourceAsStream("/com/cloudbees/jenkins/plugins/github/payload2.json"));
         receiver.processGitHubPayload(payload, GitHubPushTrigger.class);
         Run build = waitForBuild(2, job);
-        assertTrue("Build was triggered but did not success: " + build.getLog(300), Result.SUCCESS.equals(build.getResult()));
+        j.assertBuildStatusSuccess(build);
     }
 
     private Run waitForBuild(int n, Job job) throws InterruptedException {
         System.out.println("Waiting for build #" + n + " to appear and finish");
         int counter = 0;
-        while (true) {
-            if(counter > 30) {
-                assertTrue("Waiting more than a minute for the build to start", false);
-            }
+        while (counter < 30) {
             Run b = job.getBuildByNumber(n);
             if (b != null && !b.isBuilding()) {
                 return b;
@@ -99,5 +94,7 @@ public class GitHubPushHookReceiverTest extends Assert {
             Thread.sleep(2000);
             counter++;
         }
+        fail("Waiting more than a minute for the build to start");
+        return null;
     }
 }
