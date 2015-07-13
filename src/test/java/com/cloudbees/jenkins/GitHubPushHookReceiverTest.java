@@ -22,7 +22,7 @@ import org.apache.commons.io.IOUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-import org.junit.Assert;
+import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -31,7 +31,7 @@ import org.jvnet.hudson.test.JenkinsRule;
  * Test case covering the code responsible to receive the push notification
  * from GitHub.
  */
-public class GitHubPushHookReceiverTest extends Assert {
+public class GitHubPushHookReceiverTest {
 
     @Rule
     public JenkinsRule j = new JenkinsRule();
