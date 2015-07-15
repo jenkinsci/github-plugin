@@ -3,7 +3,9 @@
     <div>
       In this mode, Jenkins will add/remove hook URLs to GitHub based on the project configuration of Jenkins.
       Jenkins has a single post-commit hook URL for all the repositories, and this URL will be added to
-      all the GitHub repositories Jenkins is interested in.
+      all the GitHub repositories Jenkins is interested in. You should provide credentials with scope 
+        <b>admin:repo_hook</b> for every repo which should be managed by Jenkins. It needs to read current list of hooks,
+        create new hooks and remove old.
 
       <p>
         This URL is <tt><a href="${rootURL}/github-webhook/">${app.rootUrl}github-webhook/</a></tt>,
