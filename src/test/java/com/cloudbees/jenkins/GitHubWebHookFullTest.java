@@ -34,7 +34,7 @@ public class GitHubWebHookFullTest {
 
     public static final String APPLICATION_JSON = "application/json";
     public static final String FORM = "application/x-www-form-urlencoded";
-    
+
     public static final Header JSON_CONTENT_TYPE = new Header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
     public static final Header FORM_CONTENT_TYPE = new Header(HttpHeaders.CONTENT_TYPE, FORM);
     public static final String NOT_NULL_VALUE = "nonnull";
@@ -78,7 +78,7 @@ public class GitHubWebHookFullTest {
                 .log().all()
                 .expect().log().all().statusCode(SC_OK).post();
     }
- 
+
     @Test
     public void shouldParsePingFromGH() throws Exception {
         given().spec(spec)
@@ -101,8 +101,8 @@ public class GitHubWebHookFullTest {
                 .body(containsString("Hook should contain event type"))
                 .post();
     }
-    
-  @Test
+
+    @Test
     public void shouldReturnErrOnEmptyPayload() throws Exception {
         given().spec(spec)
                 .header(eventHeader(GHEvent.PUSH))
@@ -131,15 +131,15 @@ public class GitHubWebHookFullTest {
                 .header(GitHubWebHook.X_INSTANCE_IDENTITY, notNullValue())
                 .post();
     }
-    
+
     public Header eventHeader(GHEvent event) {
         return eventHeader(event.name().toLowerCase());
     }
-   
+
     public Header eventHeader(String event) {
         return new Header(GHEventHeader.PayloadHandler.EVENT_HEADER, event);
     }
-    
+
     public static String classpath(String path) throws IOException {
         return IOUtils.toString(GitHubWebHookFullTest.class.getClassLoader().getResourceAsStream(
                 GitHubWebHookFullTest.class.getName().replace(PACKAGE_SEPARATOR, File.separator) + File.separator + path
