@@ -149,14 +149,14 @@ public class GitHubWebHook implements UnprotectedRootAction {
         return new Function<AbstractProject, AbstractProject>() {
             @Override
             public AbstractProject apply(AbstractProject job) {
-                LOGGER.debug("Calling registerHooks() for {0}", notNull(job, "Job can't be null").getFullName());
+                LOGGER.debug("Calling registerHooks() for {}", notNull(job, "Job can't be null").getFullName());
 
                 // We should handle wrong url of self defined hook url here in any case with try-catch :(
                 URL hookUrl;
                 try {
                     hookUrl = Trigger.all().get(GitHubPushTrigger.DescriptorImpl.class).getHookUrl();
                 } catch (GHPluginConfigException e) {
-                    LOGGER.error("Skip registration of GHHook ({0})", e.getMessage());
+                    LOGGER.error("Skip registration of GHHook ({})", e.getMessage());
                     return job;
                 }
                 Runnable hookRegistrator = forHookUrl(hookUrl).registerFor(job);
