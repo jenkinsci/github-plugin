@@ -1,36 +1,42 @@
 package com.cloudbees.jenkins;
 
 import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
+import com.google.common.base.Function;
 import hudson.Extension;
 import hudson.ExtensionPoint;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
-import hudson.security.ACL;
 import hudson.triggers.Trigger;
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
+import hudson.util.SequentialExecutionQueue;
 import jenkins.model.Jenkins;
-import net.sf.json.JSONObject;
-import org.acegisecurity.Authentication;
-import org.acegisecurity.context.SecurityContextHolder;
-import org.apache.commons.codec.binary.Base64;
-import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
+import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
+import org.jenkinsci.plugins.github.webhook.GHEventHeader;
+import org.jenkinsci.plugins.github.webhook.GHEventPayload;
+import org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload;
+import org.kohsuke.github.GHEvent;
 import org.kohsuke.github.GitHub;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
-import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
+import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.security.interfaces.RSAPublicKey;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static hudson.model.Computer.threadPoolForRemoting;
+import static org.apache.commons.lang3.Validate.notNull;
+import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isInterestedIn;
+import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.processEvent;
+import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
+import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isAlive;
+import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isBuildable;
+import static org.jenkinsci.plugins.github.webhook.WebhookManager.forHookUrl;
 
 
 /**
@@ -40,8 +46,15 @@ import java.util.regex.Pattern;
  */
 @Extension
 public class GitHubWebHook implements UnprotectedRootAction {
-    @Inject
-    InstanceIdentity identity;
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubWebHook.class);
+    public static final String URLNAME = "github-webhook";
+
+    // headers used for testing the endpoint configuration
+    public static final String URL_VALIDATION_HEADER = "X-Jenkins-Validation";
+    public static final String X_INSTANCE_IDENTITY = "X-Instance-Identity";
+
+    private transient final SequentialExecutionQueue queue = new SequentialExecutionQueue(threadPoolForRemoting);
+
 
     public String getIconFileName() {
         return null;
@@ -95,148 +108,76 @@ public class GitHubWebHook implements UnprotectedRootAction {
         };
     }
 
-    /*
-
-    {
-        "after":"ea50ac0026d6d9c284e04afba1cc95d86dc3d976",
-        "before":"501f46e557f8fc5e0fa4c88a7f4597ef597dd1bf",
-        "commits":[
-            {
-                "added":["b"],
-                "author":{"email":"kk@kohsuke.org","name":"Kohsuke Kawaguchi","username":"kohsuke"},
-                "id":"3c696af1225e63ed531f5656e8f9cc252e4c96a2",
-                "message":"another commit",
-                "modified":[],
-                "removed":[],
-                "timestamp":"2010-12-08T14:31:24-08:00",
-                "url":"https://github.com/kohsuke/foo/commit/3c696af1225e63ed531f5656e8f9cc252e4c96a2"
-            },{
-                "added":["d"],
-                "author":{"email":"kk@kohsuke.org","name":"Kohsuke Kawaguchi","username":"kohsuke"},
-                "id":"ea50ac0026d6d9c284e04afba1cc95d86dc3d976",
-                "message":"new commit",
-                "modified":[],
-                "removed":[],
-                "timestamp":"2010-12-08T14:32:11-08:00",
-                "url":"https://github.com/kohsuke/foo/commit/ea50ac0026d6d9c284e04afba1cc95d86dc3d976"
-            }
-        ],
-        "compare":"https://github.com/kohsuke/foo/compare/501f46e...ea50ac0",
-        "forced":false,
-        "pusher":{"email":"kk@kohsuke.org","name":"kohsuke"},
-        "ref":"refs/heads/master",
-        "repository":{
-            "created_at":"2010/12/08 12:44:13 -0800",
-            "description":"testing",
-            "fork":false,
-            "forks":1,
-            "has_downloads":true,
-            "has_issues":true,
-            "has_wiki":true,
-            "homepage":"testing",
-            "name":"foo",
-            "open_issues":0,
-            "owner":{"email":"kk@kohsuke.org","name":"kohsuke"},
-            "private":false,
-            "pushed_at":"2010/12/08 14:32:23 -0800",
-            "url":"https://github.com/kohsuke/foo","watchers":1
-        }
-    }
-
+    /**
+     * If any wants to auto-register hook, then should call this method
+     * Example code:
+     * {@code GitHubWebHook.get().registerHookFor(job);}
+     *
+     * @param job not null project to register hook for
      */
-
+    public void registerHookFor(AbstractProject job) {
+        reRegisterHookForJob().apply(job);
+    }
 
     /**
-     * Receives the webhook call.
+     * Calls {@link #registerHookFor(AbstractProject)} for every project which have subscriber
      *
-     * 1 push to 2 branches will result in 2 push notifications.
+     * @return list of jobs which jenkins tried to register hook
      */
-    @RequirePOST
-    public void doIndex(StaplerRequest req, StaplerResponse rsp) {
-        if (req.getHeader(URL_VALIDATION_HEADER) != null) {
-            // when the configuration page provides the self-check button, it makes a request with this header.
-            RSAPublicKey key = identity.getPublic();
-            rsp.setHeader(X_INSTANCE_IDENTITY, new String(Base64.encodeBase64(key.getEncoded())));
-            rsp.setStatus(200);
-            return;
-        }
-
-        String eventType = req.getHeader("X-GitHub-Event");
-        if ("push".equals(eventType)) {
-            String payload = req.getParameter("payload");
-            if (payload == null) {
-                throw new IllegalArgumentException("Not intended to be browsed interactively (must specify payload parameter). " +
-                        "Make sure payload version is 'application/vnd.github+form'.");
-            }
-            processGitHubPayload(payload, GitHubPushTrigger.class);
-        } else if (eventType != null && !eventType.isEmpty()) {
-            throw new IllegalArgumentException("Github Webhook event of type " + eventType + " is not supported. " +
-                    "Only push events are current supported");
-        } else {
-            //Support github services that don't specify a header.
-            //Github webhook specifies a "X-Github-Event" header but services do not.
-            String payload = req.getParameter("payload");
-            if (payload == null) {
-                throw new IllegalArgumentException("Not intended to be browsed interactively (must specify payload parameter)");
-            }
-            processGitHubPayload(payload, GitHubPushTrigger.class);
-        }
+    public List<AbstractProject> reRegisterAllHooks() {
+        return from(getJenkinsInstance().getAllItems(AbstractProject.class))
+                .filter(isBuildable())
+                .filter(isAlive())
+                .transform(reRegisterHookForJob()).toList();
     }
 
-    public void processGitHubPayload(String payload, Class<? extends Trigger<?>> triggerClass) {
-        JSONObject o = JSONObject.fromObject(payload);
-        String repoUrl = o.getJSONObject("repository").getString("url"); // something like 'https://github.com/kohsuke/foo'
-        String pusherName = o.getJSONObject("pusher").getString("name");
+    /**
+     * Receives the webhook call
+     *
+     * @param event   GH event type. Never null
+     * @param payload Payload from hook. Never blank
+     */
+    @SuppressWarnings("unused")
+    @RequirePostWithGHHookPayload
+    public void doIndex(@Nonnull @GHEventHeader GHEvent event, @Nonnull @GHEventPayload String payload) {
+        from(GHEventsSubscriber.all())
+                .filter(isInterestedIn(event))
+                .transform(processEvent(event, payload)).toList();
+    }
 
-        LOGGER.info("Received POST for {}", repoUrl);
-        LOGGER.debug("Full details of the POST was {}", o.toString());
-        Matcher matcher = REPOSITORY_NAME_PATTERN.matcher(repoUrl);
-        if (matcher.matches()) {
-            GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl);
-            if (changedRepository == null) {
-                LOGGER.warn("Malformed repo url {}", repoUrl);
-                return;
-            }
+    private Function<AbstractProject, AbstractProject> reRegisterHookForJob() {
+        return new Function<AbstractProject, AbstractProject>() {
+            @Override
+            public AbstractProject apply(AbstractProject job) {
+                LOGGER.debug("Calling registerHooks() for {0}", notNull(job, "Job can't be null").getFullName());
 
-            // run in high privilege to see all the projects anonymous users don't see.
-            // this is safe because when we actually schedule a build, it's a build that can
-            // happen at some random time anyway.
-            Authentication old = SecurityContextHolder.getContext().getAuthentication();
-            SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
-            try {
-                for (AbstractProject<?, ?> job : Jenkins.getInstance().getAllItems(AbstractProject.class)) {
-                    GitHubTrigger trigger = (GitHubTrigger) job.getTrigger(triggerClass);
-                    if (trigger != null) {
-                        LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
-                        if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
-                            LOGGER.info("Poked {}", job.getFullDisplayName());
-                            trigger.onPost(pusherName);
-                        } else
-                            LOGGER.debug("Skipped {} because it doesn't have a matching repository.", job.getFullDisplayName());
-                    }
+                // We should handle wrong url of self defined hook url here in any case with try-catch :(
+                URL hookUrl;
+                try {
+                    hookUrl = Trigger.all().get(GitHubPushTrigger.DescriptorImpl.class).getHookUrl();
+                } catch (GHPluginConfigException e) {
+                    LOGGER.error("Skip registration of GHHook ({0})", e.getMessage());
+                    return job;
                 }
-            } finally {
-                SecurityContextHolder.getContext().setAuthentication(old);
+                Runnable hookRegistrator = forHookUrl(hookUrl).registerFor(job);
+                queue.execute(hookRegistrator);
+
+                return job;
             }
-            for (Listener listener : Jenkins.getInstance().getExtensionList(Listener.class)) {
-                listener.onPushRepositoryChanged(pusherName, changedRepository);
-            }
-        } else {
-            LOGGER.warn("Malformed repo url {}", repoUrl);
-        }
+        };
     }
-
-    private static final Pattern REPOSITORY_NAME_PATTERN = Pattern.compile("https?://([^/]+)/([^/]+)/([^/]+)");
-    public static final String URLNAME = "github-webhook";
-
-    // headers used for testing the endpoint configuration
-    /*package*/ static final String URL_VALIDATION_HEADER = "X-Jenkins-Validation";
-    /*package*/ static final String X_INSTANCE_IDENTITY = "X-Instance-Identity";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubWebHook.class);
 
     public static GitHubWebHook get() {
         return Jenkins.getInstance().getExtensionList(RootAction.class).get(GitHubWebHook.class);
+    }
+
+    @Nonnull
+    public static Jenkins getJenkinsInstance() throws IllegalStateException {
+        Jenkins instance = Jenkins.getInstance();
+        if (instance == null) {
+            throw new IllegalStateException("Jenkins has not been started, or was already shut down");
+        }
+        return instance;
     }
 
     /**

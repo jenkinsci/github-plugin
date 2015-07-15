@@ -1,27 +1,37 @@
 package com.cloudbees.jenkins;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import hudson.Extension;
 import hudson.Util;
 import hudson.console.AnnotatedLargeText;
-import hudson.model.Action;
-import hudson.model.Hudson;
-import hudson.model.Hudson.MasterComputer;
-import hudson.model.Item;
 import hudson.model.AbstractProject;
+import hudson.model.Action;
+import hudson.model.Item;
 import hudson.model.Project;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.FormValidation;
 import hudson.util.SequentialExecutionQueue;
 import hudson.util.StreamTaskListener;
+import jenkins.model.Jenkins;
+import jenkins.model.Jenkins.MasterComputer;
+import net.sf.json.JSONObject;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.jelly.XMLOutput;
+import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.security.interfaces.RSAPublicKey;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -32,20 +42,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import jenkins.model.Jenkins;
-import net.sf.json.JSONObject;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.jelly.XMLOutput;
-import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
-import org.kohsuke.github.GHException;
-import org.kohsuke.github.GHRepository;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
-
-import javax.inject.Inject;
 
 /**
  * Triggers a build when we receive a GitHub post-commit webhook.
@@ -149,40 +145,15 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
 
     /**
      * Tries to register hook for current associated job.
+     * Do this lazily to avoid blocking the UI thread.
      * Useful for using from groovy scripts.
+     *
      * @since 1.11.2
      */
     public void registerHooks() {
-        // make sure we have hooks installed. do this lazily to avoid blocking the UI thread.
-        final Collection<GitHubRepositoryName> names = GitHubRepositoryNameContributor.parseAssociatedNames(job);
-
-        getDescriptor().queue.execute(new Runnable() {
-            public void run() {
-                LOGGER.log(Level.INFO, "Adding GitHub webhooks for {0}", names);
-
-                for (GitHubRepositoryName name : names) {
-                    for (GHRepository repo : name.resolve()) {
-                        try {
-                            if(createJenkinsHook(repo, getDescriptor().getHookUrl())) {
-                                break;
-                            }
-                        } catch (Throwable e) {
-                            LOGGER.log(Level.WARNING, "Failed to add GitHub webhook for "+name, e);
-                        }
-                    }
-                }
-            }
-        });
+        GitHubWebHook.get().registerHookFor(job);
     }
 
-    private boolean createJenkinsHook(GHRepository repo, URL url) {
-        try {
-            repo.createHook("jenkins", Collections.singletonMap("jenkins_hook_url", url.toExternalForm()), null, true);
-            return true;
-        } catch (IOException e) {
-            throw new GHException("Failed to update jenkins hooks", e);
-        }
-    }
 
     @Override
     public void stop() {
@@ -230,10 +201,11 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
 
         /**
          * Writes the annotated log to the given output.
+         *
          * @since 1.350
          */
         public void writeLogTo(XMLOutput out) throws IOException {
-            new AnnotatedLargeText<GitHubWebHookPollingAction>(getLogFile(), Charset.defaultCharset(),true,this).writeHtmlTo(0,out.asWriter());
+            new AnnotatedLargeText<GitHubWebHookPollingAction>(getLogFile(), Charsets.UTF_8, true, this).writeHtmlTo(0, out.asWriter());
         }
     }
 
@@ -278,8 +250,16 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
         /**
          * Returns the URL that GitHub should post.
          */
-        public URL getHookUrl() throws MalformedURLException {
-            return hookUrl!=null ? new URL(hookUrl) : new URL(Hudson.getInstance().getRootUrl()+GitHubWebHook.get().getUrlName()+'/');
+        public URL getHookUrl() throws GHPluginConfigException {
+            try {
+                return hookUrl != null
+                        ? new URL(hookUrl)
+                        : new URL(Jenkins.getInstance().getRootUrl() + GitHubWebHook.get().getUrlName() + '/');
+            } catch (MalformedURLException e) {
+                throw new GHPluginConfigException(
+                        "Mailformed GH hook url in global configuration (%s)", e.getMessage()
+                );
+            }
         }
 
         public boolean hasOverrideURL() {
@@ -332,35 +312,16 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
 
         }
 
+        @SuppressWarnings("unused")
         public FormValidation doReRegister() {
             if (!manageHook) {
-                return FormValidation.error("Works only when Jenkins manages hooks");
+                return FormValidation.warning("Works only when Jenkins manages hooks");
             }
 
-            int triggered = 0;
-            for (AbstractProject<?,?> job : getJenkinsInstance().getAllItems(AbstractProject.class)) {
-                if (!job.isBuildable()) {
-                    continue;
-                }
+            List<AbstractProject> registered = GitHubWebHook.get().reRegisterAllHooks();
 
-                GitHubPushTrigger trigger = job.getTrigger(GitHubPushTrigger.class);
-                if (trigger!=null) {
-                    LOGGER.log(Level.FINE, "Calling registerHooks() for {0}", job.getFullName());
-                    trigger.registerHooks();
-                    triggered++;
-                }
-            }
-
-            LOGGER.log(Level.INFO, "Called registerHooks() for {0} jobs", triggered);
-            return FormValidation.ok("Called re-register hooks for " + triggered + " jobs");
-        }
-
-        public static final Jenkins getJenkinsInstance() throws IllegalStateException {
-            Jenkins instance = Jenkins.getInstance();
-            if (instance == null) {
-                throw new IllegalStateException("Jenkins has not been started, or was already shut down");
-            }
-            return instance;
+            LOGGER.log(Level.INFO, "Called registerHooks() for {0} jobs", registered.size());
+            return FormValidation.ok("Called re-register hooks for %s jobs", registered.size());
         }
 
         public static DescriptorImpl get() {
