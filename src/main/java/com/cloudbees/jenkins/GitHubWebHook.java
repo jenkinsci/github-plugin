@@ -22,6 +22,7 @@ import org.kohsuke.github.GitHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
@@ -138,7 +139,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
      */
     @SuppressWarnings("unused")
     @RequirePostWithGHHookPayload
-    public void doIndex(@GHEventHeader GHEvent event, @GHEventPayload String payload) {
+    public void doIndex(@Nonnull @GHEventHeader GHEvent event, @Nonnull @GHEventPayload String payload) {
         from(GHEventsSubscriber.all())
                 .filter(isInterestedIn(event))
                 .transform(processEvent(event, payload)).toList();
@@ -170,6 +171,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
         return Jenkins.getInstance().getExtensionList(RootAction.class).get(GitHubWebHook.class);
     }
 
+    @Nonnull
     public static Jenkins getJenkinsInstance() throws IllegalStateException {
         Jenkins instance = Jenkins.getInstance();
         if (instance == null) {
