@@ -118,13 +118,13 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         LOGGER.log(Level.WARNING, "Failed to parse the polling log",e);
                         cause = new GitHubPushCause(pushBy);
                     }
-                    ParameterizedJobMixIn scheduler = new ParameterizedJobMixIn() {
+                    ParameterizedJobMixIn scheduledJob = new ParameterizedJobMixIn() {
                         @Override
                         protected Job asJob() {
                             return job;
                         }
                     };
-                    if (scheduler.scheduleBuild(cause)) {
+                    if (scheduledJob.scheduleBuild(cause)) {
                         LOGGER.info("SCM changes detected in "+ job.getName()+". Triggering "+name);
                     } else {
                         LOGGER.info("SCM changes detected in "+ job.getName()+". Job is already in the queue");
