@@ -13,6 +13,7 @@ import java.util.Set;
 
 import static java.util.Collections.emptySet;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import org.apache.commons.lang3.Validate;
 
 /**
  * Extension point to subscribe events from GH, which plugin interested in.
@@ -73,6 +74,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
         return new Function<GHEventsSubscriber, Set<GHEvent>>() {
             @Override
             public Set<GHEvent> apply(GHEventsSubscriber subscriber) {
+                Validate.notNull(subscriber);
                 return defaultIfNull(subscriber.events(), Collections.<GHEvent>emptySet());
             }
         };
@@ -89,6 +91,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
         return new Predicate<GHEventsSubscriber>() {
             @Override
             public boolean apply(GHEventsSubscriber subscriber) {
+                Validate.notNull(subscriber);
                 return subscriber.isApplicable(project);
             }
         };
@@ -105,6 +108,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
         return new Predicate<GHEventsSubscriber>() {
             @Override
             public boolean apply(GHEventsSubscriber subscriber) {
+                Validate.notNull(subscriber);
                 return defaultIfNull(subscriber.events(), emptySet()).contains(event);
             }
         };
@@ -122,6 +126,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
         return new Function<GHEventsSubscriber, Void>() {
             @Override
             public Void apply(GHEventsSubscriber subscriber) {
+                Validate.notNull(subscriber);
                 subscriber.onEvent(event, payload);
                 return null;
             }

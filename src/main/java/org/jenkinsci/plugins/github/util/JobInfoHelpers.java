@@ -10,6 +10,7 @@ import hudson.triggers.Trigger;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 
 import java.util.Collection;
+import org.apache.commons.lang.Validate;
 
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
@@ -33,7 +34,9 @@ public final class JobInfoHelpers {
      */
     public static Predicate<AbstractProject> withTrigger(final Class<? extends Trigger> clazz) {
         return new Predicate<AbstractProject>() {
+            @Override
             public boolean apply(AbstractProject job) {
+                Validate.notNull(job);
                 return job.getTrigger(clazz) != null;
             }
         };
@@ -46,8 +49,10 @@ public final class JobInfoHelpers {
      */
     public static Predicate<Job> isBuildable() {
         return new Predicate<Job>() {
+            @Override
             public boolean apply(Job job) {
-                return job.isBuildable();
+                Validate.notNull(job);
+                return  job.isBuildable();
             }
         };
     }

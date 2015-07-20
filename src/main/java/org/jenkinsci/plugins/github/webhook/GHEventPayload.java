@@ -74,7 +74,7 @@ public @interface GHEventPayload {
             return new Function<StaplerRequest, String>() {
                 @Override
                 public String apply(StaplerRequest request) {
-                    return request.getParameter("payload");
+                    return request != null ? request.getParameter("payload") : null;
                 }
             };
         }
@@ -87,6 +87,9 @@ public @interface GHEventPayload {
             return new Function<StaplerRequest, String>() {
                 @Override
                 public String apply(StaplerRequest request) {
+                    if (request == null) {
+                        return null;
+                    }
                     try {
                         return IOUtils.toString(request.getInputStream(), Charsets.UTF_8);
                     } catch (IOException e) {

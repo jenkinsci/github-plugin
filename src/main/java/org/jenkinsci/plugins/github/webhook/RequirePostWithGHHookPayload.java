@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 
 import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.collect.Lists.newArrayList;
+import java.io.UnsupportedEncodingException;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -84,7 +85,11 @@ public @interface RequirePostWithGHHookPayload {
                             throws IOException, ServletException {
                         RSAPublicKey key = new InstanceIdentity().getPublic();
                         rsp.setStatus(HttpServletResponse.SC_OK);
-                        rsp.setHeader(GitHubWebHook.X_INSTANCE_IDENTITY, new String(encodeBase64(key.getEncoded())));
+                        try {
+                            rsp.setHeader(GitHubWebHook.X_INSTANCE_IDENTITY, new String(encodeBase64(key.getEncoded()), "UTF-8"));
+                        } catch (UnsupportedEncodingException ex) {
+                            throw new IOException("Default UTF-8 encoding is not available", ex);
+                        }
                     }
                 });
             }

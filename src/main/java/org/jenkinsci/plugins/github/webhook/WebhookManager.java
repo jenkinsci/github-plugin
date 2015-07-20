@@ -24,6 +24,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Predicates.or;
 import static java.lang.String.format;
+import java.util.Collections;
 import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.extractEvents;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
@@ -137,7 +138,8 @@ public class WebhookManager {
         return new Function<GitHubRepositoryName, GHHook>() {
             @Override
             public GHHook apply(GitHubRepositoryName name) {
-                try {
+                Validate.notNull(name);
+                try {          
                     GHRepository repo = checkNotNull(
                             from(name.resolve()).firstMatch(withAdminAccess()).orNull(),
                             "There is no admin access to manage hooks on %s", name
@@ -183,6 +185,7 @@ public class WebhookManager {
         return new Predicate<GHHook>() {
             @Override
             public boolean apply(GHHook input) {
+                Validate.notNull(input);
                 LOGGER.debug(format("%s {} (events: {})", format), input.getUrl(), input.getEvents());
                 return true;
             }
@@ -198,6 +201,7 @@ public class WebhookManager {
         return new Predicate<GHRepository>() {
             @Override
             public boolean apply(GHRepository repo) {
+                Validate.notNull(repo);
                 return repo.hasAdminAccess();
             }
         };
@@ -213,6 +217,7 @@ public class WebhookManager {
     protected Predicate<GHHook> serviceWebhookFor(final URL url) {
         return new Predicate<GHHook>() {
             public boolean apply(GHHook hook) {
+                Validate.notNull(hook);
                 return hook.getName().equals("jenkins")
                         && hook.getConfig().get("jenkins_hook_url").equals(url.toExternalForm());
             }
@@ -229,6 +234,7 @@ public class WebhookManager {
     protected Predicate<GHHook> webhookFor(final URL url) {
         return new Predicate<GHHook>() {
             public boolean apply(GHHook hook) {
+                Validate.notNull(hook);
                 return hook.getName().equals("web")
                         && hook.getConfig().get("url").equals(url.toExternalForm());
             }
@@ -242,6 +248,7 @@ public class WebhookManager {
         return new Function<GHHook, Iterable<GHEvent>>() {
             @Override
             public Iterable<GHEvent> apply(GHHook input) {
+                Validate.notNull(input);
                 return input.getEvents();
             }
         };
@@ -258,6 +265,7 @@ public class WebhookManager {
         return new Function<GHRepository, List<GHHook>>() {
             @Override
             public List<GHHook> apply(GHRepository repo) {
+                Validate.notNull(repo);
                 try {
                     return repo.getHooks();
                 } catch (IOException e) {
@@ -276,6 +284,7 @@ public class WebhookManager {
     protected Function<GHRepository, GHHook> createWebhook(final URL url, final Set<GHEvent> events) {
         return new Function<GHRepository, GHHook>() {
             public GHHook apply(GHRepository repo) {
+                Validate.notNull(repo);
                 try {
                     return repo.createWebHook(url, events);
                 } catch (IOException e) {
@@ -291,6 +300,7 @@ public class WebhookManager {
     protected Predicate<GHHook> deleteWebhook() {
         return new Predicate<GHHook>() {
             public boolean apply(GHHook hook) {
+                Validate.notNull(hook);
                 try {
                     hook.delete();
                     return true;
