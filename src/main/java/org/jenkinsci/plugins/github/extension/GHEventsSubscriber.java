@@ -7,6 +7,8 @@ import hudson.ExtensionPoint;
 import hudson.model.AbstractProject;
 import jenkins.model.Jenkins;
 import org.kohsuke.github.GHEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Set;
@@ -26,6 +28,7 @@ import org.apache.commons.lang3.Validate;
  * @since TODO
  */
 public abstract class GHEventsSubscriber implements ExtensionPoint {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GHEventsSubscriber.class);
 
     /**
      * Should return true only if this subscriber interested in {@link #events()} set for this project
@@ -127,8 +130,12 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
             @Override
             public Void apply(GHEventsSubscriber subscriber) {
                 Validate.notNull(subscriber);
-                subscriber.onEvent(event, payload);
-                return null;
+                try {
+                    subscriber.onEvent(event, payload);
+                } catch (Throwable t) {
+                    LOGGER.error("Subscriber {} failed to process {} hook, skipping...",
+                           subscriber.getClass().getName(), event, t);
+                }
             }
         };
     }
