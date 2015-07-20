@@ -4,7 +4,7 @@ import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.AbstractProject;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.github.GHException;
@@ -138,7 +138,7 @@ public class WebhookManager {
         return new Function<GitHubRepositoryName, GHHook>() {
             @Override
             public GHHook apply(GitHubRepositoryName name) {
-                Validate.notNull(name);
+                name = Validate.notNull(name);
                 try {          
                     GHRepository repo = checkNotNull(
                             from(name.resolve()).firstMatch(withAdminAccess()).orNull(),
@@ -167,7 +167,7 @@ public class WebhookManager {
 
                     return createWebhook(endpoint, merged).apply(repo);
                 } catch (Throwable t) {
-                    LOGGER.warn("Failed to add GitHub webhook for {}", name, t);
+                    LOGGER.warn("Failed to add GitHub webhook for {} due to {}", name, t);
                 }
                 return null;
             }
@@ -185,8 +185,8 @@ public class WebhookManager {
         return new Predicate<GHHook>() {
             @Override
             public boolean apply(GHHook input) {
-                Validate.notNull(input);
-                LOGGER.debug(format("%s {} (events: {})", format), input.getUrl(), input.getEvents());
+                final GHHook _input = Validate.notNull(input);
+                LOGGER.debug(format("%s {} (events: {})", format), _input.getUrl(), _input.getEvents());
                 return true;
             }
         };
@@ -201,8 +201,7 @@ public class WebhookManager {
         return new Predicate<GHRepository>() {
             @Override
             public boolean apply(GHRepository repo) {
-                Validate.notNull(repo);
-                return repo.hasAdminAccess();
+                return Validate.notNull(repo).hasAdminAccess();
             }
         };
     }
@@ -217,9 +216,9 @@ public class WebhookManager {
     protected Predicate<GHHook> serviceWebhookFor(final URL url) {
         return new Predicate<GHHook>() {
             public boolean apply(GHHook hook) {
-                Validate.notNull(hook);
-                return hook.getName().equals("jenkins")
-                        && hook.getConfig().get("jenkins_hook_url").equals(url.toExternalForm());
+                final GHHook _hook = Validate.notNull(hook);
+                return _hook.getName().equals("jenkins")
+                        && _hook.getConfig().get("jenkins_hook_url").equals(url.toExternalForm());
             }
         };
     }
@@ -234,9 +233,9 @@ public class WebhookManager {
     protected Predicate<GHHook> webhookFor(final URL url) {
         return new Predicate<GHHook>() {
             public boolean apply(GHHook hook) {
-                Validate.notNull(hook);
-                return hook.getName().equals("web")
-                        && hook.getConfig().get("url").equals(url.toExternalForm());
+                final GHHook _hook = Validate.notNull(hook);
+                return _hook.getName().equals("web")
+                        && _hook.getConfig().get("url").equals(url.toExternalForm());
             }
         };
     }
@@ -248,8 +247,7 @@ public class WebhookManager {
         return new Function<GHHook, Iterable<GHEvent>>() {
             @Override
             public Iterable<GHEvent> apply(GHHook input) {
-                Validate.notNull(input);
-                return input.getEvents();
+                return Validate.notNull(input).getEvents();
             }
         };
     }
@@ -265,9 +263,8 @@ public class WebhookManager {
         return new Function<GHRepository, List<GHHook>>() {
             @Override
             public List<GHHook> apply(GHRepository repo) {
-                Validate.notNull(repo);
                 try {
-                    return repo.getHooks();
+                    return Validate.notNull(repo).getHooks();
                 } catch (IOException e) {
                     throw new GHException("Failed to fetch post-commit hooks", e);
                 }
@@ -284,9 +281,8 @@ public class WebhookManager {
     protected Function<GHRepository, GHHook> createWebhook(final URL url, final Set<GHEvent> events) {
         return new Function<GHRepository, GHHook>() {
             public GHHook apply(GHRepository repo) {
-                Validate.notNull(repo);
                 try {
-                    return repo.createWebHook(url, events);
+                    return Validate.notNull(repo).createWebHook(url, events);
                 } catch (IOException e) {
                     throw new GHException("Failed to create hook", e);
                 }
@@ -300,9 +296,8 @@ public class WebhookManager {
     protected Predicate<GHHook> deleteWebhook() {
         return new Predicate<GHHook>() {
             public boolean apply(GHHook hook) {
-                Validate.notNull(hook);
                 try {
-                    hook.delete();
+                    Validate.notNull(hook).delete();
                     return true;
                 } catch (IOException e) {
                     throw new GHException("Failed to delete post-commit hook", e);
