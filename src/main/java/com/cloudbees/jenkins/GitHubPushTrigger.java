@@ -1,14 +1,14 @@
 package com.cloudbees.jenkins;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Function;
+
 import hudson.Extension;
 import hudson.Util;
 import hudson.console.AnnotatedLargeText;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
-import hudson.model.Job;
 import hudson.model.Item;
+import hudson.model.Job;
 import hudson.model.Project;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
@@ -17,7 +17,10 @@ import hudson.util.SequentialExecutionQueue;
 import hudson.util.StreamTaskListener;
 import jenkins.model.Jenkins;
 import jenkins.model.Jenkins.MasterComputer;
+import jenkins.model.ParameterizedJobMixIn;
+import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
 import net.sf.json.JSONObject;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
@@ -27,6 +30,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import javax.inject.Inject;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -327,7 +331,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                 return FormValidation.warning("Works only when Jenkins manages hooks");
             }
 
-            List<AbstractProject> registered = GitHubWebHook.get().reRegisterAllHooks();
+            List<Job> registered = GitHubWebHook.get().reRegisterAllHooks();
 
             LOGGER.log(Level.INFO, "Called registerHooks() for {0} jobs", registered.size());
             return FormValidation.ok("Called re-register hooks for %s jobs", registered.size());

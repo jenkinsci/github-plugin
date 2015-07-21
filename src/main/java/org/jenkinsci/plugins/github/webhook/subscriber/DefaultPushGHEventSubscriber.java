@@ -5,11 +5,14 @@ import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
 import com.cloudbees.jenkins.GitHubTrigger;
 import com.cloudbees.jenkins.GitHubWebHook;
+
 import hudson.Extension;
 import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
 import org.slf4j.Logger;
@@ -43,7 +46,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      * @return true if project has {@link GitHubPushTrigger}
      */
     @Override
-    protected boolean isApplicable(AbstractProject<?, ?> project) {
+    protected boolean isApplicable(Job<?, ?> project) {
         return withTrigger(GitHubPushTrigger.class).apply(project);
     }
 

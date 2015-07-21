@@ -2,15 +2,18 @@ package org.jenkinsci.plugins.github.util;
 
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
+import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import hudson.model.AbstractProject;
+
 import hudson.model.Job;
 import hudson.triggers.Trigger;
+
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 
 import java.util.Collection;
 
+import jenkins.model.ParameterizedJobMixIn;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
 
@@ -31,10 +34,20 @@ public final class JobInfoHelpers {
      *
      * @return predicate with true on apply if job contains trigger of given class
      */
-    public static Predicate<AbstractProject> withTrigger(final Class<? extends Trigger> clazz) {
-        return new Predicate<AbstractProject>() {
-            public boolean apply(AbstractProject job) {
-                return job.getTrigger(clazz) != null;
+    public static Predicate<Job> withTrigger(final Class<? extends Trigger> clazz) {
+        return new Predicate<Job>() {
+            public boolean apply(Job job) {
+                if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
+                    ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
+                    for (Trigger trigger : pJob.getTriggers().values()) {
+                        if (trigger instanceof GitHubPushTrigger) {
+                            return true;
+                        }
+                    }
+                    return false;
+                } else {
+                    return false;
+                }
             }
         };
     }
@@ -55,9 +68,9 @@ public final class JobInfoHelpers {
     /**
      * @return function which helps to convert job to repo names associated with this job
      */
-    public static Function<AbstractProject, Collection<GitHubRepositoryName>> associatedNames() {
-        return new Function<AbstractProject, Collection<GitHubRepositoryName>>() {
-            public Collection<GitHubRepositoryName> apply(AbstractProject job) {
+    public static Function<Job, Collection<GitHubRepositoryName>> associatedNames() {
+        return new Function<Job, Collection<GitHubRepositoryName>>() {
+            public Collection<GitHubRepositoryName> apply(Job job) {
                 return GitHubRepositoryNameContributor.parseAssociatedNames(job);
             }
         };
@@ -69,10 +82,10 @@ public final class JobInfoHelpers {
      * 
      * @return predicate with true if job alive and should have hook 
      */
-    public static Predicate<AbstractProject> isAlive() {
-        return new Predicate<AbstractProject>() {
+    public static Predicate<Job> isAlive() {
+        return new Predicate<Job>() {
             @Override
-            public boolean apply(AbstractProject job) {
+            public boolean apply(Job job) {
                 return !from(GHEventsSubscriber.all()).filter(isApplicableFor(job)).toList().isEmpty();
             }
         };

@@ -12,7 +12,6 @@ import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
 import hudson.util.SequentialExecutionQueue;
 import jenkins.model.Jenkins;
-import jenkins.model.ParameterizedJobMixIn;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.webhook.GHEventHeader;
@@ -116,7 +115,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
      *
      * @param job not null project to register hook for
      */
-    public void registerHookFor(AbstractProject job) {
+    public void registerHookFor(Job job) {
         reRegisterHookForJob().apply(job);
     }
 
@@ -125,8 +124,8 @@ public class GitHubWebHook implements UnprotectedRootAction {
      *
      * @return list of jobs which jenkins tried to register hook
      */
-    public List<AbstractProject> reRegisterAllHooks() {
-        return from(getJenkinsInstance().getAllItems(AbstractProject.class))
+    public List<Job> reRegisterAllHooks() {
+        return from(getJenkinsInstance().getAllItems(Job.class))
                 .filter(isBuildable())
                 .filter(isAlive())
                 .transform(reRegisterHookForJob()).toList();
@@ -146,10 +145,10 @@ public class GitHubWebHook implements UnprotectedRootAction {
                 .transform(processEvent(event, payload)).toList();
     }
 
-    private Function<AbstractProject, AbstractProject> reRegisterHookForJob() {
-        return new Function<AbstractProject, AbstractProject>() {
+    private Function<Job, Job> reRegisterHookForJob() {
+        return new Function<Job, Job>() {
             @Override
-            public AbstractProject apply(AbstractProject job) {
+            public Job apply(Job job) {
                 LOGGER.debug("Calling registerHooks() for {}", notNull(job, "Job can't be null").getFullName());
 
                 // We should handle wrong url of self defined hook url here in any case with try-catch :(

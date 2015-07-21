@@ -3,7 +3,10 @@ package org.jenkinsci.plugins.github.webhook;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+
 import hudson.model.AbstractProject;
+import hudson.model.Job;
+
 import org.apache.commons.lang.Validate;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
@@ -72,7 +75,7 @@ public class WebhookManager {
      * @return runnable to create hooks on run
      * @see #createHookSubscribedTo(List)
      */
-    public Runnable registerFor(final AbstractProject<?, ?> project) {
+    public Runnable registerFor(final Job<?, ?> project) {
         final Collection<GitHubRepositoryName> names = parseAssociatedNames(project);
 
         final List<GHEvent> events = from(GHEventsSubscriber.all())
