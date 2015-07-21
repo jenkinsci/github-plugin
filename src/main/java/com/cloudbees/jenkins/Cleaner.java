@@ -1,6 +1,5 @@
 package com.cloudbees.jenkins;
 
-import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
 
 import hudson.Extension;
 import hudson.model.Job;
@@ -12,14 +11,15 @@ import org.kohsuke.github.GHException;
 import org.kohsuke.github.GHHook;
 import org.kohsuke.github.GHRepository;
 
-import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
+
+import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
+import static org.jenkinsci.plugins.github.util.JobInfoHelpers.associatedNames;
+import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isAlive;
 
 import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
@@ -33,29 +33,39 @@ import jenkins.model.ParameterizedJobMixIn;
  */
 @Extension
 public class Cleaner extends PeriodicWork {
-    private final Set<GitHubRepositoryName> couldHaveBeenRemoved = new HashSet<GitHubRepositoryName>();
+    /**
+     * Queue contains repo names prepared to cleanup.
+     * After configure method on job, trigger calls {@link #onStop(AbstractProject)}
+     * which converts to repo names with help of contributors.
+     *
+     * This queue is thread-safe, so any thread can write or
+     * fetch names to this queue without additional sync
+     */
+    private final Queue<GitHubRepositoryName> сleanQueue = new ConcurrentLinkedQueue<GitHubRepositoryName>();
 
     /**
      * Called when a {@link GitHubPushTrigger} is about to be removed.
      */
     synchronized void onStop(Job<?,?> job) {
-        couldHaveBeenRemoved.addAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
+        cleanQueue.addAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
     }
 
     @Override
     public long getRecurrencePeriod() {
-        return TimeUnit2.MINUTES.toMillis(3);
+        return TimeUnit.MINUTES.toMillis(3);
     }
 
+    /**
+     * Each run this work fetches alive repo names (which has trigger for it)
+     * then if names queue is not empty (any job was reconfigured with GH trigger change),
+     * next name passed to {@link WebhookManager} with list of active names to check and unregister old hooks
+     */
     @Override
     protected void doRun() throws Exception {
-        List<GitHubRepositoryName> names;
-        synchronized (this) {// atomically obtain what we need to check
-            names = new ArrayList<GitHubRepositoryName>(couldHaveBeenRemoved);
-            couldHaveBeenRemoved.clear();
-        }
+        URL url = Trigger.all().get(GitHubPushTrigger.DescriptorImpl.class).getHookUrl();
 
         // subtract all the live repositories
+        /*
         Jenkins jenkins = Jenkins.getInstance();
         if (jenkins != null) {
             for (Job<?,?> job : jenkins.getAllItems(Job.class)) {
@@ -70,9 +80,15 @@ public class Cleaner extends PeriodicWork {
                 }
             }
         }
+        */
+        List<AbstractProject> jobs = Jenkins.getInstance().getAllItems(AbstractProject.class);
+        List<GitHubRepositoryName> aliveRepos = from(jobs)
+                .filter(isAlive())  // live repos
+                .transformAndConcat(associatedNames()).toList();
 
         // these are the repos that we are no longer interested.
         // erase our hooks
+        /*
         OUTER:
         for (GitHubRepositoryName r : names) {
             for (GHRepository repo : r.resolve()) {
@@ -85,27 +101,16 @@ public class Cleaner extends PeriodicWork {
                 }
             }
         }
-    }
+    }*/
+        while (!сleanQueue.isEmpty()) {
+            GitHubRepositoryName name = сleanQueue.poll();
 
-    //Maybe we should create a remove hook method in the Github API
-    //something like public void removeHook(String name, Map<String,String> config)
-    private void removeHook(GHRepository repo, URL url) {
-        try {
-            String urlExternalForm = url.toExternalForm();
-            for (GHHook h : repo.getHooks()) {
-                if (h.getName().equals("jenkins") && h.getConfig().get("jenkins_hook_url").equals(urlExternalForm)) {
-                    h.delete();
-                }
-            }
-        } catch (IOException e) {
-            throw new GHException("Failed to update post-commit hooks", e);
+            WebhookManager.forHookUrl(url).unregisterFor(name, aliveRepos);
         }
     }
 
     public static Cleaner get() {
         return PeriodicWork.all().get(Cleaner.class);
     }
-
-    private static final Logger LOGGER = Logger.getLogger(Cleaner.class.getName());
 
 }

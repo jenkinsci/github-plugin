@@ -2,31 +2,47 @@ package com.cloudbees.jenkins;
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import hudson.model.FreeStyleProject;
 import hudson.util.Secret;
+import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.recipes.LocalData;
+import org.kohsuke.stapler.Stapler;
+
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import org.jvnet.hudson.test.HudsonTestCase;
-import org.kohsuke.stapler.Stapler;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test Class for {@link GitHubPushTrigger}.
  *
  * @author Seiji Sogabe
  */
-public class GitHubPushTriggerConfigSubmitTest extends HudsonTestCase {
+public class GitHubPushTriggerConfigSubmitTest {
+
+    @Rule
+    public JenkinsRule jenkins = new JenkinsRule();
 
     private static final String WEBHOOK_URL = "http://jenkinsci.example.com/jenkins/github-webhook/";
 
+    @Test
     public void testConfigSubmit_AutoManageHook() throws Exception {
 
-        WebClient client = configureWebClient();
+        JenkinsRule.WebClient client = configureWebClient();
         HtmlPage p = client.goTo("configure");
         HtmlForm f = p.getFormByName("config");
         f.getInputByValue("auto").setChecked(true);
         f.getInputByName("_.hasHookUrl").setChecked(true);
         f.getInputByName("_.hookUrl").setValueAttribute(WEBHOOK_URL);
         f.getInputByName("_.username").setValueAttribute("jenkins");
-        submit(f);
+        jenkins.submit(f);
 
         GitHubPushTrigger.DescriptorImpl d = getDescriptor();
         assertTrue(d.isManageHook());
@@ -39,24 +55,39 @@ public class GitHubPushTriggerConfigSubmitTest extends HudsonTestCase {
         assertEquals("jenkins", credential.username);
     }
 
+    @Test
     public void testConfigSubmit_ManuallyManageHook() throws Exception {
-
-        WebClient client = configureWebClient();
+        JenkinsRule.WebClient client = configureWebClient();
         HtmlPage p = client.goTo("configure");
         HtmlForm f = p.getFormByName("config");
         f.getInputByValue("none").setChecked(true);
-        submit(f);
+        jenkins.submit(f);
 
         GitHubPushTrigger.DescriptorImpl d = getDescriptor();
         assertFalse(d.isManageHook());
+    }
+
+    @Test
+    @LocalData
+    public void shouldDontThrowExcMailformedHookUrl() throws IOException {
+        FreeStyleProject job = jenkins.createFreeStyleProject();
+        GitHubPushTrigger trigger = new GitHubPushTrigger();
+        trigger.start(job, true);
+        trigger.registerHooks();
+    }
+
+    @Test(expected = GHPluginConfigException.class)
+    @LocalData
+    public void shouldThrowExcMailformedHookUrlGetter() {
+        new GitHubPushTrigger().getDescriptor().getHookUrl();
     }
 
     private GitHubPushTrigger.DescriptorImpl getDescriptor() {
         return (GitHubPushTrigger.DescriptorImpl) GitHubPushTrigger.DescriptorImpl.get();
     }
 
-    private WebClient configureWebClient() {
-        WebClient client = new WebClient();
+    private JenkinsRule.WebClient configureWebClient() {
+        JenkinsRule.WebClient client = jenkins.createWebClient();
         client.setThrowExceptionOnFailingStatusCode(false);
         client.setCssEnabled(false);
         client.setJavaScriptEnabled(true);
