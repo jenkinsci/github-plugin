@@ -1,3 +1,0 @@
-node {
-  git 'https://github.com/amuniz/github-plugin.git'
-}

@@ -161,36 +161,6 @@ public class GitHubWebHook implements UnprotectedRootAction {
                 }
                 Runnable hookRegistrator = forHookUrl(hookUrl).registerFor(job);
                 queue.execute(hookRegistrator);
-
-            // run in high privilege to see all the projects anonymous users don't see.
-            // this is safe because when we actually schedule a build, it's a build that can
-            // happen at some random time anyway.
-            /*
-            Authentication old = SecurityContextHolder.getContext().getAuthentication();
-            SecurityContextHolder.getContext().setAuthentication(ACL.SYSTEM);
-            try {
-                for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
-                    GitHubTrigger ghTrigger = null;
-                    if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
-                        ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
-                        for (Trigger trigger : pJob.getTriggers().values()) {
-                            if (triggerClass.isInstance(trigger)) {
-                                ghTrigger = (GitHubTrigger) trigger;
-                                break;
-                            }
-                        }
-                    }
-                    if (ghTrigger != null) {
-                        LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
-                        if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
-                            LOGGER.info("Poked {}", job.getFullDisplayName());
-                            ghTrigger.onPost(pusherName);
-                        } else
-                            LOGGER.debug("Skipped {} because it doesn't have a matching repository.", job.getFullDisplayName());
-                    }
-                }
-            } finally {
-                SecurityContextHolder.getContext().setAuthentication(old);*/
                 return job;
             }
         };
