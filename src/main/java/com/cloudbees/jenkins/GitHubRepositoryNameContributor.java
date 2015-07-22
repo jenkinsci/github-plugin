@@ -74,8 +74,22 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
         return names;
     }
 
+    /**
+     * Default implementation that looks at SCMs
+     */
+    @Extension
+    public static class FromSCM extends GitHubRepositoryNameContributor {
+        @Override
+        public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
+            SCMTriggerItem item = SCMTriggerItems.asSCMTriggerItem(job);
+            EnvVars envVars = buildEnv(job);
+            if (item != null) {
+                for (SCM scm : item.getSCMs()) {
+                    addRepositories(scm, envVars, result);
+                }
+            }
+        }
 
-    static abstract class AbstractFromSCMImpl extends GitHubRepositoryNameContributor {
         protected EnvVars buildEnv(Job<?, ?> job) {
             EnvVars env = new EnvVars();
             for (EnvironmentContributor contributor : EnvironmentContributor.all()) {
@@ -99,23 +113,6 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
                             r.add(repo);
                         }
                     }
-                }
-            }
-        }
-    }
-
-    /**
-     * Default implementation that looks at SCM
-     */
-    @Extension
-    public static class FromSCM extends AbstractFromSCMImpl {
-        @Override
-        public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
-            SCMTriggerItem item = SCMTriggerItems.asSCMTriggerItem(job);
-            EnvVars envVars = buildEnv(job);
-            if (item != null) {
-                for (SCM scm : item.getSCMs()) {
-                    addRepositories(scm, envVars, result);
                 }
             }
         }

@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.580.1</version>
+    <version>1.580.1</version> <!-- first LTS after SCMTriggerItem -->
   </parent>
 
   <groupId>com.coravy.hudson.plugins.github</groupId>
@@ -52,7 +52,7 @@
           <version>1.67</version>
       </dependency>
 
-      <dependency><!-- minimun required version to work with Workflow 1.4 GitSCM step-->
+      <dependency><!-- minimum required version to work with Workflow 1.4 GitSCM step-->
           <groupId>org.jenkins-ci.plugins</groupId>
           <artifactId>git</artifactId>
           <version>2.3.5</version>

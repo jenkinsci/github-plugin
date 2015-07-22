@@ -1,7 +1,6 @@
 package com.cloudbees.jenkins;
 
 import hudson.Extension;
-import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.model.PeriodicWork;
 import hudson.triggers.Trigger;
@@ -29,7 +28,7 @@ import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isAlive;
 public class Cleaner extends PeriodicWork {
     /**
      * Queue contains repo names prepared to cleanup.
-     * After configure method on job, trigger calls {@link #onStop(AbstractProject)}
+     * After configure method on job, trigger calls {@link #onStop(Job)}
      * which converts to repo names with help of contributors.
      *
      * This queue is thread-safe, so any thread can write or
