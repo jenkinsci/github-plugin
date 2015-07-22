@@ -10,7 +10,9 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.security.ACL;
+import hudson.triggers.Trigger;
 import jenkins.model.Jenkins;
+import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONObject;
 
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
@@ -85,8 +87,17 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
             ACL.impersonate(ACL.SYSTEM, new Runnable() {
                 @Override
                 public void run() {
-                    for (AbstractProject<?, ?> job : Jenkins.getInstance().getAllItems(AbstractProject.class)) {
-                        GitHubTrigger trigger = job.getTrigger(GitHubPushTrigger.class);
+                    for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
+                        GitHubTrigger trigger = null;
+                        if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
+                            ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
+                            for (Trigger candidate : pJob.getTriggers().values()) {
+                                if (candidate instanceof GitHubTrigger) {
+                                    trigger = (GitHubTrigger) candidate;
+                                    break;
+                                }
+                            }
+                        }
                         if (trigger != null) {
                             LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
                             if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
