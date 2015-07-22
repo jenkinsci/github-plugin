@@ -40,7 +40,7 @@ public class Cleaner extends PeriodicWork {
     /**
      * Called when a {@link GitHubPushTrigger} is about to be removed.
      */
-    synchronized void onStop(Job<?,?> job) {
+    /* package */ void onStop(Job<?,?> job) {
         сleanQueue.addAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
     }
 
