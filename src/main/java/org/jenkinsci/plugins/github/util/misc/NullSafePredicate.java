@@ -9,16 +9,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * This abstract class calls {@link #applyNullSafe(Object)} only after success validation of inner object for null
  *
- * {@inheritDoc}
- *
  * @author lanwen (Merkushev Kirill)
  */
 
 public abstract class NullSafePredicate<T> implements Predicate<T> {
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean apply(T input) {
         return applyNullSafe(checkNotNull(input, "Argument for this predicate can't be null"));
