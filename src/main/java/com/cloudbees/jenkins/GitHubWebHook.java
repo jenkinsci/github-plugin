@@ -12,6 +12,7 @@ import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
 import hudson.util.SequentialExecutionQueue;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang3.Validate;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.webhook.GHEventHeader;
@@ -174,9 +175,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
     @Nonnull
     public static Jenkins getJenkinsInstance() throws IllegalStateException {
         Jenkins instance = Jenkins.getInstance();
-        if (instance == null) {
-            throw new IllegalStateException("Jenkins has not been started, or was already shut down");
-        }
+        Validate.validState(instance != null, "Jenkins has not been started, or was already shut down");
         return instance;
     }
 

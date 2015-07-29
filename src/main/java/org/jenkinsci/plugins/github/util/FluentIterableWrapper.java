@@ -117,6 +117,20 @@ public abstract class FluentIterableWrapper<E> implements Iterable<E> {
     }
 
     /**
+     * Returns an {@link Optional} containing the first element in this fluent iterable.
+     * If the iterable is empty, {@code Optional.absent()} is returned.
+     *
+     * @throws NullPointerException if the first element is null; if this is a possibility, use
+     *     {@code iterator().next()} or {@link Iterables#getFirst} instead.
+     */
+    public final Optional<E> first() {
+        Iterator<E> iterator = iterable.iterator();
+        return iterator.hasNext()
+                ? Optional.of(iterator.next())
+                : Optional.<E>absent();
+    }
+    
+    /**
      * Returns list from wrapped iterable
      */
     public List<E> toList() {

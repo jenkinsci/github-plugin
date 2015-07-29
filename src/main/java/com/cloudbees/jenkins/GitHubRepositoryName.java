@@ -6,6 +6,7 @@ import org.kohsuke.github.GHCommitPointer;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 
+import javax.annotation.CheckForNull;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -119,6 +120,7 @@ public class GitHubRepositoryName {
      * This is useful if the caller only relies on the read access to the repository and doesn't need to
      * walk possible candidates.
      */
+    @CheckForNull
     public GHRepository resolveOne() {
         for (GHRepository r : resolve())
             return r;
