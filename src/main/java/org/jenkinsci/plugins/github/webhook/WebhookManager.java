@@ -34,7 +34,7 @@ import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
  * Each manager works with only one hook url (created with {@link #forHookUrl(URL)})
  *
  * @author lanwen (Merkushev Kirill)
- * @since TODO
+ * @since 1.12.0
  */
 public class WebhookManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebhookManager.class);
