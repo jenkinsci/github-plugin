@@ -118,6 +118,8 @@ public class GitHubRepositoryName {
      *
      * This is useful if the caller only relies on the read access to the repository and doesn't need to
      * walk possible candidates.
+     *
+     * Result can be null
      */
     public GHRepository resolveOne() {
         for (GHRepository r : resolve())
