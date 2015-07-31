@@ -1,6 +1,5 @@
 package com.cloudbees.jenkins;
 
-import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
 import com.google.common.base.Function;
 import hudson.Extension;
 import hudson.ExtensionPoint;
@@ -8,26 +7,21 @@ import hudson.model.AbstractProject;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
 import hudson.triggers.Trigger;
-import hudson.util.AdaptedIterator;
-import hudson.util.Iterators.FilterIterator;
 import hudson.util.SequentialExecutionQueue;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang3.Validate;
+import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.webhook.GHEventHeader;
 import org.jenkinsci.plugins.github.webhook.GHEventPayload;
 import org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload;
 import org.kohsuke.github.GHEvent;
-import org.kohsuke.github.GitHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.net.URL;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import static hudson.model.Computer.threadPoolForRemoting;
@@ -67,46 +61,6 @@ public class GitHubWebHook implements UnprotectedRootAction {
 
     public String getUrlName() {
         return URLNAME;
-    }
-
-    /**
-     * Logs in as the given user and returns the connection object.
-     */
-    public Iterable<GitHub> login(String host, String userName) {
-        final List<Credential> l = DescriptorImpl.get().getCredentials();
-
-        // if the username is not an organization, we should have the right user account on file
-        for (Credential c : l) {
-            if (c.username.equals(userName)) {
-                try {
-                    return Collections.singleton(c.login());
-                } catch (IOException e) {
-                    LOGGER.warn("Failed to login with username={}", c.username, e);
-                    return Collections.emptyList();
-                }
-            }
-        }
-
-        // otherwise try all the credentials since we don't know which one would work
-        return new Iterable<GitHub>() {
-            public Iterator<GitHub> iterator() {
-                return new FilterIterator<GitHub>(
-                        new AdaptedIterator<Credential, GitHub>(l) {
-                            protected GitHub adapt(Credential c) {
-                                try {
-                                    return c.login();
-                                } catch (IOException e) {
-                                    LOGGER.warn("Failed to login with username={}", c.username, e);
-                                    return null;
-                                }
-                            }
-                        }) {
-                    protected boolean filter(GitHub g) {
-                        return g != null;
-                    }
-                };
-            }
-        };
     }
 
     /**
@@ -155,7 +109,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
                 // We should handle wrong url of self defined hook url here in any case with try-catch :(
                 URL hookUrl;
                 try {
-                    hookUrl = Trigger.all().get(GitHubPushTrigger.DescriptorImpl.class).getHookUrl();
+                    hookUrl = GitHubPlugin.configuration().getHookUrl();
                 } catch (GHPluginConfigException e) {
                     LOGGER.error("Skip registration of GHHook ({})", e.getMessage());
                     return job;

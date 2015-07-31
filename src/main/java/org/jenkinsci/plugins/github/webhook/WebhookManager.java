@@ -25,6 +25,7 @@ import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Predicates.or;
 import static java.lang.String.format;
 import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
+import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.extractEvents;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
@@ -105,8 +106,8 @@ public class WebhookManager {
     public void unregisterFor(GitHubRepositoryName name, List<GitHubRepositoryName> aliveRepos) {
         try {
             GHRepository repo = checkNotNull(
-                    from(name.resolve()).firstMatch(withAdminAccess()).orNull(),
-                    "There is no admin access to manage hooks on %s", name
+                    from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull(),
+                    "There is no credentials with admin access to manage hooks on %s", name
             );
 
             LOGGER.debug("Check {} for redundant hooks...", repo);
@@ -139,8 +140,8 @@ public class WebhookManager {
             public GHHook apply(GitHubRepositoryName name) {
                 try {
                     GHRepository repo = checkNotNull(
-                            from(name.resolve()).firstMatch(withAdminAccess()).orNull(),
-                            "There is no admin access to manage hooks on %s", name
+                            from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull(),
+                            "There is no credentials with admin access to manage hooks on %s", name
                     );
 
                     Validate.notEmpty(events, "Events list for hook can't be empty");
