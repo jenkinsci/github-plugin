@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<com.cloudbees.jenkins.GitHubPushTrigger_-DescriptorImpl plugin="github@1.11.4-SNAPSHOT">
+    <hookUrl>http://some.proxy.example.com/webhook</hookUrl>
+</com.cloudbees.jenkins.GitHubPushTrigger_-DescriptorImpl>
