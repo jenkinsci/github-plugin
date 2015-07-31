@@ -24,6 +24,8 @@ import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -40,8 +42,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Triggers a build when we receive a GitHub post-commit webhook.
@@ -85,17 +85,17 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
                         return result;
                     } catch (Error e) {
                         e.printStackTrace(listener.error("Failed to record SCM polling"));
-                        LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
+                        LOGGER.error("Failed to record SCM polling", e);
                         throw e;
                     } catch (RuntimeException e) {
                         e.printStackTrace(listener.error("Failed to record SCM polling"));
-                        LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
+                        LOGGER.error("Failed to record SCM polling", e);
                         throw e;
                     } finally {
                         listener.close();
                     }
                 } catch (IOException e) {
-                    LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
+                    LOGGER.error("Failed to record SCM polling", e);
                 }
                 return false;
             }
@@ -107,13 +107,13 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
                     try {
                         cause = new GitHubPushCause(getLogFile(), pushBy);
                     } catch (IOException e) {
-                        LOGGER.log(Level.WARNING, "Failed to parse the polling log",e);
+                        LOGGER.warn("Failed to parse the polling log", e);
                         cause = new GitHubPushCause(pushBy);
                     }
                     if (job.scheduleBuild(cause)) {
-                        LOGGER.info("SCM changes detected in "+ job.getName()+". Triggering "+name);
+                        LOGGER.info("SCM changes detected in " + job.getName() + ". Triggering " + name);
                     } else {
-                        LOGGER.info("SCM changes detected in "+ job.getName()+". Job is already in the queue");
+                        LOGGER.info("SCM changes detected in " + job.getName() + ". Job is already in the queue");
                     }
                 }
             }
@@ -346,5 +346,5 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
      */
     public static boolean ALLOW_HOOKURL_OVERRIDE = !Boolean.getBoolean(GitHubPushTrigger.class.getName() + ".disableOverride");
 
-    private static final Logger LOGGER = Logger.getLogger(GitHubPushTrigger.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubPushTrigger.class);
 }
