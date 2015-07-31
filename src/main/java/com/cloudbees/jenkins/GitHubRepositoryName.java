@@ -2,6 +2,9 @@ package com.cloudbees.jenkins;
 
 import hudson.util.AdaptedIterator;
 import hudson.util.Iterators.FilterIterator;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.kohsuke.github.GHCommitPointer;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
@@ -18,6 +21,9 @@ import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.apache.commons.lang3.builder.ToStringStyle.SHORT_PREFIX_STYLE;
 /**
  * Uniquely identifies a repository on GitHub.
  *
@@ -171,23 +177,19 @@ public class GitHubRepositoryName {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        GitHubRepositoryName that = (GitHubRepositoryName) o;
-
-        return repositoryName.equals(that.repositoryName) && userName.equals(that.userName) && host.equals(that.host);
+    public boolean equals(Object obj) {
+        return EqualsBuilder.reflectionEquals(this, obj);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[] {host, userName, repositoryName});
+        return new HashCodeBuilder().append(host).append(userName).append(repositoryName).build();
     }
 
     @Override
     public String toString() {
-        return "GitHubRepository[host="+host+",username="+userName+",repository="+repositoryName+"]";
+        return new ToStringBuilder(this, SHORT_PREFIX_STYLE)
+                .append("host", host).append("username", userName).append("repository", repositoryName).build();
     }
 
 }
