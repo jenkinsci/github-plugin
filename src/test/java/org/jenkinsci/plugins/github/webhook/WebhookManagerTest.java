@@ -193,7 +193,7 @@ public class WebhookManagerTest {
     @Test
     public void shouldSelectOnlyHookManagedCreds() {
         GitHubServerConfig conf = new GitHubServerConfig("");
-        conf.setDontUseItToMangeHooks(true);
+        conf.setManageHooks(false);
         GitHubPlugin.configuration().getConfigs().add(conf);
         
         assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH))
@@ -204,7 +204,7 @@ public class WebhookManagerTest {
     public void shouldNotSelectCredsWithCustomHost() {
         GitHubServerConfig conf = new GitHubServerConfig("");
         conf.setApiUrl(ANOTHER_HOOK_ENDPOINT.toString());
-        conf.setDontUseItToMangeHooks(true);
+        conf.setManageHooks(false);
         GitHubPlugin.configuration().getConfigs().add(conf);
         
         assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH))

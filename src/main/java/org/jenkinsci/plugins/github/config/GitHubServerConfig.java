@@ -63,7 +63,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     private static final String UNKNOWN_TOKEN = "unkn";
 
     private String apiUrl;
-    private boolean dontUseItToMangeHooks;
+    private boolean manageHooks = true;
     private final String credentialsId;
 
     /**
@@ -102,13 +102,13 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     }
 
     /**
-     * This server config will not be used to manage GH Hooks if true
+     * This server config will be used to manage GH Hooks if true
      *
-     * @param dontUseItToMangeHooks true to ignore this config on hook manipulations
+     * @param manageHooks false to ignore this config on hook manipulations
      */
     @DataBoundSetter
-    public void setDontUseItToMangeHooks(boolean dontUseItToMangeHooks) {
-        this.dontUseItToMangeHooks = dontUseItToMangeHooks;
+    public void setManageHooks(boolean manageHooks) {
+        this.manageHooks = manageHooks;
     }
 
     public String getApiUrl() {
@@ -122,8 +122,8 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
         return isUrlCustom(apiUrl);
     }
 
-    public boolean isDontUseItToMangeHooks() {
-        return dontUseItToMangeHooks;
+    public boolean isManageHooks() {
+        return manageHooks;
     }
 
     public String getCredentialsId() {
@@ -210,7 +210,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
         return new NullSafePredicate<GitHubServerConfig>() {
             @Override
             protected boolean applyNullSafe(@NonNull GitHubServerConfig github) {
-                return !github.isDontUseItToMangeHooks();
+                return github.isManageHooks();
             }
         };
     }

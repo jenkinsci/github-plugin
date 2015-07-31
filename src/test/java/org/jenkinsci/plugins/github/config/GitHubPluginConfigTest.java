@@ -30,7 +30,7 @@ public class GitHubPluginConfigTest {
     @Test
     public void shouldNotManageHooksOnNotMangedConfig() throws Exception {
         GitHubServerConfig conf = new GitHubServerConfig("");
-        conf.setDontUseItToMangeHooks(true);
+        conf.setManageHooks(false);
         GitHubPlugin.configuration().getConfigs().add(conf);
         assertThat(GitHubPlugin.configuration().isManageHooks(), is(false));
     }

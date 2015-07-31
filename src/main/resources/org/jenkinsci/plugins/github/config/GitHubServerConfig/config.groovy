@@ -6,15 +6,18 @@ def f = namespace(lib.FormTagLib);
 def c = namespace(lib.CredentialsTagLib)
 
 
-f.entry(title: _("Don't manage hooks with this config")) {
-    f.checkbox( field: "dontUseItToMangeHooks")
+f.entry(title: _("Manage hooks"), field: "manageHooks") {
+    f.checkbox(default: true)
 }
 
 f.entry(title: _("Credentials"), field: "credentialsId") {
     c.select()
 }
 
-f.optionalBlock(title: _("Custom GitHub API URL"), inline: true, name: "custom", checked: instance?.custom) {
+f.optionalBlock(title: _("Custom GitHub API URL"), 
+        inline: true, 
+        field: "custom", 
+        checked: instance?.custom) {
     f.entry(title: _("GitHub API URL"), field: "apiUrl") {
         f.textbox(default: GitHubServerConfig.GITHUB_URL)
     }

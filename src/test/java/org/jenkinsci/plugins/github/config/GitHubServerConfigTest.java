@@ -27,7 +27,7 @@ public class GitHubServerConfigTest {
     @Test
     public void shouldNotMatchNotAllowedConfig() throws Exception {
         GitHubServerConfig input = new GitHubServerConfig("");
-        input.setDontUseItToMangeHooks(true);
+        input.setManageHooks(false);
         assertThat(allowedToManageHooks().apply(input), is(false));
     }
 
