@@ -1,5 +1,6 @@
 package com.cloudbees.jenkins;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -18,6 +19,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import org.slf4j.Logger;
 
 /**
  * Extension point that associates {@link GitHubRepositoryName}s to a project.
@@ -26,6 +29,9 @@ import java.util.Set;
  * @since 1.7
  */
 public abstract class GitHubRepositoryNameContributor implements ExtensionPoint {
+    
+    public static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(GitHubRepositoryNameContributor.class);
+    
     /**
      * Looks at the definition of {@link AbstractProject} and list up the related github repositories,
      * then puts them into the collection.
@@ -51,8 +57,8 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
             for (EnvironmentContributor contributor : EnvironmentContributor.all()) {
                 try {
                     contributor.buildEnvironmentFor(job, env, TaskListener.NULL);
-                } catch (Exception e) {
-                    // ignore
+                } catch (Throwable e) {
+                    LOGGER.warn("Unhandled exception. Skipping environment contributor " + contributor, e);
                 }
             }
             return env;
@@ -92,8 +98,13 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
     @Extension(optional=true)
     @SuppressWarnings("unused")
     public static class FromMultiSCM extends AbstractFromSCMImpl {
-        // make this class fail to load if MultiSCM is not present
-        public FromMultiSCM() { MultiSCM.class.toString(); }
+        
+        @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT", 
+                justification = "As designed, error spot-check")
+        public FromMultiSCM() {
+            // make this class fail to load if MultiSCM is not present
+            MultiSCM.class.toString(); 
+        }
 
         @Override
         public void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result) {

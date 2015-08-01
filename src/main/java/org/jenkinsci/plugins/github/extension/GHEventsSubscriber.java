@@ -15,6 +15,7 @@ import java.util.Set;
 
 import static java.util.Collections.emptySet;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.Validate.notNull;
 
 /**
  * Extension point to subscribe events from GH, which plugin interested in.
@@ -76,7 +77,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
         return new Function<GHEventsSubscriber, Set<GHEvent>>() {
             @Override
             public Set<GHEvent> apply(GHEventsSubscriber subscriber) {
-                return defaultIfNull(subscriber.events(), Collections.<GHEvent>emptySet());
+                return defaultIfNull(notNull(subscriber).events(), Collections.<GHEvent>emptySet());
             }
         };
     }
@@ -92,7 +93,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
         return new Predicate<GHEventsSubscriber>() {
             @Override
             public boolean apply(GHEventsSubscriber subscriber) {
-                return subscriber.isApplicable(project);
+                return notNull(subscriber).isApplicable(project);
             }
         };
     }
@@ -108,7 +109,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
         return new Predicate<GHEventsSubscriber>() {
             @Override
             public boolean apply(GHEventsSubscriber subscriber) {
-                return defaultIfNull(subscriber.events(), emptySet()).contains(event);
+                return defaultIfNull(notNull(subscriber).events(), emptySet()).contains(event);
             }
         };
     }
@@ -126,10 +127,12 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
             @Override
             public Void apply(GHEventsSubscriber subscriber) {
                 try {
-                    subscriber.onEvent(event, payload);
+                    notNull(subscriber).onEvent(event, payload);
+                } catch (Error error) {
+                    throw error;
                 } catch (Throwable t) {
-                    LOGGER.error("Subscriber {} failed to process {} hook, skipping...", 
-                            subscriber.getClass().getName(), event, t);
+                    LOGGER.error("Subscriber {} failed to process {} hook, skipping...",
+                           subscriber.getClass().getName(), event, t);
                 }
                 return null;
             }

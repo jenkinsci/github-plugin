@@ -7,7 +7,7 @@
       <!--JENKINS-18537-->
     <version>1.554.1</version>
   </parent>
-
+  
   <groupId>com.coravy.hudson.plugins.github</groupId>
   <artifactId>github</artifactId>
   <packaging>hpi</packaging>
@@ -77,6 +77,13 @@
           <artifactId>instance-identity</artifactId>
           <version>1.3</version>
           <scope>provided</scope>
+      </dependency>
+      
+      <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>annotations</artifactId>
+        <version>3.0.0</version>
+        <scope>provided</scope>
       </dependency>
 
       <!--TEST DEPS-->
@@ -157,6 +164,9 @@
     <properties>
         <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
         <maven-release-plugin.version>2.5.1</maven-release-plugin.version>
+        <findbugs-maven-plugin.version>3.0.1</findbugs-maven-plugin.version>
+        <!--TODO: replace by true when it's clean-->
+        <findbugs.failOnError>false</findbugs.failOnError>
     </properties>
     
   <build>
@@ -168,7 +178,26 @@
                 <target>1.6</target>
             </configuration>
         </plugin>
-    </plugins>  
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>findbugs-maven-plugin</artifactId>
+          <version>${findbugs-maven-plugin.version}</version>
+          <configuration>
+            <xmlOutput>true</xmlOutput>
+            <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+            <failOnError>${findbugs.failOnError}</failOnError>
+          </configuration>
+          <executions>
+            <execution>
+              <id>run-findbugs</id>
+              <phase>verify</phase> 
+              <goals>
+                <goal>check</goal> 
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+    </plugins>    
   </build>
     
 </project>  

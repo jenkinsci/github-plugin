@@ -3,6 +3,7 @@ package com.cloudbees.jenkins;
 import hudson.triggers.SCMTrigger.SCMTriggerCause;
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * UI object that says a build is started by GitHub post-commit hook.
@@ -33,5 +34,22 @@ public class GitHubPushCause extends SCMTriggerCause {
     public String getShortDescription() {
         String pusher = pushedBy != null ? pushedBy : "";
         return "Started by GitHub push by " + pusher;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.pushedBy);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!getClass().isInstance(obj)) {
+            return false;
+        }
+        final GitHubPushCause other = (GitHubPushCause) obj;
+        if ((this.pushedBy == null) ? (other.pushedBy != null) : !this.pushedBy.equals(other.pushedBy)) {
+            return false;
+        }
+        return true;
     }
 }

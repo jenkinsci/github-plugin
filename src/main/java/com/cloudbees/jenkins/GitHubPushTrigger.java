@@ -2,6 +2,7 @@ package com.cloudbees.jenkins;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.Util;
 import hudson.console.AnnotatedLargeText;
@@ -29,6 +30,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -299,13 +301,17 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
                     return FormValidation.warning("It doesn't look like " + value + " is talking to any Jenkins. Are you running your own app?");
                 }
                 RSAPublicKey key = identity.getPublic();
-                String expected = new String(Base64.encodeBase64(key.getEncoded()));
+                String expected = new String(Base64.encodeBase64(key.getEncoded()), "UTF-8" );
                 if (!expected.equals(v)) {
                     // if it responds but with a different ID, that's more likely wrong than correct
                     return FormValidation.error(value+" is connecting to different Jenkins instances");
                 }
 
                 return FormValidation.ok();
+            } catch (UnsupportedEncodingException ex) {
+                // Should not happen
+                // TODO: get rid of it after migrating to JDK7
+                return FormValidation.error("Unsupported exception {0}", ex.getLocalizedMessage());
             } catch (IOException e) {
                 return FormValidation.error(e,"Failed to test a connection to "+value);
             }
@@ -336,6 +342,8 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
     /**
      * Set to false to prevent the user from overriding the hook URL.
      */
+    @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL", 
+            justification = "Common Jenkins config pattern, which may be changed in the runtime")
     public static boolean ALLOW_HOOKURL_OVERRIDE = !Boolean.getBoolean(GitHubPushTrigger.class.getName() + ".disableOverride");
 
     private static final Logger LOGGER = Logger.getLogger(GitHubPushTrigger.class.getName());
