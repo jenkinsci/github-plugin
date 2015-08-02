@@ -21,13 +21,13 @@
     <views>
         <hudson.model.AllView>
             <owner class="hudson" reference="../../.."/>
-            <name>Все</name>
+            <name>All</name>
             <filterExecutors>false</filterExecutors>
             <filterQueue>false</filterQueue>
             <properties class="hudson.model.View$PropertyList"/>
         </hudson.model.AllView>
     </views>
-    <primaryView>Все</primaryView>
+    <primaryView>All</primaryView>
     <slaveAgentPort>0</slaveAgentPort>
     <label></label>
     <nodeProperties/>

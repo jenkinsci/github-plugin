@@ -60,7 +60,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     /**
      * Used as default token value if no any creds found by given credsId.
      */
-    private static final String UNKNOWN_TOKEN = "unkn";
+    private static final String UNKNOWN_TOKEN = "UNKNOWN_TOKEN";
 
     private String apiUrl;
     private boolean manageHooks = true;

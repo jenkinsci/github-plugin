@@ -44,5 +44,3 @@ f.radioBlock(checked: false, name: "creds", value: "manually", title: "From logi
         )
     }
 }
-
-
