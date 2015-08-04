@@ -157,6 +157,10 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
 
     @Override
     public void stop() {
+        if (job == null) {
+            return;
+        }
+
         if (getDescriptor().isManageHook()) {
             Cleaner cleaner = Cleaner.get();
             if (cleaner != null) {
@@ -167,6 +171,10 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
 
     @Override
     public Collection<? extends Action> getProjectActions() {
+        if (job == null) {
+            return Collections.emptyList();
+        }
+
         return Collections.singleton(new GitHubWebHookPollingAction());
     }
 
