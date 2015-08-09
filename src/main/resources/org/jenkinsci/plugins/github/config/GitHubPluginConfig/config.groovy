@@ -13,18 +13,16 @@ f.section(title: descriptor.displayName) {
                 field: "configs",
                 hasHeader: "true",
                 addCaption: _("Add GitHub Server Config"),
-                deleteCaption: _("Delete config"))
+                deleteCaption: _("Delete GitHub Server Config"))
     }
 
-    if (instance.manageHooks) {
+    f.advanced() {
         f.validateButton(
                 title: _("Re-register hooks for all jobs"),
                 progress: _("Scanning all items..."),
                 method: "reRegister"
         )
-    }
-
-    f.advanced() {
+        
         if (GitHubPushTrigger.ALLOW_HOOKURL_OVERRIDE) {
             f.entry(title: _("Override Hook URL")) {
                 table(width: "100%", style: "margin-left: 7px;") {

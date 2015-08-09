@@ -62,7 +62,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      */
     private static final String UNKNOWN_TOKEN = "UNKNOWN_TOKEN";
 
-    private String apiUrl;
+    private String apiUrl = GITHUB_URL;
     private boolean manageHooks = true;
     private final String credentialsId;
 
@@ -80,7 +80,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      * {@link #custom} field should be defined earlier. Because of we get full content of optional block,
      * even if it already unchecked. So if we want to return api url to default value - custom value should affect
      *
-     * @param apiUrl custom url if GH. Set api url to default value if custom is unchecked or value is blank
+     * @param apiUrl custom url if GH. Default value will be used in case of custom is unchecked or value is blank
      */
     @DataBoundSetter
     public void setApiUrl(String apiUrl) {
@@ -104,7 +104,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     /**
      * This server config will be used to manage GH Hooks if true
      *
-     * @param manageHooks false to ignore this config on hook manipulations
+     * @param manageHooks false to ignore this config on hook auto-management
      */
     @DataBoundSetter
     public void setManageHooks(boolean manageHooks) {

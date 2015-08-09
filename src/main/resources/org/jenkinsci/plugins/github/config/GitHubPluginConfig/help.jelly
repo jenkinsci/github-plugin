@@ -7,7 +7,7 @@
                 This plugin don't do anything with GitHub api unless you add config with credentials.
                 So if you don't want to add any config, you can setup hooks for this jenkins instance manually.
                 <br/>
-                In this mode, in addition to configure projects with "Build when a change is pushed to GitHub",
+                In this mode, in addition to configure projects with "<i>Build when a change is pushed to GitHub</i>",
                 you need to ensure that Jenkins gets a POST to its
                 <tt>
                     <a href="${rootURL}/github-webhook/">${app.rootUrl}github-webhook/</a>
@@ -26,7 +26,7 @@
                 create new hooks and remove old.
 
                 <p>
-                    This URL is
+                    Hook URL is
                     <tt>
                         <a href="${rootURL}/github-webhook/">${app.rootUrl}github-webhook/</a>
                     </tt>
