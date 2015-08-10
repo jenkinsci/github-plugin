@@ -82,7 +82,7 @@ public class Migrator {
                 );
 
                 GitHubServerConfig gitHubServerConfig = new GitHubServerConfig(credentials.getId());
-                gitHubServerConfig.setCustom(isUrlCustom(input.getApiUrl()));
+                gitHubServerConfig.setCustomApiUrl(isUrlCustom(input.getApiUrl()));
                 gitHubServerConfig.setApiUrl(input.getApiUrl());
 
                 return gitHubServerConfig;

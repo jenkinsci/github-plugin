@@ -16,8 +16,8 @@ f.entry(title: _("Credentials"), field: "credentialsId") {
 
 f.optionalBlock(title: _("Custom GitHub API URL"), 
         inline: true, 
-        field: "custom", 
-        checked: instance?.custom) {
+        field: "customApiUrl", 
+        checked: instance?.customApiUrl) {
     f.entry(title: _("GitHub API URL"), field: "apiUrl") {
         f.textbox(default: GitHubServerConfig.GITHUB_URL)
     }

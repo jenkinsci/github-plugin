@@ -18,6 +18,8 @@ import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -67,9 +69,9 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     private final String credentialsId;
 
     /**
-     * only to set to default apiUrl when uncheck
+     * only to set to default apiUrl when uncheck. Can be removed if optional block can nullify value if unchecked
      */
-    private transient boolean custom;
+    private transient boolean customApiUrl;
 
     @DataBoundConstructor
     public GitHubServerConfig(String credentialsId) {
@@ -77,14 +79,14 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     }
 
     /**
-     * {@link #custom} field should be defined earlier. Because of we get full content of optional block,
+     * {@link #customApiUrl} field should be defined earlier. Because of we get full content of optional block,
      * even if it already unchecked. So if we want to return api url to default value - custom value should affect
      *
      * @param apiUrl custom url if GH. Default value will be used in case of custom is unchecked or value is blank
      */
     @DataBoundSetter
     public void setApiUrl(String apiUrl) {
-        if (custom) {
+        if (customApiUrl) {
             this.apiUrl = defaultIfBlank(apiUrl, GITHUB_URL);
         } else {
             this.apiUrl = GITHUB_URL;
@@ -94,11 +96,11 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     /**
      * Should be called before {@link #setApiUrl(String)}
      *
-     * @param custom true if optional block "Custom GH Api Url" checked in UI
+     * @param customApiUrl true if optional block "Custom GH Api Url" checked in UI
      */
     @DataBoundSetter
-    public void setCustom(boolean custom) {
-        this.custom = custom;
+    public void setCustomApiUrl(boolean customApiUrl) {
+        this.customApiUrl = customApiUrl;
     }
 
     /**
@@ -118,7 +120,8 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     /**
      * @see #isUrlCustom(String)
      */
-    public boolean isCustom() {
+    @Restricted(NoExternalUse.class)
+    public boolean isCustomApiUrl() {
         return isUrlCustom(apiUrl);
     }
 

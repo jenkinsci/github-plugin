@@ -6,7 +6,7 @@ def f = namespace(lib.FormTagLib);
 def c = namespace(lib.CredentialsTagLib)
 
 f.entry(title: _("GitHub API URL"), field: "apiUrl", 
-        help: app.getDescriptor(GitHubServerConfig.class)?.getHelpFile("custom")) {
+        help: app.getDescriptor(GitHubServerConfig.class)?.getHelpFile("customApiUrl")) {
     f.textbox(default: GitHubServerConfig.GITHUB_URL)
 }
 
