@@ -1,13 +1,10 @@
 package org.jenkinsci.plugins.github.webhook.subscriber;
 
-import hudson.model.Job;
-import hudson.model.Run;
 import hudson.plugins.git.util.Build;
 import hudson.plugins.git.util.BuildData;
 
 import java.util.HashMap;
 
-import org.apache.commons.io.IOUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -44,22 +41,7 @@ public class WebhookWorkflow {
         // Then simulate a GitHub push
         new DefaultPushGHEventSubscriber()
                 .onEvent(GHEvent.PUSH, GitHubWebHookFullTest.classpath("payloads/push-wf.json"));
-        Run build = waitForBuild(2, job);
-        j.assertBuildStatusSuccess(build);
+        j.waitUntilNoActivity();
+        j.assertBuildStatusSuccess(job.getBuildByNumber(2));
     }
-
-    private Run waitForBuild(int n, Job job) throws InterruptedException {
-        System.out.println("Waiting for build #" + n + " to appear and finish");
-        int counter = 0;
-        while (counter < 30) {
-            Run b = job.getBuildByNumber(n);
-            if (b != null && !b.isBuilding()) {
-                return b;
-            }
-            Thread.sleep(2000);
-            counter++;
-        }
-        return null;
-    }
-
 }

@@ -91,6 +91,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                         GitHubTrigger trigger = null;
                         if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
                             ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
+                            // TODO use standard method in 1.621+
                             for (Trigger candidate : pJob.getTriggers().values()) {
                                 if (candidate instanceof GitHubTrigger) {
                                     trigger = (GitHubTrigger) candidate;
