@@ -39,6 +39,7 @@ public final class JobInfoHelpers {
             public boolean apply(Job job) {
                 if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
                     ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
+                    // TODO use standard method in 1.621+
                     for (Trigger trigger : pJob.getTriggers().values()) {
                         if (trigger instanceof GitHubPushTrigger) {
                             return true;

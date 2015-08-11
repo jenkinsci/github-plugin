@@ -50,6 +50,7 @@ public interface GitHubTrigger {
         public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
             if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
                 ParameterizedJobMixIn.ParameterizedJob p = (ParameterizedJobMixIn.ParameterizedJob) job;
+                // TODO use standard method in 1.621+
                 for (GitHubTrigger ght : Util.filter(p.getTriggers().values(),GitHubTrigger.class)) {
                     result.addAll(ght.getGitHubRepositories());
                 }

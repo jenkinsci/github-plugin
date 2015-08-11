@@ -23,7 +23,6 @@ public class WebhookWorkflow {
 
     @Test
     public void receivePushHookOnWorkflow() throws Exception {
-        j.jenkins.getInjector().injectMembers(this);
         WorkflowJob job = j.jenkins.createProject(WorkflowJob.class, "Test Workflow");
 
         GitHubPushTrigger trigger = new GitHubPushTrigger();
