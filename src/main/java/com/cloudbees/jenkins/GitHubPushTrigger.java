@@ -111,6 +111,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         LOGGER.warn("Failed to parse the polling log", e);
                         cause = new GitHubPushCause(pushBy);
                     }
+                    // TODO use standard method in 1.621+
                     ParameterizedJobMixIn scheduledJob = new ParameterizedJobMixIn() {
                         @Override
                         protected Job asJob() {
