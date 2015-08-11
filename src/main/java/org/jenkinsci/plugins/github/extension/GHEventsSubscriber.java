@@ -27,7 +27,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  * Each time this plugin wants to get events list from subscribers it asks for applicable status
  *
  * @author lanwen (Merkushev Kirill)
- * @since TODO
+ * @since 1.12.0
  */
 public abstract class GHEventsSubscriber implements ExtensionPoint {
     private static final Logger LOGGER = LoggerFactory.getLogger(GHEventsSubscriber.class);

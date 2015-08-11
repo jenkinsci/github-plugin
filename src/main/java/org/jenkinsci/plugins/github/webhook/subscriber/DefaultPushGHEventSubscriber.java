@@ -32,7 +32,7 @@ import static org.kohsuke.github.GHEvent.PUSH;
  * By default this plugin interested in push events only when job uses {@link GitHubPushTrigger}
  *
  * @author lanwen (Merkushev Kirill)
- * @since TODO
+ * @since 1.12.0
  */
 @Extension
 @SuppressWarnings("unused")

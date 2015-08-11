@@ -21,7 +21,7 @@ import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplic
  * Utility class which holds converters or predicates (matchers) to filter or convert job lists
  *
  * @author lanwen (Merkushev Kirill)
- * @since TODO
+ * @since 1.12.0
  */
 public final class JobInfoHelpers {
 

@@ -4,8 +4,12 @@ import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import hudson.model.FreeStyleProject;
 import hudson.plugins.git.GitSCM;
+import org.jenkinsci.plugins.github.GitHubPlugin;
+import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +32,7 @@ import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.asList;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.jenkinsci.plugins.github.webhook.WebhookManager.forHookUrl;
 import static org.junit.Assert.assertThat;
 import static org.kohsuke.github.GHEvent.CREATE;
@@ -35,6 +40,7 @@ import static org.kohsuke.github.GHEvent.PULL_REQUEST;
 import static org.kohsuke.github.GHEvent.PUSH;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anySet;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -51,10 +57,10 @@ public class WebhookManagerTest {
     public static final GitSCM GIT_SCM = new GitSCM("ssh://git@github.com/dummy/dummy.git");
     public static final URL HOOK_ENDPOINT = endpoint("http://hook.endpoint/");
     public static final URL ANOTHER_HOOK_ENDPOINT = endpoint("http://another.url/");
-    
+
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
-    
+
     @Spy
     private WebhookManager manager = forHookUrl(HOOK_ENDPOINT);
 
@@ -77,7 +83,7 @@ public class WebhookManagerTest {
 
     @Test
     public void shouldSearchBothWebAndServiceHookOnNonActiveName() throws Exception {
-        when(nonactive.resolve()).thenReturn(newArrayList(repo));
+        doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
 
         manager.unregisterFor(nonactive, newArrayList(active));
@@ -89,7 +95,7 @@ public class WebhookManagerTest {
 
     @Test
     public void shouldSearchOnlyServiceHookOnActiveName() throws Exception {
-        when(active.resolve()).thenReturn(newArrayList(repo));
+        doReturn(newArrayList(repo)).when(active).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
 
         manager.unregisterFor(active, newArrayList(active));
@@ -138,7 +144,7 @@ public class WebhookManagerTest {
 
     @Test
     public void shouldMergeEventsOnRegisterNewAndDeleteOldOnes() throws IOException {
-        when(nonactive.resolve()).thenReturn(newArrayList(repo));
+        doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
         Predicate<GHHook> del = spy(Predicate.class);
         when(manager.deleteWebhook()).thenReturn(del);
@@ -154,7 +160,7 @@ public class WebhookManagerTest {
 
     @Test
     public void shouldNotReplaceAlreadyRegisteredHook() throws IOException {
-        when(nonactive.resolve()).thenReturn(newArrayList(repo));
+        doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
 
         GHHook hook = hook(HOOK_ENDPOINT, PUSH);
@@ -184,6 +190,26 @@ public class WebhookManagerTest {
         verify(manager).createHookSubscribedTo(newArrayList(PUSH));
     }
 
+    @Test
+    public void shouldSelectOnlyHookManagedCreds() {
+        GitHubServerConfig conf = new GitHubServerConfig("");
+        conf.setManageHooks(false);
+        GitHubPlugin.configuration().getConfigs().add(conf);
+        
+        assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH))
+                .apply(new GitHubRepositoryName("github.com", "name", "repo")), nullValue());
+    }
+
+    @Test
+    public void shouldNotSelectCredsWithCustomHost() {
+        GitHubServerConfig conf = new GitHubServerConfig("");
+        conf.setApiUrl(ANOTHER_HOOK_ENDPOINT.toString());
+        conf.setManageHooks(false);
+        GitHubPlugin.configuration().getConfigs().add(conf);
+        
+        assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH))
+                .apply(new GitHubRepositoryName("github.com", "name", "repo")), nullValue());
+    }
 
     private GHHook hook(URL endpoint, GHEvent event, GHEvent... events) {
         GHHook hook = mock(GHHook.class);

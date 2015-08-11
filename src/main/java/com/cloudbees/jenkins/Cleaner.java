@@ -5,6 +5,7 @@ import hudson.model.Job;
 import hudson.model.PeriodicWork;
 import hudson.triggers.Trigger;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.webhook.WebhookManager;
 
 import java.net.URL;
@@ -55,7 +56,7 @@ public class Cleaner extends PeriodicWork {
      */
     @Override
     protected void doRun() throws Exception {
-        URL url = Trigger.all().get(GitHubPushTrigger.DescriptorImpl.class).getHookUrl();
+        URL url = GitHubPlugin.configuration().getHookUrl();
 
         List<Job> jobs = Jenkins.getInstance().getAllItems(Job.class);
         List<GitHubRepositoryName> aliveRepos = from(jobs)

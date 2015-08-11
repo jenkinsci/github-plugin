@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.webhook;
 
+import com.cloudbees.jenkins.GitHubWebHook;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
@@ -53,6 +54,11 @@ public @interface GHEventPayload {
          */
         @Override
         public Object parse(StaplerRequest req, GHEventPayload a, Class type, String param) throws ServletException {
+            if (req.getHeader(GitHubWebHook.URL_VALIDATION_HEADER) != null) {
+                // if self test for custom hook url
+                return null;
+            }
+
             String contentType = req.getContentType();
 
             if (!PAYLOAD_PROCESS.containsKey(contentType)) {
@@ -68,6 +74,7 @@ public @interface GHEventPayload {
 
         /**
          * used for application/x-www-form-urlencoded content-type
+         *
          * @return function to extract payload from form request parameters
          */
         protected static Function<StaplerRequest, String> fromForm() {
@@ -80,7 +87,8 @@ public @interface GHEventPayload {
         }
 
         /**
-         * used for application/json content-type 
+         * used for application/json content-type
+         *
          * @return function to extract payload from body
          */
         protected static Function<StaplerRequest, String> fromApplicationJson() {

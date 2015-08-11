@@ -1,9 +1,9 @@
 package com.cloudbees.jenkins;
 
 import com.google.common.base.Charsets;
-
 import hudson.Extension;
 import hudson.Util;
+import hudson.XmlFile;
 import hudson.console.AnnotatedLargeText;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
@@ -12,41 +12,36 @@ import hudson.model.Job;
 import hudson.model.Project;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
-import hudson.util.FormValidation;
 import hudson.util.SequentialExecutionQueue;
 import hudson.util.StreamTaskListener;
 import jenkins.model.Jenkins;
 import jenkins.model.Jenkins.MasterComputer;
 import jenkins.model.ParameterizedJobMixIn;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
-import net.sf.json.JSONObject;
-
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.jelly.XMLOutput;
-import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+import org.jenkinsci.plugins.github.GitHubPlugin;
+import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
+import org.jenkinsci.plugins.github.deprecated.Credential;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
+import org.jenkinsci.plugins.github.migration.Migrator;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.interfaces.RSAPublicKey;
 import java.text.DateFormat;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * Triggers a build when we receive a GitHub post-commit webhook.
@@ -91,17 +86,17 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         return result;
                     } catch (Error e) {
                         e.printStackTrace(listener.error("Failed to record SCM polling"));
-                        LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
+                        LOGGER.error("Failed to record SCM polling", e);
                         throw e;
                     } catch (RuntimeException e) {
                         e.printStackTrace(listener.error("Failed to record SCM polling"));
-                        LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
+                        LOGGER.error("Failed to record SCM polling", e);
                         throw e;
                     } finally {
                         listener.close();
                     }
                 } catch (IOException e) {
-                    LOGGER.log(Level.SEVERE,"Failed to record SCM polling",e);
+                    LOGGER.error("Failed to record SCM polling", e);
                 }
                 return false;
             }
@@ -113,7 +108,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                     try {
                         cause = new GitHubPushCause(getLogFile(), pushBy);
                     } catch (IOException e) {
-                        LOGGER.log(Level.WARNING, "Failed to parse the polling log",e);
+                        LOGGER.warn("Failed to parse the polling log", e);
                         cause = new GitHubPushCause(pushBy);
                     }
                     ParameterizedJobMixIn scheduledJob = new ParameterizedJobMixIn() {
@@ -123,9 +118,9 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         }
                     };
                     if (scheduledJob.scheduleBuild(cause)) {
-                        LOGGER.info("SCM changes detected in "+ job.getName()+". Triggering "+name);
+                        LOGGER.info("SCM changes detected in " + job.getName() + ". Triggering " + name);
                     } else {
-                        LOGGER.info("SCM changes detected in "+ job.getName()+". Job is already in the queue");
+                        LOGGER.info("SCM changes detected in " + job.getName() + ". Job is already in the queue");
                     }
                 }
             }
@@ -150,7 +145,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     @Override
     public void start(Job<?, ?> project, boolean newInstance) {
         super.start(project, newInstance);
-        if (newInstance && getDescriptor().isManageHook()) {
+        if (newInstance && GitHubPlugin.configuration().isManageHooks()) {
             registerHooks();
         }
     }
@@ -166,10 +161,13 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         GitHubWebHook.get().registerHookFor(job);
     }
 
-
     @Override
     public void stop() {
-        if (getDescriptor().isManageHook()) {
+        if (job == null) {
+            return;
+        }
+
+        if (GitHubPlugin.configuration().isManageHooks()) {
             Cleaner cleaner = Cleaner.get();
             if (cleaner != null) {
                 cleaner.onStop(job);
@@ -179,6 +177,10 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
     @Override
     public Collection<? extends Action> getProjectActions() {
+        if (job == null) {
+            return Collections.emptyList();
+        }
+
         return Collections.singleton(new GitHubWebHookPollingAction());
     }
 
@@ -223,19 +225,11 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
     @Extension
     public static class DescriptorImpl extends TriggerDescriptor {
-        private static final Logger LOGGER = Logger.getLogger(DescriptorImpl.class.getName());
         private transient final SequentialExecutionQueue queue = new SequentialExecutionQueue(MasterComputer.threadPoolForRemoting);
 
-        private boolean manageHook;
-        private String hookUrl;
-        private volatile List<Credential> credentials = new ArrayList<Credential>();
+        private transient String hookUrl;
 
-        @Inject
-        private transient InstanceIdentity identity;
-
-        public DescriptorImpl() {
-            load();
-        }
+        private transient List<Credential> credentials;
 
         @Override
         public boolean isApplicable(Item item) {
@@ -250,91 +244,80 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
         /**
          * True if Jenkins should auto-manage hooks.
+         *
+         * @deprecated Use {@link GitHubPluginConfig#isManageHooks()} instead
          */
+        @Deprecated
         public boolean isManageHook() {
-            return manageHook;
-        }
-
-        public void setManageHook(boolean v) {
-            manageHook = v;
-            save();
+            return GitHubPlugin.configuration().isManageHooks();
         }
 
         /**
          * Returns the URL that GitHub should post.
+         *
+         * @deprecated use {@link GitHubPluginConfig#getHookUrl()} instead
          */
+        @Deprecated
         public URL getHookUrl() throws GHPluginConfigException {
-            try {
-                return hookUrl != null
-                        ? new URL(hookUrl)
-                        : new URL(Jenkins.getInstance().getRootUrl() + GitHubWebHook.get().getUrlName() + '/');
-            } catch (MalformedURLException e) {
-                throw new GHPluginConfigException(
-                        "Mailformed GH hook url in global configuration (%s)", e.getMessage()
-                );
-            }
+            return GitHubPlugin.configuration().getHookUrl();
         }
 
-        public boolean hasOverrideURL() {
-            return hookUrl != null;
-        }
-
+        /**
+         * @return null after migration
+         * @deprecated use {@link GitHubPluginConfig#getConfigs()} instead.
+         */
+        @Deprecated
         public List<Credential> getCredentials() {
             return credentials;
         }
 
-        @Override
-        public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-            JSONObject hookMode = json.getJSONObject("hookMode");
-            manageHook = "auto".equals(hookMode.getString("value"));
-            if (hookMode.optBoolean("hasHookUrl")) {
-                hookUrl = hookMode.optString("hookUrl");
-            } else {
-                hookUrl = null;
+        /**
+         * Used only for migration
+         *
+         * @return null after migration
+         * @deprecated use {@link GitHubPluginConfig#getHookUrl()}
+         */
+        @Deprecated
+        public URL getDeprecatedHookUrl() {
+            if (isEmpty(hookUrl)) {
+                return null;
             }
-            credentials = req.bindJSONToList(Credential.class, hookMode.get("credentials"));
-            save();
-            return true;
-        }
-
-        public FormValidation doCheckHookUrl(@QueryParameter String value) {
             try {
-                HttpURLConnection con = (HttpURLConnection) new URL(value).openConnection();
-                con.setRequestMethod("POST");
-                con.setRequestProperty(GitHubWebHook.URL_VALIDATION_HEADER, "true");
-                con.connect();
-                if (con.getResponseCode()!=200) {
-                    return FormValidation.error("Got "+con.getResponseCode()+" from "+value);
-                }
-                String v = con.getHeaderField(GitHubWebHook.X_INSTANCE_IDENTITY);
-                if (v == null) {
-                    // people might be running clever apps that's not Jenkins, and that's OK
-                    return FormValidation.warning("It doesn't look like " + value + " is talking to any Jenkins. Are you running your own app?");
-                }
-                RSAPublicKey key = identity.getPublic();
-                String expected = new String(Base64.encodeBase64(key.getEncoded()));
-                if (!expected.equals(v)) {
-                    // if it responds but with a different ID, that's more likely wrong than correct
-                    return FormValidation.error(value+" is connecting to different Jenkins instances");
-                }
-
-                return FormValidation.ok();
-            } catch (IOException e) {
-                return FormValidation.error(e,"Failed to test a connection to "+value);
+                return new URL(hookUrl);
+            } catch (MalformedURLException e) {
+                LOGGER.warn("Mailformed hook url skipped while migration ({})", e.getMessage());
+                return null;
             }
-
         }
 
-        @SuppressWarnings("unused")
-        public FormValidation doReRegister() {
-            if (!manageHook) {
-                return FormValidation.warning("Works only when Jenkins manages hooks");
-            }
+        /**
+         * Used to cleanup after migration
+         */
+        public void clearDeprecatedHookUrl() {
+            this.hookUrl = null;
+        }
 
-            List<Job> registered = GitHubWebHook.get().reRegisterAllHooks();
+        /**
+         * Used to cleanup after migration
+         */
+        public void clearCredentials() {
+            this.credentials = null;
+        }
 
-            LOGGER.log(Level.INFO, "Called registerHooks() for {0} jobs", registered.size());
-            return FormValidation.ok("Called re-register hooks for %s jobs", registered.size());
+        /**
+         * @deprecated use {@link GitHubPluginConfig#isOverrideHookURL()}
+         */
+        @Deprecated
+        public boolean hasOverrideURL() {
+            return GitHubPlugin.configuration().isOverrideHookURL();
+        }
+
+        /**
+         * Uses global xstream to enable migration alias used in {@link Migrator#enableCompatibilityAliases()}
+         */
+        @Override
+        protected XmlFile getConfigFile() {
+            return new XmlFile(Jenkins.XSTREAM2, super.getConfigFile().getFile());
         }
 
         public static DescriptorImpl get() {
@@ -351,5 +334,5 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
      */
     public static boolean ALLOW_HOOKURL_OVERRIDE = !Boolean.getBoolean(GitHubPushTrigger.class.getName() + ".disableOverride");
 
-    private static final Logger LOGGER = Logger.getLogger(GitHubPushTrigger.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubPushTrigger.class);
 }
