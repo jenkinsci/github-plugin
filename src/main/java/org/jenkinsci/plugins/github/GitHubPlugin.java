@@ -1,45 +1,34 @@
 package org.jenkinsci.plugins.github;
 
 import hudson.Plugin;
-import hudson.model.Descriptor.FormException;
-import jenkins.model.Jenkins;
-import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.migration.Migrator;
-import org.kohsuke.stapler.StaplerRequest;
 
-import javax.servlet.ServletException;
-import java.io.IOException;
+import javax.annotation.Nonnull;
 
-import static java.lang.String.format;
-import static org.apache.commons.lang3.Validate.notNull;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Main entry point for this plugin
- * Stores global configuration
+ *
+ * Launches migration from old config versions
+ * Contains helper method to get global plugin configuration - {@link #configuration()}
  *
  * @author lanwen (Merkushev Kirill)
  */
 public class GitHubPlugin extends Plugin {
-    private GitHubPluginConfig configuration = new GitHubPluginConfig();
-
-    public GitHubPluginConfig getConfiguration() {
-        return configuration;
-    }
-
     /**
      * Launched before plugin starts
      * Adds alias for {@link GitHubPlugin} to simplify resulting xml
      */
     public static void init() {
-        Jenkins.XSTREAM2.alias("github-plugin", GitHubPlugin.class);
         Migrator.enableCompatibilityAliases();
+        Migrator.enableAliases();
     }
 
     @Override
     public void start() throws Exception {
         init();
-        load();
     }
 
     /**
@@ -50,40 +39,16 @@ public class GitHubPlugin extends Plugin {
         new Migrator().migrate();
     }
 
-    @Override
-    public void configure(StaplerRequest req, JSONObject formData) throws IOException, ServletException, FormException {
-        try {
-            configuration = req.bindJSON(GitHubPluginConfig.class, formData);
-        } catch (Exception e) {
-            throw new FormException(
-                    format("Mailformed GitHub Plugin configuration (%s)", e.getMessage()), e, "github-configuration");
-        }
-        save();
-    }
-
-    @Override
-    protected void load() throws IOException {
-        super.load();
-        if (configuration == null) {
-            configuration = new GitHubPluginConfig();
-            save();
-        }
-    }
-
     /**
-     * @return instance of this plugin
-     */
-    public static GitHubPlugin get() {
-        return notNull(Jenkins.getInstance(), "Jenkins is not ready to return instance")
-                .getPlugin(GitHubPlugin.class);
-    }
-
-    /**
-     * Shortcut method for {@link GitHubPlugin#get()#getConfiguration()}.
+     * Shortcut method for getting instance of {@link GitHubPluginConfig}.
      *
      * @return configuration of plugin
      */
+    @Nonnull
     public static GitHubPluginConfig configuration() {
-        return get().getConfiguration();
+        return defaultIfNull(
+                GitHubPluginConfig.all().get(GitHubPluginConfig.class), 
+                GitHubPluginConfig.EMPTY_CONFIG
+        );
     }
 }
