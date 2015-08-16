@@ -4,7 +4,6 @@ import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 
-import hudson.model.AbstractProject;
 import hudson.model.Job;
 
 import org.apache.commons.lang.Validate;
@@ -130,7 +129,7 @@ public class WebhookManager {
     }
 
     /**
-     * Main logic of {@link #registerFor(AbstractProject)}.
+     * Main logic of {@link #registerFor(Job)}.
      * Updates hooks with replacing old ones with merged new ones
      *
      * @param events calculated events list to be registered in hook
