@@ -2,10 +2,13 @@ package org.jenkinsci.plugins.github.extension;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
 import hudson.model.AbstractProject;
+import hudson.model.Job;
 import jenkins.model.Jenkins;
+
 import org.kohsuke.github.GHEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +40,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      *
      * @return true to provide events to register and subscribe for this project
      */
-    protected abstract boolean isApplicable(AbstractProject<?, ?> project);
+    protected abstract boolean isApplicable(Job<?, ?> project);
 
     /**
      * Should be not null. Should return only events which this extension can parse in {@link #onEvent(GHEvent, String)}
@@ -88,7 +91,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      *
      * @return predicate to use in iterable filtering
      */
-    public static Predicate<GHEventsSubscriber> isApplicableFor(final AbstractProject<?, ?> project) {
+    public static Predicate<GHEventsSubscriber> isApplicableFor(final Job<?, ?> project) {
         return new Predicate<GHEventsSubscriber>() {
             @Override
             public boolean apply(GHEventsSubscriber subscriber) {

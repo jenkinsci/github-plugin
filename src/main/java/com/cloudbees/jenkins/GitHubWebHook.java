@@ -3,7 +3,7 @@ package com.cloudbees.jenkins;
 import com.google.common.base.Function;
 import hudson.Extension;
 import hudson.ExtensionPoint;
-import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
 import hudson.triggers.Trigger;
@@ -70,7 +70,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
      *
      * @param job not null project to register hook for
      */
-    public void registerHookFor(AbstractProject job) {
+    public void registerHookFor(Job job) {
         reRegisterHookForJob().apply(job);
     }
 
@@ -79,8 +79,8 @@ public class GitHubWebHook implements UnprotectedRootAction {
      *
      * @return list of jobs which jenkins tried to register hook
      */
-    public List<AbstractProject> reRegisterAllHooks() {
-        return from(getJenkinsInstance().getAllItems(AbstractProject.class))
+    public List<Job> reRegisterAllHooks() {
+        return from(getJenkinsInstance().getAllItems(Job.class))
                 .filter(isBuildable())
                 .filter(isAlive())
                 .transform(reRegisterHookForJob()).toList();
@@ -100,10 +100,10 @@ public class GitHubWebHook implements UnprotectedRootAction {
                 .transform(processEvent(event, payload)).toList();
     }
 
-    private Function<AbstractProject, AbstractProject> reRegisterHookForJob() {
-        return new Function<AbstractProject, AbstractProject>() {
+    private Function<Job, Job> reRegisterHookForJob() {
+        return new Function<Job, Job>() {
             @Override
-            public AbstractProject apply(AbstractProject job) {
+            public Job apply(Job job) {
                 LOGGER.debug("Calling registerHooks() for {}", notNull(job, "Job can't be null").getFullName());
 
                 // We should handle wrong url of self defined hook url here in any case with try-catch :(
@@ -116,7 +116,6 @@ public class GitHubWebHook implements UnprotectedRootAction {
                 }
                 Runnable hookRegistrator = forHookUrl(hookUrl).registerFor(job);
                 queue.execute(hookRegistrator);
-
                 return job;
             }
         };
