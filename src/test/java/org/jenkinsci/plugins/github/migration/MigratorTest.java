@@ -18,6 +18,7 @@ import static java.lang.String.valueOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -76,6 +77,18 @@ public class MigratorTest {
                 both(withApiUrl(is(GITHUB_URL))).and(withCredsWithToken(TOKEN)),
                 both(withApiUrl(is(GITHUB_URL))).and(withCredsWithToken(TOKEN3))
         ));
+    }
+
+    @Test
+    @LocalData
+    public void shouldLoadDataAfterStart() throws Exception {
+        assertThat("should load 3 configs", GitHubPlugin.configuration().getConfigs(), hasSize(2));
+        assertThat("migrate custom url", GitHubPlugin.configuration().getConfigs(), hasItems(
+                withApiUrl(is(CUSTOM_GH_URL)),
+                withApiUrl(is(GITHUB_URL))
+        ));
+        assertThat("should load hook url", 
+                GitHubPlugin.configuration().getHookUrl().toString(), equalTo(HOOK_FROM_LOCAL_DATA));
     }
 
     @Test

@@ -6,6 +6,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.GitHubPlugin;
+import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.jenkinsci.plugins.github.config.GitHubTokenCredentialsCreator;
 import org.jenkinsci.plugins.github.deprecated.Credential;
@@ -48,7 +49,7 @@ public class Migrator {
 
             descriptor.clearCredentials();
             descriptor.save();
-            GitHubPlugin.get().save();
+            GitHubPlugin.configuration().save();
         }
 
         if (descriptor.getDeprecatedHookUrl() != null) {
@@ -57,7 +58,7 @@ public class Migrator {
             GitHubPlugin.configuration().setHookUrl(descriptor.getDeprecatedHookUrl());
             descriptor.clearDeprecatedHookUrl();
             descriptor.save();
-            GitHubPlugin.get().save();
+            GitHubPlugin.configuration().save();
         }
     }
 
@@ -95,5 +96,12 @@ public class Migrator {
      */
     public static void enableCompatibilityAliases() {
         Jenkins.XSTREAM2.addCompatibilityAlias("com.cloudbees.jenkins.Credential", Credential.class);
+    }
+
+    /**
+     * Simplifies long node names in config files
+     */
+    public static void enableAliases() {
+        Jenkins.XSTREAM2.alias(GitHubPluginConfig.GITHUB_PLUGIN_CONFIGURATION_ID, GitHubPluginConfig.class);
     }
 }

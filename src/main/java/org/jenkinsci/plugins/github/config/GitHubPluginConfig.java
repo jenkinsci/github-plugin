@@ -5,21 +5,21 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 
 import hudson.Extension;
-import hudson.model.AbstractDescribableImpl;
-import hudson.model.AbstractProject;
+import hudson.XmlFile;
 import hudson.model.Descriptor;
 import hudson.model.Job;
 import hudson.util.FormValidation;
+import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
-
+import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
+import org.jenkinsci.plugins.github.migration.Migrator;
 import org.kohsuke.github.GitHub;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static java.lang.String.format;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.loginToGithub;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
@@ -45,31 +46,50 @@ import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
  * @author lanwen (Merkushev Kirill)
  * @since TODO
  */
-public class GitHubPluginConfig extends AbstractDescribableImpl<GitHubPluginConfig> {
+@Extension
+public class GitHubPluginConfig extends GlobalConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHubPluginConfig.class);
+    public static final String GITHUB_PLUGIN_CONFIGURATION_ID = "github-plugin-configuration";
+
+    /**
+     * Helps to avoid null in {@link GitHubPlugin#configuration()}
+     */
+    public static final GitHubPluginConfig EMPTY_CONFIG =
+            new GitHubPluginConfig(Collections.<GitHubServerConfig>emptyList());
 
     private List<GitHubServerConfig> configs = new ArrayList<GitHubServerConfig>();
     private URL hookUrl;
     private transient boolean overrideHookUrl;
 
-    @DataBoundConstructor
+    /**
+     * Used to get current instance identity.
+     * It compared with same value when testing hook url availability in {@link #doCheckHookUrl(String)}
+     */
+    @Inject
+    @SuppressWarnings("unused")
+    private transient InstanceIdentity identity;
+
     public GitHubPluginConfig() {
+        load();
+    }
+
+    public GitHubPluginConfig(List<GitHubServerConfig> configs) {
+        this.configs = configs;
+    }
+
+    @SuppressWarnings("unused")
+    public void setConfigs(List<GitHubServerConfig> configs) {
+        this.configs = configs;
     }
 
     public List<GitHubServerConfig> getConfigs() {
         return configs;
     }
 
-    @DataBoundSetter
-    public void setConfigs(List<GitHubServerConfig> configs) {
-        this.configs = configs;
-    }
-
     public boolean isManageHooks() {
         return from(getConfigs()).filter(allowedToManageHooks()).first().isPresent();
     }
 
-    @DataBoundSetter
     public void setHookUrl(URL hookUrl) {
         if (overrideHookUrl) {
             this.hookUrl = hookUrl;
@@ -78,7 +98,6 @@ public class GitHubPluginConfig extends AbstractDescribableImpl<GitHubPluginConf
         }
     }
 
-    @DataBoundSetter
     public void setOverrideHookUrl(boolean overrideHookUrl) {
         this.overrideHookUrl = overrideHookUrl;
     }
@@ -115,60 +134,78 @@ public class GitHubPluginConfig extends AbstractDescribableImpl<GitHubPluginConf
         return Collections.singletonList(Jenkins.getInstance().getDescriptor(GitHubTokenCredentialsCreator.class));
     }
 
-    @Extension
-    public static class GitHubPluginConfigDescriptor extends Descriptor<GitHubPluginConfig> {
+    /**
+     * To avoid long class name as id in xml tag name and config file
+     */
+    @Override
+    public String getId() {
+        return GITHUB_PLUGIN_CONFIGURATION_ID;
+    }
 
-        /**
-         * Used to get current instance identity. It compared with same value when testing hook url availability
-         */
-        @Inject
-        @SuppressWarnings("unused")
-        private transient InstanceIdentity identity;
+    /**
+     * @return config file with global {@link com.thoughtworks.xstream.XStream} instance
+     * with enabled aliases in {@link Migrator#enableAliases()}
+     */
+    @Override
+    protected XmlFile getConfigFile() {
+        return new XmlFile(Jenkins.XSTREAM2, super.getConfigFile().getFile());
+    }
 
-        @Override
-        public String getDisplayName() {
-            return "GitHub Plugin Configuration";
+    @Override
+    public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+        try {
+            req.bindJSON(this, json);
+        } catch (Exception e) {
+            throw new FormException(
+                    format("Mailformed GitHub Plugin configuration (%s)", e.getMessage()), e, "github-configuration");
+        }
+        save();
+        return true;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "GitHub Plugin Configuration";
+    }
+
+    @SuppressWarnings("unused")
+    public FormValidation doReRegister() {
+        if (!GitHubPlugin.configuration().isManageHooks()) {
+            return FormValidation.warning("Works only when Jenkins manages hooks (one ore more creds specified)");
         }
 
-        @SuppressWarnings("unused")
-        public FormValidation doReRegister() {
-            if (!GitHubPlugin.configuration().isManageHooks()) {
-                return FormValidation.warning("Works only when Jenkins manages hooks (one ore more creds specified)");
+        List<Job> registered = GitHubWebHook.get().reRegisterAllHooks();
+
+        LOGGER.info("Called registerHooks() for {} jobs", registered.size());
+        return FormValidation.ok("Called re-register hooks for %s jobs", registered.size());
+    }
+
+    @SuppressWarnings("unused")
+    public FormValidation doCheckHookUrl(@QueryParameter String value) {
+        try {
+            HttpURLConnection con = (HttpURLConnection) new URL(value).openConnection();
+            con.setRequestMethod("POST");
+            con.setRequestProperty(GitHubWebHook.URL_VALIDATION_HEADER, "true");
+            con.connect();
+            if (con.getResponseCode() != 200) {
+                return FormValidation.error("Got %d from %s", con.getResponseCode(), value);
+            }
+            String v = con.getHeaderField(GitHubWebHook.X_INSTANCE_IDENTITY);
+            if (v == null) {
+                // people might be running clever apps that's not Jenkins, and that's OK
+                return FormValidation.warning("It doesn't look like %s is talking to any Jenkins. "
+                        + "Are you running your own app?", value);
+            }
+            RSAPublicKey key = identity.getPublic();
+            String expected = new String(Base64.encodeBase64(key.getEncoded()));
+            if (!expected.equals(v)) {
+                // if it responds but with a different ID, that's more likely wrong than correct
+                return FormValidation.error("%s is connecting to different Jenkins instances", value);
             }
 
-            List<Job> registered = GitHubWebHook.get().reRegisterAllHooks();
-
-            LOGGER.info("Called registerHooks() for {} jobs", registered.size());
-            return FormValidation.ok("Called re-register hooks for %s jobs", registered.size());
-        }
-
-        @SuppressWarnings("unused")
-        public FormValidation doCheckHookUrl(@QueryParameter String value) {
-            try {
-                HttpURLConnection con = (HttpURLConnection) new URL(value).openConnection();
-                con.setRequestMethod("POST");
-                con.setRequestProperty(GitHubWebHook.URL_VALIDATION_HEADER, "true");
-                con.connect();
-                if (con.getResponseCode() != 200) {
-                    return FormValidation.error("Got %d from %s", con.getResponseCode(), value);
-                }
-                String v = con.getHeaderField(GitHubWebHook.X_INSTANCE_IDENTITY);
-                if (v == null) {
-                    // people might be running clever apps that's not Jenkins, and that's OK
-                    return FormValidation.warning("It doesn't look like %s is talking to any Jenkins. " +
-                            "Are you running your own app?", value);
-                }
-                RSAPublicKey key = identity.getPublic();
-                String expected = new String(Base64.encodeBase64(key.getEncoded()));
-                if (!expected.equals(v)) {
-                    // if it responds but with a different ID, that's more likely wrong than correct
-                    return FormValidation.error("%s is connecting to different Jenkins instances", value);
-                }
-
-                return FormValidation.ok();
-            } catch (IOException e) {
-                return FormValidation.error(e, "Failed to test a connection to %s", value);
-            }
+            return FormValidation.ok();
+        } catch (IOException e) {
+            return FormValidation.error(e, "Failed to test a connection to %s", value);
         }
     }
 }
