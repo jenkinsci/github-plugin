@@ -119,4 +119,3 @@ with [github-plugin](https://issues.jenkins-ci.org/browse/JENKINS/component/1589
 
 - https://wiki.jenkins-ci.org/display/JENKINS/contributing
 - https://wiki.jenkins-ci.org/display/JENKINS/Extend+Jenkins
-- https://wiki.jenkins-ci.org/display/JENKINS/GitHub+commit+messages
