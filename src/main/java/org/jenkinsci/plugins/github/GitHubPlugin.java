@@ -47,7 +47,7 @@ public class GitHubPlugin extends Plugin {
     @Nonnull
     public static GitHubPluginConfig configuration() {
         return defaultIfNull(
-                GitHubPluginConfig.all().get(GitHubPluginConfig.class), 
+                GitHubPluginConfig.all().get(GitHubPluginConfig.class),
                 GitHubPluginConfig.EMPTY_CONFIG
         );
     }

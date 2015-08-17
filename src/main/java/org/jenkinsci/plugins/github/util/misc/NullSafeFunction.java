@@ -12,7 +12,7 @@ import javax.annotation.Nullable;
  * @author lanwen (Merkushev Kirill)
  */
 public abstract class NullSafeFunction<F, T> implements Function<F, T> {
-    
+
     @Override
     public T apply(@Nullable F input) {
         return applyNullSafe(Preconditions.checkNotNull(input, "This function not allows to use null as argument"));

@@ -128,7 +128,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
                 try {
                     subscriber.onEvent(event, payload);
                 } catch (Throwable t) {
-                    LOGGER.error("Subscriber {} failed to process {} hook, skipping...", 
+                    LOGGER.error("Subscriber {} failed to process {} hook, skipping...",
                             subscriber.getClass().getName(), event, t);
                 }
                 return null;

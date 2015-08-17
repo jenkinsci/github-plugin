@@ -1,8 +1,8 @@
 package org.jenkinsci.plugins.github.webhook;
 
-import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubWebHook;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.util.FluentIterableWrapper;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.stapler.HttpResponses;
@@ -73,7 +73,7 @@ public @interface RequirePostWithGHHookPayload {
         }
 
         /**
-         * Used for {@link GitHubPushTrigger.DescriptorImpl#doCheckHookUrl(java.lang.String)}
+         * Used for {@link GitHubPluginConfig#doCheckHookUrl(String)}}
          */
         protected void returnsInstanceIdentityIfLocalUrlTest(StaplerRequest req) throws InvocationTargetException {
             if (req.getHeader(GitHubWebHook.URL_VALIDATION_HEADER) != null) {
@@ -124,18 +124,27 @@ public @interface RequirePostWithGHHookPayload {
          * @throws InvocationTargetException if any of preconditions is not satisfied
          */
         protected void shouldContainParseablePayload(Object[] arguments) throws InvocationTargetException {
-            isTrue(arguments.length == 2, 
+            isTrue(arguments.length == 2,
                     "GHHook root action should take <(GHEvent) event> and <(String) payload> only");
 
             FluentIterableWrapper<Object> from = from(newArrayList(arguments));
-            isTrue(from.firstMatch(instanceOf(GHEvent.class)).isPresent(), "Hook should contain event type");
-            isTrue(isNotBlank((String) from.firstMatch(instanceOf(String.class)).or("")), "Hook should contain payload");
+
+            isTrue(
+                    from.firstMatch(instanceOf(GHEvent.class)).isPresent(),
+                    "Hook should contain event type"
+            );
+            isTrue(
+                    isNotBlank((String) from.firstMatch(instanceOf(String.class)).or("")),
+                    "Hook should contain payload"
+            );
         }
 
         /**
          * Utility method to stop preprocessing if condition is false
+         *
          * @param condition on false throws exception
-         * @param msg to add to exception
+         * @param msg       to add to exception
+         *
          * @throws InvocationTargetException BAD REQUEST 400 status code with message
          */
         private void isTrue(boolean condition, String msg) throws InvocationTargetException {

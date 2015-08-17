@@ -42,14 +42,14 @@ public @interface GHEventHeader {
          * @return parsed {@link GHEvent} or null on empty header or unknown value
          */
         @Override
-        public Object parse(StaplerRequest request, GHEventHeader a, Class type, String parameterName) throws ServletException {
+        public Object parse(StaplerRequest req, GHEventHeader a, Class type, String param) throws ServletException {
             isTrue(GHEvent.class.isAssignableFrom(type),
-                    "Parameter '%s' should has type %s, not %s", parameterName,
+                    "Parameter '%s' should has type %s, not %s", param,
                     GHEvent.class.getName(),
                     type.getName()
             );
 
-            String header = request.getHeader(EVENT_HEADER);
+            String header = req.getHeader(EVENT_HEADER);
             LOGGER.debug("Header {} -> {}", EVENT_HEADER, header);
 
             if (header == null) {

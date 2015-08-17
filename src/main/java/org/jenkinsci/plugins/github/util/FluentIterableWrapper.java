@@ -55,7 +55,7 @@ public abstract class FluentIterableWrapper<E> implements Iterable<E> {
     public static <E> FluentIterableWrapper<E> from(final Iterable<E> iterable) {
         return (iterable instanceof FluentIterableWrapper)
                 ? (FluentIterableWrapper<E>) iterable
-                : new FluentIterableWrapper<E>(iterable) {};
+                : new FluentIterableWrapper<E>(iterable) { };
     }
 
     /**
@@ -121,7 +121,7 @@ public abstract class FluentIterableWrapper<E> implements Iterable<E> {
      * If the iterable is empty, {@code Optional.absent()} is returned.
      *
      * @throws NullPointerException if the first element is null; if this is a possibility, use
-     *     {@code iterator().next()} or {@link Iterables#getFirst} instead.
+     *                              {@code iterator().next()} or {@link Iterables#getFirst} instead.
      */
     public final Optional<E> first() {
         Iterator<E> iterator = iterable.iterator();
@@ -129,7 +129,7 @@ public abstract class FluentIterableWrapper<E> implements Iterable<E> {
                 ? Optional.of(iterator.next())
                 : Optional.<E>absent();
     }
-    
+
     /**
      * Returns list from wrapped iterable
      */
@@ -140,7 +140,6 @@ public abstract class FluentIterableWrapper<E> implements Iterable<E> {
     /**
      * Returns an {@code ImmutableSet} containing all of the elements from this fluent iterable with
      * duplicates removed.
-     *
      */
     public final ImmutableSet<E> toSet() {
         return ImmutableSet.copyOf(iterable);
