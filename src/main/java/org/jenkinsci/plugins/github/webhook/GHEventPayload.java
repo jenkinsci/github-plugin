@@ -5,11 +5,13 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
+import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.kohsuke.stapler.AnnotationHandler;
 import org.kohsuke.stapler.InjectedParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.slf4j.Logger;
 
+import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.lang.annotation.Documented;
@@ -19,6 +21,7 @@ import java.util.Map;
 
 import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.apache.commons.lang3.Validate.notNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -54,7 +57,7 @@ public @interface GHEventPayload {
          */
         @Override
         public Object parse(StaplerRequest req, GHEventPayload a, Class type, String param) throws ServletException {
-            if (req.getHeader(GitHubWebHook.URL_VALIDATION_HEADER) != null) {
+            if (notNull(req, "Why StaplerRequest is null?").getHeader(GitHubWebHook.URL_VALIDATION_HEADER) != null) {
                 // if self test for custom hook url
                 return null;
             }
@@ -78,9 +81,9 @@ public @interface GHEventPayload {
          * @return function to extract payload from form request parameters
          */
         protected static Function<StaplerRequest, String> fromForm() {
-            return new Function<StaplerRequest, String>() {
+            return new NullSafeFunction<StaplerRequest, String>() {
                 @Override
-                public String apply(StaplerRequest request) {
+                protected String applyNullSafe(@Nonnull StaplerRequest request) {
                     return request.getParameter("payload");
                 }
             };
@@ -92,9 +95,9 @@ public @interface GHEventPayload {
          * @return function to extract payload from body
          */
         protected static Function<StaplerRequest, String> fromApplicationJson() {
-            return new Function<StaplerRequest, String>() {
+            return new NullSafeFunction<StaplerRequest, String>() {
                 @Override
-                public String apply(StaplerRequest request) {
+                protected String applyNullSafe(@Nonnull StaplerRequest request) {
                     try {
                         return IOUtils.toString(request.getInputStream(), Charsets.UTF_8);
                     } catch (IOException e) {

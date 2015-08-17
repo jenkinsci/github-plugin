@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static java.lang.String.format;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.loginToGithub;
@@ -195,7 +196,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
                         + "Are you running your own app?", value);
             }
             RSAPublicKey key = identity.getPublic();
-            String expected = new String(Base64.encodeBase64(key.getEncoded()));
+            String expected = new String(Base64.encodeBase64(key.getEncoded()), UTF_8);
             if (!expected.equals(v)) {
                 // if it responds but with a different ID, that's more likely wrong than correct
                 return FormValidation.error("%s is connecting to different Jenkins instances", value);

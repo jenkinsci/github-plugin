@@ -1,10 +1,10 @@
 package org.jenkinsci.plugins.github.util.misc;
 
 import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * This abstract class calls {@link #applyNullSafe(Object)} only after success validation of inner object for null
@@ -14,8 +14,8 @@ import javax.annotation.Nullable;
 public abstract class NullSafeFunction<F, T> implements Function<F, T> {
 
     @Override
-    public T apply(@Nullable F input) {
-        return applyNullSafe(Preconditions.checkNotNull(input, "This function not allows to use null as argument"));
+    public T apply(F input) {
+        return applyNullSafe(checkNotNull(input, "This function not allows to use null as argument"));
     }
 
     /**

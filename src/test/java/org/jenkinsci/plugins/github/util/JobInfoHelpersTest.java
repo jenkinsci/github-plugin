@@ -2,12 +2,13 @@ package org.jenkinsci.plugins.github.util;
 
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import hudson.model.FreeStyleProject;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import static org.hamcrest.Matchers.is;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isAlive;
+import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isBuildable;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.withTrigger;
 import static org.junit.Assert.assertThat;
 
@@ -16,8 +17,8 @@ import static org.junit.Assert.assertThat;
  */
 public class JobInfoHelpersTest {
 
-    @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    @ClassRule
+    public static JenkinsRule jenkins = new JenkinsRule();
 
     @Test
     public void shouldMatchForProjectWithTrigger() throws Exception {
@@ -40,6 +41,16 @@ public class JobInfoHelpersTest {
         FreeStyleProject prj = jenkins.createFreeStyleProject();
 
         assertThat("without trigger", withTrigger(GitHubPushTrigger.class).apply(prj), is(false));
+    }
+
+    @Test
+    public void shouldNotMatchNullProject() throws Exception {
+        assertThat("null project", withTrigger(GitHubPushTrigger.class).apply(null), is(false));
+    }
+
+    @Test
+    public void shouldReturnNotBuildableOnNullProject() throws Exception {
+        assertThat("null project", isBuildable().apply(null), is(false));
     }
 
     @Test
