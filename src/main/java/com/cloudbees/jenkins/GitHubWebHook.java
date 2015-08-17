@@ -6,7 +6,6 @@ import hudson.ExtensionPoint;
 import hudson.model.AbstractProject;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
-import hudson.triggers.Trigger;
 import hudson.util.SequentialExecutionQueue;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang3.Validate;
@@ -48,8 +47,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
     public static final String URL_VALIDATION_HEADER = "X-Jenkins-Validation";
     public static final String X_INSTANCE_IDENTITY = "X-Instance-Identity";
 
-    private transient final SequentialExecutionQueue queue = new SequentialExecutionQueue(threadPoolForRemoting);
-
+    private final transient SequentialExecutionQueue queue = new SequentialExecutionQueue(threadPoolForRemoting);
 
     public String getIconFileName() {
         return null;
@@ -138,7 +136,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
      *
      * @since 1.8
      */
-    public static abstract class Listener implements ExtensionPoint {
+    public abstract static class Listener implements ExtensionPoint {
 
         /**
          * Called when there is a change notification on a specific repository.

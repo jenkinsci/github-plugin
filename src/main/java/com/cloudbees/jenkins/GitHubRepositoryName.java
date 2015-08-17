@@ -86,8 +86,11 @@ public class GitHubRepositoryName {
         return null;
     }
 
+    @SuppressWarnings("visibilitymodifier")
     public final String host;
+    @SuppressWarnings("visibilitymodifier")
     public final String userName;
+    @SuppressWarnings("visibilitymodifier")
     public final String repositoryName;
 
     public GitHubRepositoryName(String host, String userName, String repositoryName) {

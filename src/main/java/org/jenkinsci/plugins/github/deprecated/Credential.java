@@ -8,7 +8,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
  *
  * @author Kohsuke Kawaguchi
  * @deprecated Please use {@link org.jenkinsci.plugins.github.config.GitHubServerConfig} instead
- * 
  */
 @Deprecated
 public class Credential {

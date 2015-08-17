@@ -11,8 +11,8 @@ import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 
 import java.util.Collection;
 
-import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
+import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 
 /**
  * Utility class which holds converters or predicates (matchers) to filter or convert job lists
@@ -66,8 +66,8 @@ public final class JobInfoHelpers {
     /**
      * If any of event subscriber interested in hook for job, then return true
      * By default, push hook subscriber is interested in job with gh-push-trigger
-     * 
-     * @return predicate with true if job alive and should have hook 
+     *
+     * @return predicate with true if job alive and should have hook
      */
     public static Predicate<AbstractProject> isAlive() {
         return new Predicate<AbstractProject>() {

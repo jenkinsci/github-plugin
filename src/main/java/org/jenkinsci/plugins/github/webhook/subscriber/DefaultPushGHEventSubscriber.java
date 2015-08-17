@@ -64,7 +64,8 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
     @Override
     protected void onEvent(GHEvent event, String payload) {
         JSONObject json = JSONObject.fromObject(payload);
-        String repoUrl = json.getJSONObject("repository").getString("url"); // something like 'https://github.com/kohsuke/foo'
+        // something like 'https://github.com/bar/foo'
+        String repoUrl = json.getJSONObject("repository").getString("url");
         final String pusherName = json.getJSONObject("pusher").getString("name");
 
         LOGGER.info("Received POST for {}", repoUrl);
@@ -89,14 +90,17 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                             if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
                                 LOGGER.info("Poked {}", job.getFullDisplayName());
                                 trigger.onPost(pusherName);
-                            } else
-                                LOGGER.debug("Skipped {} because it doesn't have a matching repository.", job.getFullDisplayName());
+                            } else {
+                                LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
+                                        job.getFullDisplayName());
+                            }
                         }
                     }
                 }
             });
 
-            for (GitHubWebHook.Listener listener : Jenkins.getInstance().getExtensionList(GitHubWebHook.Listener.class)) {
+            for (GitHubWebHook.Listener listener : Jenkins.getInstance()
+                    .getExtensionList(GitHubWebHook.Listener.class)) {
                 listener.onPushRepositoryChanged(pusherName, changedRepository);
             }
 
