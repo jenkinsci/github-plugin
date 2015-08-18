@@ -34,7 +34,7 @@ public final class JobInfoHelpers {
     public static Predicate<AbstractProject> withTrigger(final Class<? extends Trigger> clazz) {
         return new Predicate<AbstractProject>() {
             public boolean apply(AbstractProject job) {
-                return job.getTrigger(clazz) != null;
+                return job != null && job.getTrigger(clazz) != null;
             }
         };
     }
@@ -47,7 +47,7 @@ public final class JobInfoHelpers {
     public static Predicate<Job> isBuildable() {
         return new Predicate<Job>() {
             public boolean apply(Job job) {
-                return job.isBuildable();
+                return job != null && job.isBuildable();
             }
         };
     }

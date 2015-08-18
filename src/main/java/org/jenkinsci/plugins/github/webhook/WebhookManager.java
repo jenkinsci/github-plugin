@@ -6,6 +6,8 @@ import com.google.common.base.Predicate;
 import hudson.model.AbstractProject;
 import org.apache.commons.lang.Validate;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
+import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
+import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.github.GHException;
 import org.kohsuke.github.GHHook;
@@ -13,6 +15,7 @@ import org.kohsuke.github.GHRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
@@ -135,9 +138,9 @@ public class WebhookManager {
      * @return function to register hooks for given events
      */
     protected Function<GitHubRepositoryName, GHHook> createHookSubscribedTo(final List<GHEvent> events) {
-        return new Function<GitHubRepositoryName, GHHook>() {
+        return new NullSafeFunction<GitHubRepositoryName, GHHook>() {
             @Override
-            public GHHook apply(GitHubRepositoryName name) {
+            protected GHHook applyNullSafe(@Nonnull GitHubRepositoryName name) {
                 try {
                     GHRepository repo = checkNotNull(
                             from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull(),
@@ -181,9 +184,9 @@ public class WebhookManager {
      * @return always true predicate
      */
     private Predicate<GHHook> log(final String format) {
-        return new Predicate<GHHook>() {
+        return new NullSafePredicate<GHHook>() {
             @Override
-            public boolean apply(GHHook input) {
+            protected boolean applyNullSafe(@Nonnull GHHook input) {
                 LOGGER.debug(format("%s {} (events: {})", format), input.getUrl(), input.getEvents());
                 return true;
             }
@@ -196,9 +199,9 @@ public class WebhookManager {
      * @return true if we have admin rights for repo
      */
     protected Predicate<GHRepository> withAdminAccess() {
-        return new Predicate<GHRepository>() {
+        return new NullSafePredicate<GHRepository>() {
             @Override
-            public boolean apply(GHRepository repo) {
+            protected boolean applyNullSafe(@Nonnull GHRepository repo) {
                 return repo.hasAdminAccess();
             }
         };
@@ -212,8 +215,8 @@ public class WebhookManager {
      * @return true if hook is service hook
      */
     protected Predicate<GHHook> serviceWebhookFor(final URL url) {
-        return new Predicate<GHHook>() {
-            public boolean apply(GHHook hook) {
+        return new NullSafePredicate<GHHook>() {
+            protected boolean applyNullSafe(@Nonnull GHHook hook) {
                 return hook.getName().equals("jenkins")
                         && hook.getConfig().get("jenkins_hook_url").equals(url.toExternalForm());
             }
@@ -228,8 +231,8 @@ public class WebhookManager {
      * @return true if hook is standard webhook
      */
     protected Predicate<GHHook> webhookFor(final URL url) {
-        return new Predicate<GHHook>() {
-            public boolean apply(GHHook hook) {
+        return new NullSafePredicate<GHHook>() {
+            protected boolean applyNullSafe(@Nonnull GHHook hook) {
                 return hook.getName().equals("web")
                         && hook.getConfig().get("url").equals(url.toExternalForm());
             }
@@ -240,9 +243,9 @@ public class WebhookManager {
      * @return converter to extract events from each hook
      */
     protected Function<GHHook, Iterable<GHEvent>> eventsFromHook() {
-        return new Function<GHHook, Iterable<GHEvent>>() {
+        return new NullSafeFunction<GHHook, Iterable<GHEvent>>() {
             @Override
-            public Iterable<GHEvent> apply(GHHook input) {
+            protected Iterable<GHEvent> applyNullSafe(@Nonnull GHHook input) {
                 return input.getEvents();
             }
         };
@@ -256,9 +259,9 @@ public class WebhookManager {
      * @return converter to fetch from GH hooks list for each repo
      */
     protected Function<GHRepository, List<GHHook>> fetchHooks() {
-        return new Function<GHRepository, List<GHHook>>() {
+        return new NullSafeFunction<GHRepository, List<GHHook>>() {
             @Override
-            public List<GHHook> apply(GHRepository repo) {
+            protected List<GHHook> applyNullSafe(@Nonnull GHRepository repo) {
                 try {
                     return repo.getHooks();
                 } catch (IOException e) {
@@ -275,8 +278,8 @@ public class WebhookManager {
      * @return converter to create GH hook for given url with given events
      */
     protected Function<GHRepository, GHHook> createWebhook(final URL url, final Set<GHEvent> events) {
-        return new Function<GHRepository, GHHook>() {
-            public GHHook apply(GHRepository repo) {
+        return new NullSafeFunction<GHRepository, GHHook>() {
+            protected GHHook applyNullSafe(@Nonnull GHRepository repo) {
                 try {
                     return repo.createWebHook(url, events);
                 } catch (IOException e) {
@@ -290,8 +293,8 @@ public class WebhookManager {
      * @return annihilator for hook, returns true if deletion was successful
      */
     protected Predicate<GHHook> deleteWebhook() {
-        return new Predicate<GHHook>() {
-            public boolean apply(GHHook hook) {
+        return new NullSafePredicate<GHHook>() {
+            protected boolean applyNullSafe(@Nonnull GHHook hook) {
                 try {
                     hook.delete();
                     return true;

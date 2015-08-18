@@ -20,6 +20,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.logging.Logger;
 
+import static com.cloudbees.jenkins.GitHubWebHook.X_INSTANCE_IDENTITY;
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.annotation.ElementType.FIELD;
@@ -84,7 +86,7 @@ public @interface RequirePostWithGHHookPayload {
                             throws IOException, ServletException {
                         RSAPublicKey key = new InstanceIdentity().getPublic();
                         rsp.setStatus(HttpServletResponse.SC_OK);
-                        rsp.setHeader(GitHubWebHook.X_INSTANCE_IDENTITY, new String(encodeBase64(key.getEncoded())));
+                        rsp.setHeader(X_INSTANCE_IDENTITY, new String(encodeBase64(key.getEncoded()), UTF_8));
                     }
                 });
             }

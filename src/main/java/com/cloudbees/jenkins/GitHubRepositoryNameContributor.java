@@ -56,7 +56,7 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
                 try {
                     contributor.buildEnvironmentFor(job, env, TaskListener.NULL);
                 } catch (Exception e) {
-                    LOGGER.debug("{} failed to build environment ({})", contributor.getClass(), e.getMessage());
+                    LOGGER.debug("{} failed to build env ({}), skipping", contributor.getClass(), e.getMessage(), e);
                 }
             }
             return env;
