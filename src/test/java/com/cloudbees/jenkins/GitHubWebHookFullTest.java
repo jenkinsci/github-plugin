@@ -82,13 +82,12 @@ public class GitHubWebHookFullTest {
     @Test
     public void shouldParsePingFromGH() throws Exception {
         given().spec(spec)
-                .header(eventHeader("ping"))
+                .header(eventHeader(GHEvent.PING))
                 .header(JSON_CONTENT_TYPE)
                 .content(classpath("payloads/ping.json"))
                 .log().all()
                 .expect().log().all()
                 .statusCode(SC_OK)
-                .body(containsString("Ping received!"))
                 .post();
     }
 

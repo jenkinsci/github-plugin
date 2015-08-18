@@ -18,7 +18,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.security.interfaces.RSAPublicKey;
-import java.util.logging.Logger;
 
 import static com.cloudbees.jenkins.GitHubWebHook.X_INSTANCE_IDENTITY;
 import static com.google.common.base.Charsets.UTF_8;
@@ -29,7 +28,6 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.commons.codec.binary.Base64.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
@@ -47,7 +45,6 @@ import static org.kohsuke.stapler.HttpResponses.error;
 @InterceptorAnnotation(RequirePostWithGHHookPayload.Processor.class)
 public @interface RequirePostWithGHHookPayload {
     class Processor extends Interceptor {
-        private static final Logger LOGGER = Logger.getLogger(Processor.class.getName());
 
         @Override
         public Object invoke(StaplerRequest req, StaplerResponse rsp, Object instance, Object[] arguments)
@@ -55,7 +52,6 @@ public @interface RequirePostWithGHHookPayload {
 
             shouldBePostMethod(req);
             returnsInstanceIdentityIfLocalUrlTest(req);
-            logPingEvent(req);
             shouldContainParseablePayload(arguments);
 
             return target.invoke(req, rsp, instance, arguments);
@@ -87,31 +83,6 @@ public @interface RequirePostWithGHHookPayload {
                         RSAPublicKey key = new InstanceIdentity().getPublic();
                         rsp.setStatus(HttpServletResponse.SC_OK);
                         rsp.setHeader(X_INSTANCE_IDENTITY, new String(encodeBase64(key.getEncoded()), UTF_8));
-                    }
-                });
-            }
-        }
-
-        /**
-         * Additional logic to log ping event. In future can be replaced with separate
-         * {@link org.jenkinsci.plugins.github.extension.GHEventsSubscriber} with
-         * filtering of PING event to contribute.
-         *
-         * Wait for https://github.com/kohsuke/github-api/pull/204 will be released
-         *
-         * @throws InvocationTargetException returns OK 200 to client on ping event
-         */
-        protected void logPingEvent(StaplerRequest req) throws InvocationTargetException {
-            if ("ping".equals(req.getHeader(GHEventHeader.PayloadHandler.EVENT_HEADER))) {
-                // until https://github.com/kohsuke/github-api/pull/204 will not be released
-                // after that use GHEvent.PING event form arguments
-
-                LOGGER.info("Got ping event from GH");
-                throw new InvocationTargetException(new HttpResponses.HttpResponseException() {
-                    public void generateResponse(StaplerRequest req, StaplerResponse rsp, Object node)
-                            throws IOException {
-                        rsp.setStatus(SC_OK);
-                        rsp.getWriter().println("Ping received!");
                     }
                 });
             }
