@@ -31,13 +31,15 @@ import static java.lang.String.format;
  * Create commit status notifications on the commits based on the outcome of the build.
  *
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
- * @since TODO: define a version Result on failure is configurable.
  */
 public class GitHubCommitNotifier extends Notifier {
 
     private final String resultOnFailure;
     private static final Result[] SUPPORTED_RESULTS = {FAILURE, UNSTABLE, SUCCESS};
 
+    /**
+     * @since 1.10
+     */
     @DataBoundConstructor
     public GitHubCommitNotifier(String resultOnFailure) {
         this.resultOnFailure = resultOnFailure;
@@ -48,6 +50,9 @@ public class GitHubCommitNotifier extends Notifier {
         this(getDefaultResultOnFailure().toString());
     }
 
+    /**
+     * @since 1.10
+     */
     @Nonnull
     public String getResultOnFailure() {
         return resultOnFailure != null ? resultOnFailure : getDefaultResultOnFailure().toString();

@@ -140,7 +140,7 @@ public class GitHubRepositoryName {
      * @param predicate helps to filter only useful for resolve {@link GitHubServerConfig}s
      *
      * @return iterable with lazy login process for getting authenticated repos
-     * @since TODO
+     * @since 1.13.0
      */
     public Iterable<GHRepository> resolve(Predicate<GitHubServerConfig> predicate) {
         return from(GitHubPlugin.configuration().findGithubConfig(and(withHost(host), predicate)))

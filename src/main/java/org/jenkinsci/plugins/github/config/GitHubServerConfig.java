@@ -48,7 +48,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * So one github server can be used with many creds and one token can be used multiply times in lot of gh servers
  *
  * @author lanwen (Merkushev Kirill)
- * @since TODO
+ * @since 1.13.0
  */
 @XStreamAlias("github-server-config")
 public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConfig> {
