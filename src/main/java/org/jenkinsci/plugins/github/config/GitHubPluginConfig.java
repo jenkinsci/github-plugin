@@ -43,7 +43,7 @@ import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
  * such as hook managing policy, credentials etc.
  *
  * @author lanwen (Merkushev Kirill)
- * @since TODO
+ * @since 0.13.0
  */
 @Extension
 public class GitHubPluginConfig extends GlobalConfiguration {

@@ -25,7 +25,7 @@ import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
  * push trigger descriptor
  *
  * @author lanwen (Merkushev Kirill)
- * @since TODO
+ * @since 0.13.0
  */
 public class Migrator {
     private static final Logger LOGGER = LoggerFactory.getLogger(Migrator.class);

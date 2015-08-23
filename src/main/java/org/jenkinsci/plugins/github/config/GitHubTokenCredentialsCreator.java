@@ -53,7 +53,7 @@ import static org.kohsuke.github.GHAuthorization.REPO_STATUS;
  * and save it as token credentials with help of plain-credentials plugin
  *
  * @author lanwen (Merkushev Kirill)
- * @since TODO
+ * @since 0.13.0
  */
 @Extension
 public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredentialsCreator> implements
