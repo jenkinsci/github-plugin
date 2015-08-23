@@ -17,7 +17,7 @@ import static org.kohsuke.github.GHEvent.PING;
  * Get ping events to log them
  *
  * @author lanwen (Merkushev Kirill)
- * @since TODO
+ * @since 1.13.0
  */
 @Extension
 @SuppressWarnings("unused")
