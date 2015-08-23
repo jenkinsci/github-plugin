@@ -206,6 +206,9 @@
                     <configLocation>
                         src/test/resources/checkstyle/checkstyle-config.xml
                     </configLocation>
+                    <suppressionsLocation>
+                        src/test/resources/checkstyle/checkstyle-suppressions.xml
+                    </suppressionsLocation>
                 </configuration>
             </plugin>
         </plugins>
