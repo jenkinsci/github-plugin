@@ -14,6 +14,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.codec.binary.Base64;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.jenkinsci.plugins.github.GitHubPlugin;
+import org.jenkinsci.plugins.github.Messages;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.migration.Migrator;
 import org.kohsuke.github.GitHub;
@@ -34,6 +35,7 @@ import java.util.List;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.loginToGithub;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
@@ -103,13 +105,17 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     public URL getHookUrl() throws GHPluginConfigException {
         try {
+            String jenkinsUrl = Jenkins.getInstance().getRootUrl();
+
+            if (isEmpty(jenkinsUrl)) {
+                throw new GHPluginConfigException(Messages.global_config_url_is_empty());
+            }
+
             return hookUrl != null
                     ? hookUrl
-                    : new URL(Jenkins.getInstance().getRootUrl() + GitHubWebHook.get().getUrlName() + '/');
+                    : new URL(jenkinsUrl + GitHubWebHook.get().getUrlName() + '/');
         } catch (MalformedURLException e) {
-            throw new GHPluginConfigException(
-                    "Mailformed GH hook url in global configuration (%s)", e.getMessage()
-            );
+            throw new GHPluginConfigException(Messages.global_config_hook_url_is_mailformed(e.getMessage()));
         }
     }
 
