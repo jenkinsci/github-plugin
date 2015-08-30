@@ -55,6 +55,10 @@ public class Cleaner extends PeriodicWork {
      */
     @Override
     protected void doRun() throws Exception {
+        if (!GitHubPlugin.configuration().isManageHooks()) {
+            return;
+        }
+
         URL url = GitHubPlugin.configuration().getHookUrl();
 
         List<AbstractProject> jobs = Jenkins.getInstance().getAllItems(AbstractProject.class);
