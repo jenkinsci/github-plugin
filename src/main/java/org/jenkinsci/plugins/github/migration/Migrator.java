@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.migration;
 
+import com.cloudbees.jenkins.Credential;
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.google.common.annotations.VisibleForTesting;
@@ -9,7 +10,6 @@ import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.jenkinsci.plugins.github.config.GitHubTokenCredentialsCreator;
-import org.jenkinsci.plugins.github.deprecated.Credential;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,10 +92,13 @@ public class Migrator {
     }
 
     /**
-     * - Old plain credentials moved to deprecated package as used only for migration
+     * Enable xml migration from deprecated nodes to new
+     *
+     * Can be used for example as
+     * Jenkins.XSTREAM2.addCompatibilityAlias("com.cloudbees.jenkins.Credential", Credential.class);
      */
     public static void enableCompatibilityAliases() {
-        Jenkins.XSTREAM2.addCompatibilityAlias("com.cloudbees.jenkins.Credential", Credential.class);
+        // not used at this moment
     }
 
     /**
