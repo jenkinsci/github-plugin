@@ -191,6 +191,11 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     /**
      * Returns true if given host is part of stored (or default if blank) api url
      *
+     * For example:
+     * withHost(api.github.com).apply(config for ~empty~) = true
+     * withHost(api.github.com).apply(config for api.github.com) = true
+     * withHost(api.github.com).apply(config for github.company.com) = false
+     *
      * @param host host to find in api url
      *
      * @return predicate to match against {@link GitHubServerConfig}

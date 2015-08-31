@@ -1,12 +1,12 @@
 package org.jenkinsci.plugins.github.migration;
 
+import com.cloudbees.jenkins.Credential;
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubWebHook;
 import hudson.model.FreeStyleProject;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
-import org.jenkinsci.plugins.github.deprecated.Credential;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
