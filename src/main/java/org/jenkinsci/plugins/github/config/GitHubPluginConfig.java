@@ -35,7 +35,7 @@ import java.util.List;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.loginToGithub;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
@@ -103,19 +103,15 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         this.overrideHookUrl = overrideHookUrl;
     }
 
+    /**
+     * @return hook url used as endpoint to search and write auto-managed hooks in GH
+     * @throws GHPluginConfigException if default jenkins url is malformed
+     */
     public URL getHookUrl() throws GHPluginConfigException {
-        try {
-            String jenkinsUrl = Jenkins.getInstance().getRootUrl();
-
-            if (isEmpty(jenkinsUrl)) {
-                throw new GHPluginConfigException(Messages.global_config_url_is_empty());
-            }
-
-            return hookUrl != null
-                    ? hookUrl
-                    : new URL(jenkinsUrl + GitHubWebHook.get().getUrlName() + '/');
-        } catch (MalformedURLException e) {
-            throw new GHPluginConfigException(Messages.global_config_hook_url_is_mailformed(e.getMessage()));
+        if (hookUrl != null) {
+            return hookUrl;
+        } else {
+            return constructDefaultUrl();
         }
     }
 
@@ -211,6 +207,36 @@ public class GitHubPluginConfig extends GlobalConfiguration {
             return FormValidation.ok();
         } catch (IOException e) {
             return FormValidation.error(e, "Failed to test a connection to %s", value);
+        }
+    }
+
+    /**
+     * Used by default in {@link #getHookUrl()}
+     *
+     * @return url to be used in GH hooks configuration as main endpoint
+     * @throws GHPluginConfigException if jenkins root url empty of malformed
+     */
+    private URL constructDefaultUrl() {
+        String jenkinsUrl = Jenkins.getInstance().getRootUrl();
+        validateConfig(isNotEmpty(jenkinsUrl), Messages.global_config_url_is_empty());
+        try {
+            return new URL(jenkinsUrl + GitHubWebHook.get().getUrlName() + '/');
+        } catch (MalformedURLException e) {
+            throw new GHPluginConfigException(Messages.global_config_hook_url_is_malformed(e.getMessage()));
+        }
+    }
+
+    /**
+     * Util method just to hide one more if for better readability
+     *
+     * @param state   to check. If false, then exception will be thrown
+     * @param message message to describe exception in case of false state
+     *
+     * @throws GHPluginConfigException if state is false
+     */
+    private void validateConfig(boolean state, String message) {
+        if (!state) {
+            throw new GHPluginConfigException(message);
         }
     }
 }
