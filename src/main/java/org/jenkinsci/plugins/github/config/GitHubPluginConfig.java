@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.base.Charsets.UTF_8;
-import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.loginToGithub;
@@ -159,8 +158,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         } catch (Exception e) {
             LOGGER.debug("Problem while submitting form for GitHub Plugin ({})", e.getMessage(), e);
             LOGGER.trace("GH form data: {}", json.toString());
-            throw new FormException(
-                    format("Mailformed GitHub Plugin configuration (%s)", e.getMessage()), e, "github-configuration");
+            new ConfigurePluginHelper(this).populate(req, json);
         }
         save();
         return true;
