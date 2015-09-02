@@ -157,6 +157,8 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         try {
             req.bindJSON(this, json);
         } catch (Exception e) {
+            LOGGER.debug("Problem while submitting form for GitHub Plugin ({})", e.getMessage(), e);
+            LOGGER.trace("GH form data: {}", json.toString());
             throw new FormException(
                     format("Mailformed GitHub Plugin configuration (%s)", e.getMessage()), e, "github-configuration");
         }
