@@ -1,7 +1,7 @@
 package org.jenkinsci.plugins.github.webhook.subscriber;
 
 import hudson.Extension;
-import hudson.model.AbstractProject;
+import hudson.model.Job;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
 import org.slf4j.Logger;
@@ -32,7 +32,7 @@ public class PingGHEventSubscriber extends GHEventsSubscriber {
      * @return always false
      */
     @Override
-    protected boolean isApplicable(AbstractProject<?, ?> project) {
+    protected boolean isApplicable(Job<?, ?> project) {
         return false;
     }
 
