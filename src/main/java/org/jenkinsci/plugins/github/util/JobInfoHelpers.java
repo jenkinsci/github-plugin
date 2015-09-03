@@ -4,11 +4,13 @@ import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.triggers.Trigger;
 import jenkins.model.ParameterizedJobMixIn;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 
+import javax.annotation.CheckForNull;
 import java.util.Collection;
 
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
@@ -34,18 +36,7 @@ public final class JobInfoHelpers {
     public static Predicate<Job> withTrigger(final Class<? extends Trigger> clazz) {
         return new Predicate<Job>() {
             public boolean apply(Job job) {
-                if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
-                    ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
-                    // TODO use standard method in 1.621+
-                    for (Trigger trigger : pJob.getTriggers().values()) {
-                        if (clazz.isInstance(trigger)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                } else {
-                    return false;
-                }
+                return triggerFrom(job, clazz) != null;
             }
         };
     }
@@ -85,6 +76,47 @@ public final class JobInfoHelpers {
             @Override
             public boolean apply(Job job) {
                 return !from(GHEventsSubscriber.all()).filter(isApplicableFor(job)).toList().isEmpty();
+            }
+        };
+    }
+
+    /**
+     * @param job    job to search trigger in
+     * @param tClass trigger with class which we want to receive from job
+     * @param <T>    type of trigger
+     *
+     * @return Trigger instance with required class or null
+     * TODO use standard method in 1.621+
+     */
+    @CheckForNull
+    public static <T extends Trigger> T triggerFrom(Job<?, ?> job, Class<T> tClass) {
+        if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
+            ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
+
+            for (Trigger candidate : pJob.getTriggers().values()) {
+                if (tClass.isInstance(candidate)) {
+                    return tClass.cast(candidate);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Converts any child class of {@link Job} (such as {@link AbstractProject}
+     * to {@link ParameterizedJobMixIn} to use it for workflow
+     *
+     * @param job to wrap
+     * @param <T> any child type of Job
+     *
+     * @return ParameterizedJobMixIn
+     * TODO use standard method in 1.621+
+     */
+    public static <T extends Job> ParameterizedJobMixIn asParameterizedJobMixIn(final T job) {
+        return new ParameterizedJobMixIn() {
+            @Override
+            protected Job asJob() {
+                return job;
             }
         };
     }

@@ -27,7 +27,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -41,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJobMixIn;
 
 /**
  * Triggers a build when we receive a GitHub post-commit webhook.
@@ -110,14 +110,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         LOGGER.warn("Failed to parse the polling log", e);
                         cause = new GitHubPushCause(pushBy);
                     }
-                    // TODO use standard method in 1.621+
-                    ParameterizedJobMixIn scheduledJob = new ParameterizedJobMixIn() {
-                        @Override
-                        protected Job asJob() {
-                            return job;
-                        }
-                    };
-                    if (scheduledJob.scheduleBuild(cause)) {
+                    if (asParameterizedJobMixIn(job).scheduleBuild(cause)) {
                         LOGGER.info("SCM changes detected in " + job.getName() + ". Triggering " + name);
                     } else {
                         LOGGER.info("SCM changes detected in " + job.getName() + ". Job is already in the queue");

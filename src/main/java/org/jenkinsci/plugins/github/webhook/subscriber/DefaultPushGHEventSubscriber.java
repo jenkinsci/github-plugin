@@ -8,9 +8,7 @@ import com.cloudbees.jenkins.GitHubWebHook;
 import hudson.Extension;
 import hudson.model.Job;
 import hudson.security.ACL;
-import hudson.triggers.Trigger;
 import jenkins.model.Jenkins;
-import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
@@ -22,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.collect.Sets.immutableEnumSet;
+import static org.jenkinsci.plugins.github.util.JobInfoHelpers.triggerFrom;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.withTrigger;
 import static org.kohsuke.github.GHEvent.PUSH;
 
@@ -86,17 +85,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                 @Override
                 public void run() {
                     for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
-                        GitHubTrigger trigger = null;
-                        if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
-                            ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
-                            // TODO use standard method in 1.621+
-                            for (Trigger candidate : pJob.getTriggers().values()) {
-                                if (candidate instanceof GitHubTrigger) {
-                                    trigger = (GitHubTrigger) candidate;
-                                    break;
-                                }
-                            }
-                        }
+                        GitHubTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
                         if (trigger != null) {
                             LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
                             if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {

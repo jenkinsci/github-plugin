@@ -48,12 +48,29 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
      * then puts them into the collection.
      */
     public /*abstract*/ void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
-        if (Util.isOverridden(GitHubRepositoryNameContributor.class, getClass(),
-                "parseAssociatedNames", AbstractProject.class, Collection.class) && job instanceof AbstractProject) {
+        if (overriddenMethodHasDeprecatedSignature(job)) {
             parseAssociatedNames((AbstractProject) job, result);
         } else {
             throw new AbstractMethodError("you must override the new overload of parseAssociatedNames");
         }
+    }
+
+    /**
+     * To select backward compatible method with old extensions
+     * with overridden {@link #parseAssociatedNames(AbstractProject, Collection)}
+     *
+     * @param job - parameter to check for old class
+     *
+     * @return true if overridden deprecated method
+     */
+    private boolean overriddenMethodHasDeprecatedSignature(Job<?, ?> job) {
+        return Util.isOverridden(
+                GitHubRepositoryNameContributor.class,
+                getClass(),
+                "parseAssociatedNames",
+                AbstractProject.class,
+                Collection.class
+        ) && job instanceof AbstractProject;
     }
 
     public static ExtensionList<GitHubRepositoryNameContributor> all() {
@@ -61,7 +78,7 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
     }
 
     /**
-     * @deprecated Use {@link GitHubRepositoryNameContributor#parseAssociatedNames(Job)}
+     * @deprecated Use {@link #parseAssociatedNames(Job)}
      */
     @Deprecated
     public static Collection<GitHubRepositoryName> parseAssociatedNames(AbstractProject<?, ?> job) {
@@ -98,8 +115,7 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
                 try {
                     contributor.buildEnvironmentFor(job, env, TaskListener.NULL);
                 } catch (Exception e) {
-                    LOGGER.debug(e.getMessage(), e);
-                    // ignore
+                    LOGGER.debug("{} failed to build env ({}), skipping", contributor.getClass(), e.getMessage(), e);
                 }
             }
             return env;
