@@ -63,6 +63,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     private List<GitHubServerConfig> configs = new ArrayList<GitHubServerConfig>();
     private URL hookUrl;
     private transient boolean overrideHookUrl;
+    private String bannedCommitter = "";
 
     /**
      * Used to get current instance identity.
@@ -99,6 +100,14 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         } else {
             this.hookUrl = null;
         }
+    }
+
+    public String getBannedCommitter() {
+        return bannedCommitter;
+    }
+
+    public void setBannedCommitter(final String aBannedCommitter) {
+        bannedCommitter = aBannedCommitter;
     }
 
     public void setOverrideHookUrl(boolean overrideHookUrl) {
