@@ -10,6 +10,7 @@ import hudson.model.Job;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
 import org.slf4j.Logger;
@@ -65,7 +66,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
         String repoUrl = json.getJSONObject("repository").getString("url");
         final String pusherName = json.getJSONObject("pusher").getString("name");
 
-        LOGGER.info("Received POST for {}", repoUrl);
+        LOGGER.info("Received POST for: {}, pusher: {}", repoUrl, pusherName);
         final GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl);
 
         if (changedRepository != null) {
@@ -81,7 +82,12 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                             LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
                             if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
                                 LOGGER.info("Poked {}", job.getFullDisplayName());
-                                trigger.onPost(pusherName);
+                                if (pusherName.equalsIgnoreCase(GitHubPlugin.configuration().getBannedCommitter())) {
+                                    LOGGER.info("Skipped {} because user is banned: {}.", job.getFullDisplayName()
+                                                                                         , pusherName);
+                                } else {
+                                    trigger.onPost(pusherName);
+                                }
                             } else {
                                 LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
                                         job.getFullDisplayName());

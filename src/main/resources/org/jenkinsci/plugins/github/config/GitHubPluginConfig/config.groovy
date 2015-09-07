@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.github.config.GitHubPluginConfig
 
 import com.cloudbees.jenkins.GitHubPushTrigger
+import org.jenkinsci.plugins.github.config.GitHubServerConfig
 
 def f = namespace(lib.FormTagLib);
 
@@ -34,6 +35,10 @@ f.section(title: descriptor.displayName) {
                     }
                 }
             }
+        }
+
+        f.entry(title: _("Banned committer"), field: "bannedCommitter") {
+            f.textbox()
         }
 
         f.property(
