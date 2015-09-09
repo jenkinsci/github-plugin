@@ -13,6 +13,8 @@ import jenkins.model.Jenkins;
 import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
 import org.jenkinsci.plugins.multiplescms.MultiSCM;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -26,32 +28,35 @@ import java.util.Set;
  * @since 1.7
  */
 public abstract class GitHubRepositoryNameContributor implements ExtensionPoint {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubRepositoryNameContributor.class);
+
     /**
      * Looks at the definition of {@link AbstractProject} and list up the related github repositories,
      * then puts them into the collection.
      */
-    public abstract void parseAssociatedNames(AbstractProject<?,?> job, Collection<GitHubRepositoryName> result);
+    public abstract void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result);
 
     public static ExtensionList<GitHubRepositoryNameContributor> all() {
         return Jenkins.getInstance().getExtensionList(GitHubRepositoryNameContributor.class);
     }
 
-    public static Collection<GitHubRepositoryName> parseAssociatedNames(AbstractProject<?,?> job) {
+    public static Collection<GitHubRepositoryName> parseAssociatedNames(AbstractProject<?, ?> job) {
         Set<GitHubRepositoryName> names = new HashSet<GitHubRepositoryName>();
-        for (GitHubRepositoryNameContributor c : all())
-            c.parseAssociatedNames(job,names);
+        for (GitHubRepositoryNameContributor c : all()) {
+            c.parseAssociatedNames(job, names);
+        }
         return names;
     }
 
 
-    static abstract class AbstractFromSCMImpl extends GitHubRepositoryNameContributor {
+    abstract static class AbstractFromSCMImpl extends GitHubRepositoryNameContributor {
         protected EnvVars buildEnv(AbstractProject<?, ?> job) {
             EnvVars env = new EnvVars();
             for (EnvironmentContributor contributor : EnvironmentContributor.all()) {
                 try {
                     contributor.buildEnvironmentFor(job, env, TaskListener.NULL);
                 } catch (Exception e) {
-                    // ignore
+                    LOGGER.debug("{} failed to build env ({}), skipping", contributor.getClass(), e.getMessage(), e);
                 }
             }
             return env;
@@ -77,6 +82,7 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
      * Default implementation that looks at SCM
      */
     @Extension
+    @SuppressWarnings("unused")
     public static class FromSCM extends AbstractFromSCMImpl {
         @Override
         public void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result) {
@@ -87,10 +93,13 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
     /**
      * MultiSCM support separated into a different extension point since this is an optional dependency
      */
-    @Extension(optional=true)
+    @Extension(optional = true)
+    @SuppressWarnings("unused")
     public static class FromMultiSCM extends AbstractFromSCMImpl {
         // make this class fail to load if MultiSCM is not present
-        public FromMultiSCM() { MultiSCM.class.toString(); }
+        public FromMultiSCM() {
+            MultiSCM.class.toString();
+        }
 
         @Override
         public void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result) {
