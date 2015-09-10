@@ -3,10 +3,11 @@ package org.jenkinsci.plugins.github.config;
 import com.cloudbees.jenkins.GitHubWebHook;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+
 import hudson.Extension;
 import hudson.XmlFile;
-import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
+import hudson.model.Job;
 import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
@@ -24,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -157,6 +159,8 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         try {
             req.bindJSON(this, json);
         } catch (Exception e) {
+            LOGGER.debug("Problem while submitting form for GitHub Plugin ({})", e.getMessage(), e);
+            LOGGER.trace("GH form data: {}", json.toString());
             throw new FormException(
                     format("Mailformed GitHub Plugin configuration (%s)", e.getMessage()), e, "github-configuration");
         }
@@ -175,7 +179,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
             return FormValidation.warning("Works only when Jenkins manages hooks (one ore more creds specified)");
         }
 
-        List<AbstractProject> registered = GitHubWebHook.get().reRegisterAllHooks();
+        List<Job> registered = GitHubWebHook.get().reRegisterAllHooks();
 
         LOGGER.info("Called registerHooks() for {} jobs", registered.size());
         return FormValidation.ok("Called re-register hooks for %s jobs", registered.size());

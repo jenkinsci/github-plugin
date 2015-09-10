@@ -8,6 +8,7 @@ import hudson.console.AnnotatedLargeText;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.Item;
+import hudson.model.Job;
 import hudson.model.Project;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
@@ -15,6 +16,8 @@ import hudson.util.SequentialExecutionQueue;
 import hudson.util.StreamTaskListener;
 import jenkins.model.Jenkins;
 import jenkins.model.Jenkins.MasterComputer;
+import jenkins.model.ParameterizedJobMixIn;
+import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
 import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
@@ -37,13 +40,14 @@ import java.util.List;
 import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJobMixIn;
 
 /**
  * Triggers a build when we receive a GitHub post-commit webhook.
  *
  * @author Kohsuke Kawaguchi
  */
-public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements GitHubTrigger {
+public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigger {
     private String pushBy;
     private final String ignorablePusher;
 
@@ -91,7 +95,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
                         PrintStream logger = listener.getLogger();
                         long start = System.currentTimeMillis();
                         logger.println("Started on " + DateFormat.getDateTimeInstance().format(new Date()));
-                        boolean result = job.poll(listener).hasChanges();
+                        boolean result = SCMTriggerItems.asSCMTriggerItem(job).poll(listener).hasChanges();
                         logger.println("Done. Took " + Util.getTimeSpanString(System.currentTimeMillis() - start));
                         if (result) {
                             logger.println("Changes found");
@@ -126,7 +130,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
                         LOGGER.warn("Failed to parse the polling log", e);
                         cause = new GitHubPushCause(pushBy);
                     }
-                    if (job.scheduleBuild(cause)) {
+                    if (asParameterizedJobMixIn(job).scheduleBuild(cause)) {
                         LOGGER.info("SCM changes detected in " + job.getName() + ". Triggering " + name);
                     } else {
                         LOGGER.info("SCM changes detected in " + job.getName() + ". Job is already in the queue");
@@ -152,7 +156,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
     }
 
     @Override
-    public void start(AbstractProject<?, ?> project, boolean newInstance) {
+    public void start(Job<?, ?> project, boolean newInstance) {
         super.start(project, newInstance);
         if (newInstance && GitHubPlugin.configuration().isManageHooks()) {
             registerHooks();
@@ -202,7 +206,7 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
      * Action object for {@link Project}. Used to display the polling log.
      */
     public final class GitHubWebHookPollingAction implements Action {
-        public AbstractProject<?, ?> getOwner() {
+        public Job<?, ?> getOwner() {
             return job;
         }
 
@@ -244,7 +248,8 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
 
         @Override
         public boolean isApplicable(Item item) {
-            return item instanceof AbstractProject;
+            return item instanceof Job && SCMTriggerItems.asSCMTriggerItem(item) != null
+                    && item instanceof ParameterizedJobMixIn.ParameterizedJob;
         }
 
         @Override
