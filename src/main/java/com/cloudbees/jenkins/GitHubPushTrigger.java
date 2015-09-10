@@ -48,8 +48,8 @@ public class GitHubPushTrigger extends Trigger<AbstractProject<?, ?>> implements
     private final String ignorablePusher;
 
     @DataBoundConstructor
-    public GitHubPushTrigger(final String regex) {
-        ignorablePusher = regex;
+    public GitHubPushTrigger(final String ignorablePusher) {
+        this.ignorablePusher = ignorablePusher;
     }
 
     public GitHubPushTrigger() {
