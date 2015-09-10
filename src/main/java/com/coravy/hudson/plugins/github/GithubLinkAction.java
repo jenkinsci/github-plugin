@@ -4,7 +4,7 @@ import hudson.model.Action;
 
 /**
  * Add the Github Logo/Icon to the sidebar.
- * 
+ *
  * @author Stefan Saasen <stefan@coravy.com>
  */
 public final class GithubLinkAction implements Action {
@@ -15,26 +15,17 @@ public final class GithubLinkAction implements Action {
         this.projectProperty = githubProjectProperty;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see hudson.model.Action#getDisplayName()
-     */
+    @Override
     public String getDisplayName() {
         return "GitHub";
     }
 
-    /*
-     * (non-Javadoc)
-     * @see hudson.model.Action#getIconFileName()
-     */
+    @Override
     public String getIconFileName() {
         return "/plugin/github/logov3.png";
     }
 
-    /*
-     * (non-Javadoc)
-     * @see hudson.model.Action#getUrlName()
-     */
+    @Override
     public String getUrlName() {
         return projectProperty.getProjectUrl().baseUrl();
     }

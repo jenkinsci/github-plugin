@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<github-plugin-configuration plugin="github@1.12.0">
+  <configs>
+    <github-server-config>
+      <apiUrl>https://api.github.com</apiUrl>
+      <manageHooks>true</manageHooks>
+      <credentialsId>a06436b7-7862-41fd-b7dc-3fec57c81f14</credentialsId>
+    </github-server-config>
+    <github-server-config>
+      <apiUrl>http://custom.github.example.com/api/v3</apiUrl>
+      <manageHooks>true</manageHooks>
+      <credentialsId>aae86cb0-e6d2-4520-80a9-89ab80129a4f</credentialsId>
+    </github-server-config>
+  </configs>
+  <hookUrl>http://some.proxy.example.com/webhook</hookUrl>
+</github-plugin-configuration>
