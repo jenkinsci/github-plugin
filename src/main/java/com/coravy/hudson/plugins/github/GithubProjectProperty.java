@@ -20,7 +20,6 @@ import java.util.logging.Logger;
  * As of now this is only the URL to the github project.
  *
  * @author Stefan Saasen <stefan@coravy.com>
- * @todo Should we store the GithubUrl instead of the String?
  */
 public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
 
@@ -30,8 +29,12 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
     private String projectUrl;
 
     @DataBoundConstructor
-    public GithubProjectProperty(String projectUrl) {
-        this.projectUrl = new GithubUrl(projectUrl).baseUrl();
+    public GithubProjectProperty(String url) {
+        this.projectUrl = new GithubUrl(url).baseUrl();
+    }
+
+    public String getUrl() {
+        return projectUrl;
     }
 
     /**
