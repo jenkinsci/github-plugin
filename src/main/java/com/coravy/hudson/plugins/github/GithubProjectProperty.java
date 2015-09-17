@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  * @author Stefan Saasen <stefan@coravy.com>
  * @todo Should we store the GithubUrl instead of the String?
  */
-public final class GithubProjectProperty extends JobProperty<AbstractProject<?, ?>> {
+public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
 
     /**
      * This will the URL to the project main branch.
@@ -43,7 +43,7 @@ public final class GithubProjectProperty extends JobProperty<AbstractProject<?, 
     }
 
     @Override
-    public Collection<? extends Action> getJobActions(AbstractProject<?, ?> job) {
+    public Collection<? extends Action> getJobActions(Job<?, ?> job) {
         if (null != projectUrl) {
             return Collections.singleton(new GithubLinkAction(this));
         }
@@ -56,10 +56,6 @@ public final class GithubProjectProperty extends JobProperty<AbstractProject<?, 
         public DescriptorImpl() {
             super(GithubProjectProperty.class);
             load();
-        }
-
-        public boolean isApplicable(Class<? extends Job> jobType) {
-            return AbstractProject.class.isAssignableFrom(jobType);
         }
 
         public String getDisplayName() {
