@@ -33,6 +33,10 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
         this.projectUrl = new GithubUrl(url).baseUrl();
     }
 
+    /**
+     * Same as {@link #getProjectUrl}, but with a property name and type which match those used in the {@link #GithubProjectProperty} constructor.
+     * Should have been called {@code getProjectUrl} and that method called something else (such as {@code getNormalizedProjectUrl}), but that cannot be done compatibly now.
+     */
     public String getUrl() {
         return projectUrl;
     }
