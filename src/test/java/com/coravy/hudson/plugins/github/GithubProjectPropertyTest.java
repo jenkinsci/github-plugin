@@ -26,16 +26,16 @@ import org.jvnet.hudson.test.JenkinsRule;
 public class GithubProjectPropertyTest {
 
     @Rule
-    public JenkinsRule r = new JenkinsRule();
+    public JenkinsRule j = new JenkinsRule();
 
     @Test
     public void configRoundTrip() throws Exception {
-        WorkflowJob p = r.jenkins.createProject(WorkflowJob.class, "p");
-        r.configRoundtrip(p);
+        WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
+        j.configRoundtrip(p);
         assertNull(p.getProperty(GithubProjectProperty.class));
         String url = "https://github.com/a/b/";
         p.addProperty(new GithubProjectProperty(url));
-        r.configRoundtrip(p);
+        j.configRoundtrip(p);
         GithubProjectProperty prop = p.getProperty(GithubProjectProperty.class);
         assertNotNull(prop);
         assertEquals(url, prop.getProjectUrl().baseUrl());
