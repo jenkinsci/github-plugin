@@ -30,8 +30,8 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
     private String projectUrl;
 
     @DataBoundConstructor
-    public GithubProjectProperty(String url) {
-        this.projectUrl = new GithubUrl(url).baseUrl();
+    public GithubProjectProperty(String projectUrlStr) {
+        this.projectUrl = new GithubUrl(projectUrlStr).baseUrl();
     }
 
     /**
@@ -40,7 +40,7 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
      * Should have been called {@code getProjectUrl} and that method called something else
      * (such as {@code getNormalizedProjectUrl}), but that cannot be done compatibly now.
      */
-    public String getUrl() {
+    public String getProjectUrlStr() {
         return projectUrl;
     }
 
