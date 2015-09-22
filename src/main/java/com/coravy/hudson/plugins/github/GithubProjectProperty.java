@@ -6,6 +6,7 @@ import hudson.model.Action;
 import hudson.model.Job;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
+import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
@@ -62,6 +63,10 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
         public DescriptorImpl() {
             super(GithubProjectProperty.class);
             load();
+        }
+
+        public boolean isApplicable(Class<? extends Job> jobType) {
+            return ParameterizedJobMixIn.ParameterizedJob.class.isAssignableFrom(jobType);
         }
 
         public String getDisplayName() {
