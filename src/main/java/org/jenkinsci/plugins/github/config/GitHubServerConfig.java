@@ -14,7 +14,7 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
+import org.jenkinsci.plugins.github.internal.GitHubLoginFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
@@ -151,23 +151,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      */
     @CheckForNull
     public static Function<GitHubServerConfig, GitHub> loginToGithub() {
-        return new NullSafeFunction<GitHubServerConfig, GitHub>() {
-            @Override
-            public GitHub applyNullSafe(@Nonnull GitHubServerConfig github) {
-                String accessToken = tokenFor(github.getCredentialsId());
-
-                try {
-                    if (isNotBlank(github.getApiUrl())) {
-                        return GitHub.connectToEnterprise(github.getApiUrl(), accessToken);
-                    }
-
-                    return GitHub.connectUsingOAuth(accessToken);
-                } catch (IOException e) {
-                    LOGGER.warn("Failed to login with creds {}", github.getCredentialsId(), e);
-                    return null;
-                }
-            }
-        };
+        return new GitHubLoginFunction();
     }
 
     /**
