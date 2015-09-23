@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.immutableEnumSet;
-import static net.sf.json.JSONObject.fromObject;
+import net.sf.json.JSONObject;
 import static org.kohsuke.github.GHEvent.PING;
 
 /**
@@ -52,8 +52,18 @@ public class PingGHEventSubscriber extends GHEventsSubscriber {
      */
     @Override
     protected void onEvent(GHEvent event, String payload) {
-        // something like <https://github.com/bar/foo>
-        String repo = fromObject(payload).getJSONObject("repository").getString("url");
-        LOGGER.info("{} webhook received from repo <{}>!", event, repo);
+        JSONObject parsedPayload = JSONObject.fromObject(payload);
+        JSONObject repository = parsedPayload.optJSONObject("repository");
+        if (repository != null) {
+            // something like <https://github.com/bar/foo>
+            LOGGER.info("{} webhook received from repo <{}>!", event, repository.getString("url"));
+        } else {
+            JSONObject organization = parsedPayload.optJSONObject("organization");
+            if (organization != null) {
+                LOGGER.info("{} webhook received from org <{}>!", event, organization.getString("url"));
+            } else {
+                LOGGER.warn("{} webhook received with unexpected payload", event);
+            }
+        }
     }
 }
