@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.github.webhook.subscriber;
 
 import hudson.Extension;
 import hudson.model.Job;
+import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
 import org.slf4j.Logger;
@@ -52,8 +53,18 @@ public class PingGHEventSubscriber extends GHEventsSubscriber {
      */
     @Override
     protected void onEvent(GHEvent event, String payload) {
-        // something like <https://github.com/bar/foo>
-        String repo = fromObject(payload).getJSONObject("repository").getString("url");
-        LOGGER.info("{} webhook received from repo <{}>!", event, repo);
+        JSONObject parsedPayload = fromObject(payload);
+        JSONObject repository = parsedPayload.optJSONObject("repository");
+        if (repository != null) {
+            // something like <https://github.com/bar/foo>
+            LOGGER.info("{} webhook received from repo <{}>!", event, repository.getString("url"));
+        } else {
+            JSONObject organization = parsedPayload.optJSONObject("organization");
+            if (organization != null) {
+                LOGGER.info("{} webhook received from org <{}>!", event, organization.getString("url"));
+            } else {
+                LOGGER.warn("{} webhook received with unexpected payload", event);
+            }
+        }
     }
 }

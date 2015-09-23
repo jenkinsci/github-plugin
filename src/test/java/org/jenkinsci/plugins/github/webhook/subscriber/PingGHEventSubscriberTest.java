@@ -10,6 +10,7 @@ import org.kohsuke.github.GHEvent;
 import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import org.jvnet.hudson.test.Issue;
 
 /**
  * @author lanwen (Merkushev Kirill)
@@ -30,4 +31,12 @@ public class PingGHEventSubscriberTest {
     public void shouldParsePingPayload() throws Exception {
         new PingGHEventSubscriber().onEvent(GHEvent.PING, classpath("payloads/ping.json"));
     }
+
+    @Issue("JENKINS-30626")
+    @Test
+    @WithoutJenkins
+    public void shouldParseOrgPingPayload() throws Exception {
+        new PingGHEventSubscriber().onEvent(GHEvent.PING, classpath("payloads/orgping.json"));
+    }
+
 }
