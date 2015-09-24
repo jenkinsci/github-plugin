@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.github.webhook.subscriber;
 
 import hudson.Extension;
 import hudson.model.Job;
+import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
 import org.slf4j.Logger;
@@ -10,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.immutableEnumSet;
-import net.sf.json.JSONObject;
+import static net.sf.json.JSONObject.fromObject;
 import static org.kohsuke.github.GHEvent.PING;
 
 /**
@@ -52,7 +53,7 @@ public class PingGHEventSubscriber extends GHEventsSubscriber {
      */
     @Override
     protected void onEvent(GHEvent event, String payload) {
-        JSONObject parsedPayload = JSONObject.fromObject(payload);
+        JSONObject parsedPayload = fromObject(payload);
         JSONObject repository = parsedPayload.optJSONObject("repository");
         if (repository != null) {
             // something like <https://github.com/bar/foo>
