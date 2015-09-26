@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.github.config;
 import com.cloudbees.jenkins.GitHubWebHook;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-
 import hudson.Extension;
 import hudson.XmlFile;
 import hudson.model.Descriptor;
@@ -25,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -55,6 +53,13 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     public static final String GITHUB_PLUGIN_CONFIGURATION_ID = "github-plugin-configuration";
 
     /**
+     * Default value in MB for client cache size
+     *
+     * @see #getClientCacheSize()
+     */
+    private static final int DEFAULT_CLIENT_CACHE_SIZE_MB = 20;
+
+    /**
      * Helps to avoid null in {@link GitHubPlugin#configuration()}
      */
     public static final GitHubPluginConfig EMPTY_CONFIG =
@@ -62,6 +67,13 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     private List<GitHubServerConfig> configs = new ArrayList<GitHubServerConfig>();
     private URL hookUrl;
+
+    /**
+     * @see #getClientCacheSize()
+     * @see #setClientCacheSize(int)
+     */
+    private int clientCacheSize = DEFAULT_CLIENT_CACHE_SIZE_MB;
+
     private transient boolean overrideHookUrl;
 
     /**
@@ -119,6 +131,24 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     public boolean isOverrideHookURL() {
         return hookUrl != null;
+    }
+
+    /**
+     * Capacity of cache for GitHub client in MB.
+     *
+     * Defaults to 20 MB
+     *
+     * @since TODO
+     */
+    public int getClientCacheSize() {
+        return clientCacheSize;
+    }
+
+    /**
+     * @param clientCacheSize capacity of cache for GitHub client in MB, set to <= 0 to turn off this feature
+     */
+    public void setClientCacheSize(int clientCacheSize) {
+        this.clientCacheSize = clientCacheSize;
     }
 
     /**

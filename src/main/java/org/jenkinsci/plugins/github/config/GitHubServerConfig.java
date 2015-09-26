@@ -14,6 +14,7 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.github.internal.GitHubLoginFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
@@ -72,6 +73,11 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      * only to set to default apiUrl when uncheck. Can be removed if optional block can nullify value if unchecked
      */
     private transient boolean customApiUrl;
+
+    /**
+     * To avoid creation of new one on every login with this config
+     */
+    private transient GitHub cachedClient;
 
     @DataBoundConstructor
     public GitHubServerConfig(String credentialsId) {
@@ -134,6 +140,22 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     }
 
     /**
+     * @return cached GH client or null
+     */
+    private GitHub getCachedClient() {
+        return cachedClient;
+    }
+
+    /**
+     * Used by {@link org.jenkinsci.plugins.github.config.GitHubServerConfig.ClientCacheFunction}
+     *
+     * @param cachedClient updated client. Maybe null to invalidate cache
+     */
+    private synchronized void setCachedClient(GitHub cachedClient) {
+        this.cachedClient = cachedClient;
+    }
+
+    /**
      * Checks GH url for equality to default api url
      *
      * @param apiUrl should be not blank and not equal to default url to return true
@@ -148,26 +170,11 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      * Converts server config to authorized GH instance. If login process is not successful it returns null
      *
      * @return function to convert config to gh instance
+     * @see org.jenkinsci.plugins.github.config.GitHubServerConfig.ClientCacheFunction
      */
     @CheckForNull
     public static Function<GitHubServerConfig, GitHub> loginToGithub() {
-        return new NullSafeFunction<GitHubServerConfig, GitHub>() {
-            @Override
-            public GitHub applyNullSafe(@Nonnull GitHubServerConfig github) {
-                String accessToken = tokenFor(github.getCredentialsId());
-
-                try {
-                    if (isNotBlank(github.getApiUrl())) {
-                        return GitHub.connectToEnterprise(github.getApiUrl(), accessToken);
-                    }
-
-                    return GitHub.connectUsingOAuth(accessToken);
-                } catch (IOException e) {
-                    LOGGER.warn("Failed to login with creds {}", github.getCredentialsId(), e);
-                    return null;
-                }
-            }
-        };
+        return new ClientCacheFunction();
     }
 
     /**
@@ -248,16 +255,14 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
         @SuppressWarnings("unused")
         public FormValidation doVerifyCredentials(
                 @QueryParameter String apiUrl, @QueryParameter String credentialsId) throws IOException {
-            try {
-                GitHub gitHub;
-                if (isNotBlank(apiUrl)) {
-                    gitHub = GitHub.connectToEnterprise(apiUrl, tokenFor(credentialsId));
-                } else {
-                    gitHub = GitHub.connectUsingOAuth(tokenFor(credentialsId));
-                }
 
-                if (gitHub.isCredentialValid()) {
-                    return FormValidation.ok("Credentials verifyed, rate limit: %s", gitHub.getRateLimit().remaining);
+            GitHubServerConfig config = new GitHubServerConfig(credentialsId);
+            config.setApiUrl(apiUrl);
+            GitHub gitHub = new GitHubLoginFunction().apply(config);
+
+            try {
+                if (gitHub != null && gitHub.isCredentialValid()) {
+                    return FormValidation.ok("Credentials verified, rate limit: %s", gitHub.getRateLimit().remaining);
                 } else {
                     return FormValidation.error("Failed to validate the account");
                 }
@@ -271,7 +276,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
             try {
                 new URL(value);
             } catch (MalformedURLException e) {
-                return FormValidation.error("Mailformed GitHub url (%s)", e.getMessage());
+                return FormValidation.error("Malformed GitHub url (%s)", e.getMessage());
             }
 
             if (GITHUB_URL.equals(value)) {
@@ -283,6 +288,20 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
             }
 
             return FormValidation.warning("GitHub Enterprise API URL ends with \"/api/v3\"");
+        }
+    }
+
+    /**
+     * Function to get authorized GH client and cache it in config
+     * has {@link #loginToGithub()} static factory
+     */
+    private static class ClientCacheFunction extends NullSafeFunction<GitHubServerConfig, GitHub> {
+        @Override
+        protected GitHub applyNullSafe(@Nonnull GitHubServerConfig github) {
+            if (github.getCachedClient() == null) {
+                github.setCachedClient(new GitHubLoginFunction().apply(github));
+            }
+            return github.getCachedClient();
         }
     }
 }
