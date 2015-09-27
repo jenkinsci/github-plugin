@@ -83,8 +83,9 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
      *
      * @param apiUrl GitHub's url to build proxy to
      *
-     * @return proxy to use it in connector
+     * @return proxy to use it in connector. Should not be null as it can lead to unexpected behaviour
      */
+    @Nonnull
     private Proxy getProxy(String apiUrl) {
         Jenkins jenkins = GitHubWebHook.getJenkinsInstance();
 
@@ -105,16 +106,22 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
      * @return connector to be used as backend for client
      */
     private OkHttpConnector connector(String apiUrl) {
-        Jenkins jenkins = GitHubWebHook.getJenkinsInstance();
         OkHttpClient client = new OkHttpClient().setProxy(getProxy(apiUrl));
 
         if (configuration().getClientCacheSize() > 0) {
-            File cacheDir = new File(jenkins.getRootDir(), GitHubPlugin.class.getName() + ".cache");
+            File cacheDir = getCacheBaseDirFor(GitHubWebHook.getJenkinsInstance());
             Cache cache = new Cache(cacheDir, configuration().getClientCacheSize() * 1024 * 1024);
             client.setCache(cache);
         }
 
         return new OkHttpConnector(new OkUrlFactory(client));
+    }
+
+    /**
+     * @return directory with cache for GitHub client
+     */
+    public static File getCacheBaseDirFor(Jenkins jenkins) {
+        return new File(jenkins.getRootDir(), GitHubPlugin.class.getName() + ".cache");
     }
 
     /**
