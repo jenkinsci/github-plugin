@@ -257,6 +257,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
                 @QueryParameter String apiUrl, @QueryParameter String credentialsId) throws IOException {
 
             GitHubServerConfig config = new GitHubServerConfig(credentialsId);
+            config.setCustomApiUrl(isUrlCustom(apiUrl));
             config.setApiUrl(apiUrl);
             GitHub gitHub = new GitHubLoginFunction().apply(config);
 
