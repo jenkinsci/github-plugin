@@ -1,5 +1,6 @@
 Jenkins Github Plugin
 =====================
+[![covarage](https://img.shields.io/sonar/http/sonar.lanwen.ru/com.coravy.hudson.plugins.github:github/coverage.svg?style=flat)](http://sonar.lanwen.ru/dashboard/index?id=com.coravy.hudson.plugins.github:github)
 
 Read more: [http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin](http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin)
 
