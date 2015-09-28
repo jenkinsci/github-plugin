@@ -3,9 +3,7 @@ package org.jenkinsci.plugins.github.webhook;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-
 import hudson.model.Job;
-
 import org.apache.commons.lang.Validate;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
@@ -87,6 +85,12 @@ public class WebhookManager {
 
         return new Runnable() {
             public void run() {
+                if (events.isEmpty()) {
+                    LOGGER.debug("No any subscriber interested in {}, but hooks creation launched, skipping...",
+                            project.getFullName());
+                    return;
+                }
+
                 LOGGER.info("GitHub webhooks activated for job {} with {} (events: {})",
                         project.getFullName(), names, events);
 

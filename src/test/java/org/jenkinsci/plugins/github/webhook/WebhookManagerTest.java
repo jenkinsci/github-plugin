@@ -5,7 +5,6 @@ import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import hudson.model.FreeStyleProject;
 import hudson.plugins.git.GitSCM;
 import org.jenkinsci.plugins.github.GitHubPlugin;
@@ -39,7 +38,8 @@ import static org.kohsuke.github.GHEvent.CREATE;
 import static org.kohsuke.github.GHEvent.PULL_REQUEST;
 import static org.kohsuke.github.GHEvent.PUSH;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anySet;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.anySetOf;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -168,7 +168,7 @@ public class WebhookManagerTest {
 
         manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
         verify(manager, never()).deleteWebhook();
-        verify(manager, never()).createWebhook(any(URL.class), anySet());
+        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class));
     }
 
     @Test
@@ -177,7 +177,7 @@ public class WebhookManagerTest {
         project.setScm(GIT_SCM);
 
         manager.registerFor(project).run();
-        verify(manager).createHookSubscribedTo(Collections.<GHEvent>emptyList());
+        verify(manager, never()).createHookSubscribedTo(anyListOf(GHEvent.class));
     }
 
     @Test
@@ -191,11 +191,21 @@ public class WebhookManagerTest {
     }
 
     @Test
+    public void shouldReturnNullOnGettingEmptyEventsListToSubscribe() throws IOException {
+        doReturn(newArrayList(repo)).when(active).resolve(any(Predicate.class));
+        when(repo.hasAdminAccess()).thenReturn(true);
+
+        assertThat("empty events list not allowed to be registered",
+                forHookUrl(HOOK_ENDPOINT)
+                        .createHookSubscribedTo(Collections.<GHEvent>emptyList()).apply(active), nullValue());
+    }
+
+    @Test
     public void shouldSelectOnlyHookManagedCreds() {
         GitHubServerConfig conf = new GitHubServerConfig("");
         conf.setManageHooks(false);
         GitHubPlugin.configuration().getConfigs().add(conf);
-        
+
         assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH))
                 .apply(new GitHubRepositoryName("github.com", "name", "repo")), nullValue());
     }
@@ -206,7 +216,7 @@ public class WebhookManagerTest {
         conf.setApiUrl(ANOTHER_HOOK_ENDPOINT.toString());
         conf.setManageHooks(false);
         GitHubPlugin.configuration().getConfigs().add(conf);
-        
+
         assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH))
                 .apply(new GitHubRepositoryName("github.com", "name", "repo")), nullValue());
     }
