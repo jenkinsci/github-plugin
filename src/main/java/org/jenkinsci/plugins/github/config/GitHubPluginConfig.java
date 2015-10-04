@@ -38,6 +38,7 @@ import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.loginToGithub;
+import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.clearRedundantCaches;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 
 /**
@@ -53,13 +54,6 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     public static final String GITHUB_PLUGIN_CONFIGURATION_ID = "github-plugin-configuration";
 
     /**
-     * Default value in MB for client cache size
-     *
-     * @see #getClientCacheSize()
-     */
-    private static final int DEFAULT_CLIENT_CACHE_SIZE_MB = 20;
-
-    /**
      * Helps to avoid null in {@link GitHubPlugin#configuration()}
      */
     public static final GitHubPluginConfig EMPTY_CONFIG =
@@ -67,12 +61,6 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     private List<GitHubServerConfig> configs = new ArrayList<GitHubServerConfig>();
     private URL hookUrl;
-
-    /**
-     * @see #getClientCacheSize()
-     * @see #setClientCacheSize(int)
-     */
-    private int clientCacheSize = DEFAULT_CLIENT_CACHE_SIZE_MB;
 
     private transient boolean overrideHookUrl;
 
@@ -134,24 +122,6 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     }
 
     /**
-     * Capacity of cache for GitHub client in MB.
-     *
-     * Defaults to 20 MB
-     *
-     * @since TODO
-     */
-    public int getClientCacheSize() {
-        return clientCacheSize;
-    }
-
-    /**
-     * @param clientCacheSize capacity of cache for GitHub client in MB, set to <= 0 to turn off this feature
-     */
-    public void setClientCacheSize(int clientCacheSize) {
-        this.clientCacheSize = clientCacheSize;
-    }
-
-    /**
      * Filters all stored configs against given predicate then
      * logs in as the given user and returns the non null connection objects
      */
@@ -195,6 +165,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
                     format("Mailformed GitHub Plugin configuration (%s)", e.getMessage()), e, "github-configuration");
         }
         save();
+        clearRedundantCaches(configs);
         return true;
     }
 
@@ -250,7 +221,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
      * @return url to be used in GH hooks configuration as main endpoint
      * @throws GHPluginConfigException if jenkins root url empty of malformed
      */
-    private URL constructDefaultUrl() {
+    private static URL constructDefaultUrl() {
         String jenkinsUrl = Jenkins.getInstance().getRootUrl();
         validateConfig(isNotEmpty(jenkinsUrl), Messages.global_config_url_is_empty());
         try {
@@ -268,7 +239,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
      *
      * @throws GHPluginConfigException if state is false
      */
-    private void validateConfig(boolean state, String message) {
+    private static void validateConfig(boolean state, String message) {
         if (!state) {
             throw new GHPluginConfigException(message);
         }
