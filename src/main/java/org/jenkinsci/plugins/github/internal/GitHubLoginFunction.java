@@ -5,7 +5,6 @@ import com.squareup.okhttp.Cache;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.OkUrlFactory;
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.kohsuke.accmod.Restricted;
@@ -19,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
@@ -27,9 +25,9 @@ import java.net.URL;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.jenkinsci.plugins.github.GitHubPlugin.configuration;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.GITHUB_URL;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.tokenFor;
+import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.toCacheDir;
 
 /**
  * Converts server config to authorized GH instance on {@link #applyNullSafe(GitHubServerConfig)}.
@@ -64,7 +62,7 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
 
         GitHubBuilder builder = new GitHubBuilder()
                 .withOAuthToken(accessToken)
-                .withConnector(connector(defaultIfBlank(github.getApiUrl(), GITHUB_URL)))
+                .withConnector(connector(github))
                 .withRateLimitHandler(RateLimitHandler.FAIL);
         try {
             if (isNotBlank(github.getApiUrl())) {
@@ -101,27 +99,17 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
      * Uses proxy of jenkins
      * If cache size > 0, uses cache
      *
-     * @param apiUrl to build proxy
-     *
      * @return connector to be used as backend for client
      */
-    private OkHttpConnector connector(String apiUrl) {
-        OkHttpClient client = new OkHttpClient().setProxy(getProxy(apiUrl));
+    private OkHttpConnector connector(GitHubServerConfig config) {
+        OkHttpClient client = new OkHttpClient().setProxy(getProxy(defaultIfBlank(config.getApiUrl(), GITHUB_URL)));
 
-        if (configuration().getClientCacheSize() > 0) {
-            File cacheDir = getCacheBaseDirFor(GitHubWebHook.getJenkinsInstance());
-            Cache cache = new Cache(cacheDir, configuration().getClientCacheSize() * 1024 * 1024);
+        if (config.getClientCacheSize() > 0) {
+            Cache cache = toCacheDir().apply(config);
             client.setCache(cache);
         }
 
         return new OkHttpConnector(new OkUrlFactory(client));
-    }
-
-    /**
-     * @return directory with cache for GitHub client
-     */
-    public static File getCacheBaseDirFor(Jenkins jenkins) {
-        return new File(jenkins.getRootDir(), GitHubPlugin.class.getName() + ".cache");
     }
 
     /**
