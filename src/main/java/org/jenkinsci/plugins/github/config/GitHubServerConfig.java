@@ -65,9 +65,22 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      */
     private static final String UNKNOWN_TOKEN = "UNKNOWN_TOKEN";
 
+    /**
+     * Default value in MB for client cache size
+     *
+     * @see #getClientCacheSize()
+     */
+    public static final int DEFAULT_CLIENT_CACHE_SIZE_MB = 20;
+
     private String apiUrl = GITHUB_URL;
     private boolean manageHooks = true;
     private final String credentialsId;
+
+    /**
+     * @see #getClientCacheSize()
+     * @see #setClientCacheSize(int)
+     */
+    private int clientCacheSize = DEFAULT_CLIENT_CACHE_SIZE_MB;
 
     /**
      * only to set to default apiUrl when uncheck. Can be removed if optional block can nullify value if unchecked
@@ -137,6 +150,25 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
 
     public String getCredentialsId() {
         return credentialsId;
+    }
+
+    /**
+     * Capacity of cache for GitHub client in MB.
+     *
+     * Defaults to 20 MB
+     *
+     * @since TODO
+     */
+    public int getClientCacheSize() {
+        return clientCacheSize;
+    }
+
+    /**
+     * @param clientCacheSize capacity of cache for GitHub client in MB, set to <= 0 to turn off this feature
+     */
+    @DataBoundSetter
+    public void setClientCacheSize(int clientCacheSize) {
+        this.clientCacheSize = clientCacheSize;
     }
 
     /**
@@ -254,16 +286,20 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
 
         @SuppressWarnings("unused")
         public FormValidation doVerifyCredentials(
-                @QueryParameter String apiUrl, @QueryParameter String credentialsId) throws IOException {
+                @QueryParameter String apiUrl,
+                @QueryParameter String credentialsId,
+                @QueryParameter Integer clientCacheSize) throws IOException {
 
             GitHubServerConfig config = new GitHubServerConfig(credentialsId);
             config.setCustomApiUrl(isUrlCustom(apiUrl));
             config.setApiUrl(apiUrl);
+            config.setClientCacheSize(clientCacheSize);
             GitHub gitHub = new GitHubLoginFunction().apply(config);
 
             try {
                 if (gitHub != null && gitHub.isCredentialValid()) {
-                    return FormValidation.ok("Credentials verified, rate limit: %s", gitHub.getRateLimit().remaining);
+                    return FormValidation.ok("Credentials verified for user %s, rate limit: %s",
+                            gitHub.getMyself().getLogin(), gitHub.getRateLimit().remaining);
                 } else {
                     return FormValidation.error("Failed to validate the account");
                 }
