@@ -157,7 +157,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      *
      * Defaults to 20 MB
      *
-     * @since TODO
+     * @since 1.14.0
      */
     public int getClientCacheSize() {
         return clientCacheSize;

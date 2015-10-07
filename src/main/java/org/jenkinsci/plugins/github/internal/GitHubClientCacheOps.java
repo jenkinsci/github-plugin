@@ -32,7 +32,7 @@ import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
  * Class with util functions to operate GitHub client cache
  *
  * @author lanwen (Merkushev Kirill)
- * @since TODO
+ * @since 1.14.0
  */
 public final class GitHubClientCacheOps {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHubClientCacheOps.class);
