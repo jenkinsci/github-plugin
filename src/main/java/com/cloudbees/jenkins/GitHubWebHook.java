@@ -49,14 +49,17 @@ public class GitHubWebHook implements UnprotectedRootAction {
 
     private final transient SequentialExecutionQueue queue = new SequentialExecutionQueue(threadPoolForRemoting);
 
+    @Override
     public String getIconFileName() {
         return null;
     }
 
+    @Override
     public String getDisplayName() {
         return null;
     }
 
+    @Override
     public String getUrlName() {
         return URLNAME;
     }
@@ -73,7 +76,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
     }
 
     /**
-     * Calls {@link #registerHookFor(AbstractProject)} for every project which have subscriber
+     * Calls {@link #registerHookFor(Job)} for every project which have subscriber
      *
      * @return list of jobs which jenkins tried to register hook
      */
