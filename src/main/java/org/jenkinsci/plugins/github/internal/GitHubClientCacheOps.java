@@ -23,6 +23,7 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.newDirectoryStream;
 import static java.nio.file.Files.notExists;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
@@ -186,6 +187,10 @@ public final class GitHubClientCacheOps {
 
         @Override
         public boolean accept(Path entry) {
+            if (!isDirectory(entry)) {
+                LOGGER.debug("{} is not a directory", entry);
+                return false;
+            }
             LOGGER.trace("Trying to find <{}> in active caches list...", entry);
             return !activeCacheNames.contains(String.valueOf(entry.getFileName()));
         }
