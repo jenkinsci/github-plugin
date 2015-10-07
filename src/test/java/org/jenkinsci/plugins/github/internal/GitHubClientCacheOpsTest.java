@@ -2,15 +2,21 @@ package org.jenkinsci.plugins.github.internal;
 
 import com.squareup.okhttp.Cache;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
 
+import java.io.File;
+
+import static com.google.common.collect.Sets.newHashSet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.notInCaches;
 import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.toCacheDir;
 import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.withEnabledCache;
 
@@ -22,6 +28,9 @@ public class GitHubClientCacheOpsTest {
     public static final String CREDENTIALS_ID = "credsid";
     public static final String CREDENTIALS_ID_2 = "credsid2";
     public static final String CUSTOM_API_URL = "http://api.some.unk/";
+
+    @ClassRule
+    public static TemporaryFolder tmp = new TemporaryFolder();
 
     @Rule
     public JenkinsRule jRule = new JenkinsRule();
@@ -66,10 +75,33 @@ public class GitHubClientCacheOpsTest {
 
     @Test
     @WithoutJenkins
+    public void shouldNotAcceptFilesInFilter() throws Exception {
+        assertThat("file should not be accepted",
+                notInCaches(newHashSet("file")).accept(tmp.newFile().toPath()), is(false));
+    }
+
+    @Test
+    @WithoutJenkins
+    public void shouldNotAcceptDirsInFilterWithNameFromSet() throws Exception {
+        File dir = tmp.newFolder();
+        assertThat("should not accept folders from set",
+                notInCaches(newHashSet(dir.getName())).accept(dir.toPath()), is(false));
+    }
+
+    @Test
+    @WithoutJenkins
+    public void shouldAcceptDirsInFilterWithNameNotInSet() throws Exception {
+        File dir = tmp.newFolder();
+        assertThat("should accept folders not in set",
+                notInCaches(newHashSet(dir.getName() + "abc")).accept(dir.toPath()), is(true));
+    }
+
+    @Test
+    @WithoutJenkins
     public void shouldReturnEnabledOnCacheGreaterThan0() throws Exception {
         GitHubServerConfig config = new GitHubServerConfig(CREDENTIALS_ID);
         config.setClientCacheSize(1);
-        
+
         assertThat("1MB", withEnabledCache().apply(config), is(true));
     }
 
@@ -78,7 +110,7 @@ public class GitHubClientCacheOpsTest {
     public void shouldReturnNotEnabledOnCacheEq0() throws Exception {
         GitHubServerConfig config = new GitHubServerConfig(CREDENTIALS_ID);
         config.setClientCacheSize(0);
-        
+
         assertThat("zero cache", withEnabledCache().apply(config), is(false));
     }
 
@@ -87,7 +119,7 @@ public class GitHubClientCacheOpsTest {
     public void shouldReturnNotEnabledOnCacheLessThan0() throws Exception {
         GitHubServerConfig config = new GitHubServerConfig(CREDENTIALS_ID);
         config.setClientCacheSize(-1);
-        
+
         assertThat("-1 value", withEnabledCache().apply(config), is(false));
     }
 
