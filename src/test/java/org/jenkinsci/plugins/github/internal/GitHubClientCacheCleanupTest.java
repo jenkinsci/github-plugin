@@ -16,6 +16,7 @@ import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.nio.file.Files.newDirectoryStream;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -35,7 +36,7 @@ public class GitHubClientCacheCleanupTest {
     public JenkinsRule jRule = new JenkinsRule();
 
     @Rule
-    public WireMockRule github = new WireMockRule();
+    public WireMockRule github = new WireMockRule(wireMockConfig().dynamicPort());
 
     @Before
     public void setUp() throws Exception {
