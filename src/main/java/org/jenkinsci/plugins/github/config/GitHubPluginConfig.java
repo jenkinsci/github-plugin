@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.github.config;
 import com.cloudbees.jenkins.GitHubWebHook;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-
 import hudson.Extension;
 import hudson.XmlFile;
 import hudson.model.Descriptor;
@@ -25,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -40,6 +38,7 @@ import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.loginToGithub;
+import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.clearRedundantCaches;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 
 /**
@@ -62,6 +61,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     private List<GitHubServerConfig> configs = new ArrayList<GitHubServerConfig>();
     private URL hookUrl;
+
     private transient boolean overrideHookUrl;
 
     /**
@@ -165,6 +165,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
                     format("Mailformed GitHub Plugin configuration (%s)", e.getMessage()), e, "github-configuration");
         }
         save();
+        clearRedundantCaches(configs);
         return true;
     }
 
@@ -220,7 +221,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
      * @return url to be used in GH hooks configuration as main endpoint
      * @throws GHPluginConfigException if jenkins root url empty of malformed
      */
-    private URL constructDefaultUrl() {
+    private static URL constructDefaultUrl() {
         String jenkinsUrl = Jenkins.getInstance().getRootUrl();
         validateConfig(isNotEmpty(jenkinsUrl), Messages.global_config_url_is_empty());
         try {
@@ -238,7 +239,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
      *
      * @throws GHPluginConfigException if state is false
      */
-    private void validateConfig(boolean state, String message) {
+    private static void validateConfig(boolean state, String message) {
         if (!state) {
             throw new GHPluginConfigException(message);
         }

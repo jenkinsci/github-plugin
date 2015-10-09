@@ -4,7 +4,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.ExtensionList;
 import hudson.ExtensionPoint;
-import hudson.model.AbstractProject;
 import hudson.model.Job;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
@@ -23,7 +22,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Extension point to subscribe events from GH, which plugin interested in.
- * This point should return true in {@link #isApplicable(AbstractProject)}
+ * This point should return true in {@link #isApplicable}
  * only if it can parse hooks with events contributed in {@link #events()}
  *
  * Each time this plugin wants to get events list from subscribers it asks for applicable status
@@ -36,7 +35,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
 
     /**
      * Should return true only if this subscriber interested in {@link #events()} set for this project
-     * Don't call it directly, use {@link #isApplicableFor(AbstractProject)} static function
+     * Don't call it directly, use {@link #isApplicableFor} static function
      *
      * @param project to check
      *
@@ -92,6 +91,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      * @param project to check every GHEventsSubscriber for being applicable
      *
      * @return predicate to use in iterable filtering
+     * @see #isApplicable
      */
     public static Predicate<GHEventsSubscriber> isApplicableFor(final Job<?, ?> project) {
         return new NullSafePredicate<GHEventsSubscriber>() {
