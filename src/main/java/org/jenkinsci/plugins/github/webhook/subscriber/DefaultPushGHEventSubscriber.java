@@ -85,7 +85,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                 public void run() {
                     for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
                         final GitHubPushTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
-                        if (trigger != null && trigger.accepts(json)) {
+                        if (trigger != null && !trigger.ignores(json)) {
                             LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
                             if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
                                 LOGGER.info("Poked {}", job.getFullDisplayName());

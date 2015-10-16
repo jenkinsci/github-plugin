@@ -67,14 +67,11 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     }
 
     /**
-     * The payload will be accepted only if the regular expression to which the name or email of an ignorable pusher
-     * is not to be matched.
-     *
-     * @param payload payload of gh-event. Never blank.
-     * @return false if the regular expression to which the name or email of an ignorable pusher is to be matched.
-     *         Otherwise false.
+     * @param payload payload of gh-event. Never blank
+     * @return true if the regular expression to which the pusher name
+     *         or email of a payload is to be matched, false otherwise
      */
-    public boolean accepts(final JSONObject payload) {
+    public boolean ignores(final JSONObject payload) {
         if (ignorablePusher != null && !ignorablePusher.isEmpty()) {
             final JSONObject pusher = payload.getJSONObject("pusher");
 
@@ -83,12 +80,12 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
                 if (value != null && value.matches(ignorablePusher)) {
                     LOGGER.info("Ignoring pusher [{}] ...", pusher);
-                    return false;
+                    return true;
                 }
             }
         }
 
-        return true;
+        return false;
     }
 
     /**
