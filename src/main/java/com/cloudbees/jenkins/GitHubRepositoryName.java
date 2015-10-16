@@ -1,5 +1,6 @@
 package com.cloudbees.jenkins;
 
+import com.coravy.hudson.plugins.github.GithubProjectProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -65,13 +66,12 @@ public class GitHubRepositoryName {
     /**
      * Create {@link GitHubRepositoryName} from URL
      *
-     * @param url must be non-null
+     * @param url repo url. Can be null
      *
-     * @return parsed {@link GitHubRepositoryName} or null if it cannot be
-     * parsed from the specified URL
+     * @return parsed {@link GitHubRepositoryName} or null if it cannot be parsed from the specified URL
      */
     @CheckForNull
-    public static GitHubRepositoryName create(@Nonnull final String url) {
+    public static GitHubRepositoryName create(String url) {
         LOGGER.debug("Constructing from URL {}", url);
         for (Pattern p : URL_PATTERNS) {
             Matcher m = p.matcher(trimToEmpty(url));
@@ -85,6 +85,23 @@ public class GitHubRepositoryName {
         LOGGER.warn("Could not match URL {}", url);
         return null;
     }
+
+    /**
+     * @param projectProperty project property to extract url. Can be null
+     *
+     * @return parsed as {@link GitHubRepositoryName} object url to GitHub project
+     * @see #create(String)
+     * @since 1.14.1
+     */
+    @CheckForNull
+    public static GitHubRepositoryName create(GithubProjectProperty projectProperty) {
+        if (projectProperty == null) {
+            return null;
+        }
+
+        return GitHubRepositoryName.create(projectProperty.getProjectUrlStr());
+    }
+
 
     @SuppressWarnings("visibilitymodifier")
     public final String host;

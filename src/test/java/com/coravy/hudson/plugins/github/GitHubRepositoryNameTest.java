@@ -3,10 +3,13 @@ package com.coravy.hudson.plugins.github;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.tngtech.java.junit.dataprovider.DataProvider;
 import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.cloudbees.jenkins.GitHubRepositoryName.create;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jenkinsci.plugins.github.test.GitHubRepoNameMatchers.repo;
 import static org.jenkinsci.plugins.github.test.GitHubRepoNameMatchers.withHost;
@@ -19,6 +22,9 @@ import static org.junit.Assert.assertThat;
  */
 @RunWith(DataProviderRunner.class)
 public class GitHubRepositoryNameTest {
+
+    public static final String FULL_REPO_NAME = "jenkinsci/jenkins";
+    public static final String VALID_HTTPS_GH_PROJECT = "https://github.com/" + FULL_REPO_NAME;
 
     @Test
     @DataProvider({
@@ -70,5 +76,26 @@ public class GitHubRepositoryNameTest {
     }, trimValues = false)
     public void badUrl(String url) {
         assertThat(url, repo(nullValue(GitHubRepositoryName.class)));
+    }
+
+    @Test
+    public void shouldCreateFromProjectProp() {
+        assertThat("project prop vs direct", create(new GithubProjectProperty(VALID_HTTPS_GH_PROJECT)),
+                equalTo(create(VALID_HTTPS_GH_PROJECT)));
+    }
+
+    @Test
+    public void shouldIgnoreNull() {
+        assertThat("null project prop", create((GithubProjectProperty) null), nullValue());
+    }
+
+    @Test
+    public void shouldIgnoreNullValueOfPP() {
+        assertThat("null project prop", create(new GithubProjectProperty(null)), nullValue());
+    }
+
+    @Test
+    public void shouldIgnoreBadValueOfPP() {
+        assertThat("null project prop", create(new GithubProjectProperty(StringUtils.EMPTY)), nullValue());
     }
 }
