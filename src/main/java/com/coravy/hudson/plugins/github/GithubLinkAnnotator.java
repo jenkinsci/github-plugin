@@ -3,7 +3,7 @@ package com.coravy.hudson.plugins.github;
 import hudson.Extension;
 import hudson.MarkupText;
 import hudson.MarkupText.SubText;
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import hudson.plugins.git.GitChangeSet;
 import hudson.scm.ChangeLogAnnotator;
 import hudson.scm.ChangeLogSet.Entry;
@@ -25,8 +25,8 @@ import java.util.regex.Pattern;
 public class GithubLinkAnnotator extends ChangeLogAnnotator {
 
     @Override
-    public void annotate(AbstractBuild<?, ?> build, Entry change, MarkupText text) {
-        final GithubProjectProperty p = build.getProject().getProperty(
+    public void annotate(Run<?, ?> build, Entry change, MarkupText text) {
+        final GithubProjectProperty p = build.getParent().getProperty(
                 GithubProjectProperty.class);
         if (null == p) {
             return;

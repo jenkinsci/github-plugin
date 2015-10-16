@@ -2,11 +2,11 @@ package com.coravy.hudson.plugins.github;
 
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import hudson.Extension;
-import hudson.model.AbstractProject;
 import hudson.model.Action;
 import hudson.model.Job;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
+import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
@@ -21,9 +21,8 @@ import java.util.logging.Logger;
  * As of now this is only the URL to the github project.
  *
  * @author Stefan Saasen <stefan@coravy.com>
- * @todo Should we store the GithubUrl instead of the String?
  */
-public final class GithubProjectProperty extends JobProperty<AbstractProject<?, ?>> {
+public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
 
     /**
      * This will the URL to the project main branch.
@@ -31,8 +30,18 @@ public final class GithubProjectProperty extends JobProperty<AbstractProject<?, 
     private String projectUrl;
 
     @DataBoundConstructor
-    public GithubProjectProperty(String projectUrl) {
-        this.projectUrl = new GithubUrl(projectUrl).baseUrl();
+    public GithubProjectProperty(String projectUrlStr) {
+        this.projectUrl = new GithubUrl(projectUrlStr).baseUrl();
+    }
+
+    /**
+     * Same as {@link #getProjectUrl}, but with a property name and type
+     * which match those used in the {@link #GithubProjectProperty} constructor.
+     * Should have been called {@code getProjectUrl} and that method called something else
+     * (such as {@code getNormalizedProjectUrl}), but that cannot be done compatibly now.
+     */
+    public String getProjectUrlStr() {
+        return projectUrl;
     }
 
     /**
@@ -43,7 +52,7 @@ public final class GithubProjectProperty extends JobProperty<AbstractProject<?, 
     }
 
     @Override
-    public Collection<? extends Action> getJobActions(AbstractProject<?, ?> job) {
+    public Collection<? extends Action> getJobActions(Job<?, ?> job) {
         if (null != projectUrl) {
             return Collections.singleton(new GithubLinkAction(this));
         }
@@ -59,7 +68,7 @@ public final class GithubProjectProperty extends JobProperty<AbstractProject<?, 
         }
 
         public boolean isApplicable(Class<? extends Job> jobType) {
-            return AbstractProject.class.isAssignableFrom(jobType);
+            return ParameterizedJobMixIn.ParameterizedJob.class.isAssignableFrom(jobType);
         }
 
         public String getDisplayName() {
