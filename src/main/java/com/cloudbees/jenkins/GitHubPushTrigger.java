@@ -18,6 +18,8 @@ import jenkins.model.Jenkins;
 import jenkins.model.Jenkins.MasterComputer;
 import jenkins.model.ParameterizedJobMixIn;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
+import net.sf.json.JSONObject;
+
 import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
@@ -65,12 +67,28 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     }
 
     /**
-     * Gets the regular expression to which the name or email of an ignorable pusher is to be matched.
+     * The payload will be accepted only if the regular expression to which the name or email of an ignorable pusher
+     * is not to be matched.
      *
-     * @return the regular expression to which the name or email of an ignorable pusher is to be matched.
+     * @param payload payload of gh-event. Never blank.
+     * @return false if the regular expression to which the name or email of an ignorable pusher is to be matched.
+     *         Otherwise false.
      */
-    public String getIgnorablePusher() {
-        return ignorablePusher;
+    public boolean accepts(final JSONObject payload) {
+        if (ignorablePusher != null && !ignorablePusher.isEmpty()) {
+            final JSONObject pusher = payload.getJSONObject("pusher");
+
+            for (final String key : new String[] {"name", "email"}) {
+                final String value = pusher.getString(key);
+
+                if (value != null && value.matches(ignorablePusher)) {
+                    LOGGER.info("Ignoring pusher [{}] ...", pusher);
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /**

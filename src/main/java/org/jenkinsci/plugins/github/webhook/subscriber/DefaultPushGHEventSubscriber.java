@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.github.webhook.subscriber;
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
-import com.cloudbees.jenkins.GitHubTrigger;
 import com.cloudbees.jenkins.GitHubWebHook;
 import hudson.Extension;
 import hudson.model.Job;
@@ -64,11 +63,10 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      */
     @Override
     protected void onEvent(GHEvent event, String payload) {
-        JSONObject json = JSONObject.fromObject(payload);
+        final JSONObject json = JSONObject.fromObject(payload);
         // something like 'https://github.com/bar/foo'
         String repoUrl = json.getJSONObject("repository").getString("url");
-        final JSONObject pusher = json.getJSONObject("pusher");
-        final String pusherName = pusher.getString("name");
+        final String pusherName = json.getJSONObject("pusher").getString("name");
 
         LOGGER.info("Received POST for {}", repoUrl);
         Matcher matcher = REPOSITORY_NAME_PATTERN.matcher(repoUrl);
@@ -85,23 +83,9 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
             ACL.impersonate(ACL.SYSTEM, new Runnable() {
                 @Override
                 public void run() {
-                    final String pusherEmail = pusher.getString("email");
                     for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
-                        GitHubTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
-                        if (trigger != null) {
-                            if (trigger instanceof GitHubPushTrigger) {
-                                final String regex = ((GitHubPushTrigger) trigger).getIgnorablePusher();
-                                if (regex != null) {
-                                    if (pusherName != null && pusherName.matches(regex)) {
-                                        LOGGER.info("Ignoring pusher [{}] ...", pusherName);
-                                        continue;
-                                    }
-                                    if (pusherEmail != null && pusherEmail.matches(regex)) {
-                                        LOGGER.info("Ignoring pusher [{}] ...", pusherEmail);
-                                        continue;
-                                    }
-                                }
-                            }
+                        final GitHubPushTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
+                        if (trigger != null && trigger.accepts(json)) {
                             LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
                             if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
                                 LOGGER.info("Poked {}", job.getFullDisplayName());

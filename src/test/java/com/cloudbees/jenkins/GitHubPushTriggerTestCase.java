@@ -1,5 +1,6 @@
 package com.cloudbees.jenkins;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -7,7 +8,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
@@ -37,15 +37,12 @@ public final class GitHubPushTriggerTestCase {
         connection.connect();
 
         final String payload = "payload={\"repository\":{\"url\":\"" + repositoryUrl + "\"},\"pusher\":{\"name\":\"" + pusherName + "\",\"email\":\"\"}}";
-        final OutputStream stream = connection.getOutputStream();
 
-        try {
-            stream.write(payload.getBytes(StandardCharsets.UTF_8));
-        } finally {
-            stream.close();
+        try (final OutputStream stream = connection.getOutputStream()) {
+            stream.write(payload.getBytes(UTF_8));
         }
 
-        assertEquals(HttpURLConnection.HTTP_OK, connection.getResponseCode());
+        assertEquals("fails to connect to " + url, HttpURLConnection.HTTP_OK, connection.getResponseCode());
     }
 
     @Test
@@ -61,7 +58,7 @@ public final class GitHubPushTriggerTestCase {
         triggerWebHook(repositoryUrl, expected);
 
         final String actual = trigger.pushBy();
-        assertEquals(expected, actual);
+        assertEquals("fails to be triggered by pusher: ", expected, actual);
     }
 
     @Test
@@ -77,6 +74,6 @@ public final class GitHubPushTriggerTestCase {
         triggerWebHook(repositoryUrl, pusherName);
 
         final Object object = trigger.pushBy();
-        assertNull(object);
+        assertNull("fails to ignore pusher: ", object);
     }
 }
