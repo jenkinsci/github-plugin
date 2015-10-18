@@ -16,8 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.google.common.collect.Sets.immutableEnumSet;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.triggerFrom;
@@ -34,7 +32,6 @@ import static org.kohsuke.github.GHEvent.PUSH;
 @SuppressWarnings("unused")
 public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPushGHEventSubscriber.class);
-    private static final Pattern REPOSITORY_NAME_PATTERN = Pattern.compile("https?://([^/]+)/([^/]+)/([^/]+)");
 
     /**
      * This subscriber is applicable only for job with GHPush trigger
@@ -65,19 +62,13 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
     @Override
     protected void onEvent(GHEvent event, String payload) {
         JSONObject json = JSONObject.fromObject(payload);
-        // something like 'https://github.com/bar/foo'
         String repoUrl = json.getJSONObject("repository").getString("url");
         final String pusherName = json.getJSONObject("pusher").getString("name");
 
         LOGGER.info("Received POST for {}", repoUrl);
-        Matcher matcher = REPOSITORY_NAME_PATTERN.matcher(repoUrl);
-        if (matcher.matches()) {
-            final GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl);
-            if (changedRepository == null) {
-                LOGGER.warn("Malformed repo url {}", repoUrl);
-                return;
-            }
+        final GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl);
 
+        if (changedRepository != null) {
             // run in high privilege to see all the projects anonymous users don't see.
             // this is safe because when we actually schedule a build, it's a build that can
             // happen at some random time anyway.
