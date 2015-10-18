@@ -123,6 +123,28 @@
             <version>1.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>token-macro</artifactId>
+            <version>1.11</version>
+        </dependency>
+
+        <!--should be higher than email-ext because of groovy dependency hell-->
+        <dependency>
+            <groupId>com.jayway.restassured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>2.4.0</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <!--to expand message content-->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>email-ext</artifactId>
+            <version>2.38.2</version>
+            <optional>true</optional>
+        </dependency>
+        
         <dependency><!-- exists in the core -->
             <groupId>org.jenkins-ci.modules</groupId>
             <artifactId>instance-identity</artifactId>
@@ -149,13 +171,6 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>1.10.19</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.jayway.restassured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>2.4.0</version>
             <scope>test</scope>
         </dependency>
 
