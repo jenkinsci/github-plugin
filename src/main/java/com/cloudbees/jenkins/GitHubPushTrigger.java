@@ -67,6 +67,15 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     }
 
     /**
+     * Gets the regular expression to which the name or email of an ignorable pusher is to be matched.
+     *
+     * @return the regular expression to which the name or email of an ignorable pusher is to be matched.
+     */
+    public String getIgnorablePusher() {
+        return ignorablePusher;
+    }
+
+    /**
      * @param payload payload of gh-event. Never blank
      * @return true if the regular expression to which the pusher name
      *         or email of a payload is to be matched, false otherwise
