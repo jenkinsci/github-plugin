@@ -49,6 +49,9 @@
     <properties>
         <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
         <maven-release-plugin.version>2.5.1</maven-release-plugin.version>
+        <findbugs-maven-plugin.version>3.0.1</findbugs-maven-plugin.version>
+        <!--TODO: enforce after cleaning up the issues-->
+        <findbugs.failOnError>false</findbugs.failOnError>
     </properties>
 
     <repositories>
@@ -252,6 +255,25 @@
                     </suppressionsLocation>
                 </configuration>
             </plugin>
+            
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>${findbugs-maven-plugin.version}</version>
+                <configuration>
+                    <xmlOutput>true</xmlOutput>
+                    <failOnError>${findbugs.failOnError}</failOnError>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>run-findbugs</id>
+                        <phase>verify</phase> 
+                        <goals>
+                            <goal>check</goal> 
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin> 
         </plugins>
     </build>
 </project>
