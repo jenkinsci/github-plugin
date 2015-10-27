@@ -49,6 +49,7 @@
     <properties>
         <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
         <maven-release-plugin.version>2.5.1</maven-release-plugin.version>
+        <findbugs-maven-plugin.version>3.0.2</findbugs-maven-plugin.version>
     </properties>
 
     <repositories>
@@ -252,6 +253,25 @@
                     </suppressionsLocation>
                 </configuration>
             </plugin>
+            
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>${findbugs-maven-plugin.version}</version>
+                <configuration>
+                    <effort>Max</effort>
+                    <threshold>Low</threshold>
+                    <xmlOutput>true</xmlOutput>
+                    <failOnError>false</failOnError>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin> 
         </plugins>
     </build>
 </project>
