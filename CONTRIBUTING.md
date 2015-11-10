@@ -1,3 +1,18 @@
+# Functional contribution
+
+We are welcome for any contribution. But every new feature implemented in this plugin should:
+ 
+- Be useful enough for lot of people (should not cover only your professional case)
+- Should not break existing use cases and should avoid breaking the backward compatibility in existing APIs.
+  - If the compatibility break is required, it should be well justified. 
+    [Guide](https://wiki.eclipse.org/Evolving_Java-based_APIs_2) 
+    and [jenkins solutions](https://wiki.jenkins-ci.org/display/JENKINS/Hint+on+retaining+backward+compatibility) can help to retain the backward compatibility   
+- Should be easily maintained (so maintainers need some time to think about architecture of implementation)
+- Have at least one test for positive use case
+
+This plugin is used by lot of people, so it should be stable enough. Please ensure your change is compatible at least with the last LTS line. 
+Any core dependency upgrade must be justified
+
 # Code Style Guidelines
 
 Most of rules is checked with help of the *maven-checkstyle-plugin* during the `validate` phase. 
