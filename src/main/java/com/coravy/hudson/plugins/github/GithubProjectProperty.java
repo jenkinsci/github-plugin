@@ -9,8 +9,10 @@ import hudson.model.JobPropertyDescriptor;
 import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.annotation.CheckForNull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Logger;
@@ -18,7 +20,8 @@ import java.util.logging.Logger;
 /**
  * Stores the github related project properties.
  * <p>
- * As of now this is only the URL to the github project.
+ * - URL to the GitHub project
+ * - Build status context name
  *
  * @author Stefan Saasen <stefan@coravy.com>
  */
@@ -28,6 +31,15 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
      * This will the URL to the project main branch.
      */
     private String projectUrl;
+
+    /**
+     * GitHub build status context name to use in commit status api
+     * {@linkplain "https://developer.github.com/v3/repos/statuses/"}
+     *
+     * @see com.cloudbees.jenkins.GitHubCommitNotifier
+     * @see com.cloudbees.jenkins.GitHubSetCommitStatusBuilder
+     */
+    private String statusContext;
 
     @DataBoundConstructor
     public GithubProjectProperty(String projectUrlStr) {
@@ -51,6 +63,16 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
         return new GithubUrl(projectUrl);
     }
 
+    @CheckForNull
+    public String getStatusContext() {
+        return statusContext;
+    }
+
+    @DataBoundSetter
+    public void setStatusContext(String statusContext) {
+        this.statusContext = statusContext;
+    }
+
     @Override
     public Collection<? extends Action> getJobActions(Job<?, ?> job) {
         if (null != projectUrl) {
@@ -61,11 +83,11 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
 
     @Extension
     public static final class DescriptorImpl extends JobPropertyDescriptor {
-
-        public DescriptorImpl() {
-            super(GithubProjectProperty.class);
-            load();
-        }
+        /**
+         * Used to hide property configuration under checkbox,
+         * as of not each job is GitHub project
+         */
+        public static final String GITHUB_PROJECT_BLOCK_NAME = "githubProject";
 
         public boolean isApplicable(Class<? extends Job> jobType) {
             return ParameterizedJobMixIn.ParameterizedJob.class.isAssignableFrom(jobType);
@@ -77,16 +99,21 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
 
         @Override
         public JobProperty<?> newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            GithubProjectProperty tpp = req.bindJSON(GithubProjectProperty.class, formData);
+            GithubProjectProperty tpp = req.bindJSON(
+                    GithubProjectProperty.class,
+                    formData.getJSONObject(GITHUB_PROJECT_BLOCK_NAME)
+            );
 
             if (tpp == null) {
                 LOGGER.fine("Couldn't bind JSON");
                 return null;
             }
+
             if (tpp.projectUrl == null) {
-                tpp = null; // not configured
                 LOGGER.fine("projectUrl not found, nullifying GithubProjectProperty");
+                return null;
             }
+
             return tpp;
         }
 
