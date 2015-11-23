@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -129,22 +130,6 @@
             <version>1.11</version>
         </dependency>
 
-        <!--should be higher than email-ext because of groovy dependency hell-->
-        <dependency>
-            <groupId>com.jayway.restassured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>2.4.0</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <!--to expand message content-->
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>email-ext</artifactId>
-            <version>2.38.2</version>
-            <optional>true</optional>
-        </dependency>
-        
         <dependency><!-- exists in the core -->
             <groupId>org.jenkins-ci.modules</groupId>
             <artifactId>instance-identity</artifactId>
@@ -153,6 +138,13 @@
         </dependency>
 
         <!--TEST DEPS-->
+        <dependency>
+            <groupId>com.jayway.restassured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>2.4.0</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>

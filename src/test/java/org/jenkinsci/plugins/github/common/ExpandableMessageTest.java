@@ -6,8 +6,6 @@ import hudson.model.BuildListener;
 import hudson.model.FreeStyleProject;
 import hudson.model.ParametersAction;
 import hudson.model.StringParameterValue;
-import hudson.plugins.emailext.plugins.ContentBuilder;
-import org.jenkinsci.plugins.github.test.WithoutPlugins;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -18,8 +16,6 @@ import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 
 /**
@@ -31,15 +27,10 @@ public class ExpandableMessageTest {
     public static final String CUSTOM_BUILD_PARAM = "FOO";
     public static final String CUSTOM_PARAM_VAL = "BAR";
     public static final String MSG_FORMAT = "%s - %s - %s";
-    public static final String DEFAULT_EMAIL_EXT_TEMPLATE = "${SCRIPT, template=\"groovy-text.template\"}";
+    public static final String DEFAULT_TOKEN_TEMPLATE = "${ENV, var=\"%s\"}";
 
     @Rule
     public JenkinsRule jRule = new JenkinsRule();
-
-    @Test
-    public void shouldNotChangeSignatureOfGettingPrivateMacro() throws Exception {
-        assertThat("should be static method of email-ext plugin", ContentBuilder.getPrivateMacros(), notNullValue());
-    }
 
     @Test
     public void shouldExpandEnvAndBuildVars() throws Exception {
@@ -47,7 +38,7 @@ public class ExpandableMessageTest {
                 format(MSG_FORMAT,
                         asVar(ENV_VAR_JOB_NAME),
                         asVar(CUSTOM_BUILD_PARAM),
-                        DEFAULT_EMAIL_EXT_TEMPLATE
+                        asTokenVar(ENV_VAR_JOB_NAME)
                 )
         ));
 
@@ -58,24 +49,15 @@ public class ExpandableMessageTest {
                 .get(5, TimeUnit.SECONDS);
 
         assertThat("job name - var param - template", expander.getResult(),
-                startsWith(format(MSG_FORMAT, job.getFullName(), CUSTOM_PARAM_VAL, "GENERAL INFO\n\nBUILD")));
+                startsWith(format(MSG_FORMAT, job.getFullName(), CUSTOM_PARAM_VAL, job.getFullName())));
     }
-
-    @Test
-    @WithoutPlugins
-    public void shouldNotFailWithDisabledEmailExt() throws Exception {
-        MessageExpander expander = new MessageExpander(new ExpandableMessage(DEFAULT_EMAIL_EXT_TEMPLATE));
-
-        FreeStyleProject job = jRule.createFreeStyleProject();
-        job.getBuildersList().add(expander);
-        jRule.buildAndAssertSuccess(job);
-
-        assertThat("should not change", expander.getResult(), is(DEFAULT_EMAIL_EXT_TEMPLATE));
-    }
-
 
     public static String asVar(String name) {
         return format("${%s}", name);
+    }
+
+    public static String asTokenVar(String name) {
+        return format(DEFAULT_TOKEN_TEMPLATE, name);
     }
 
     private static class MessageExpander extends TestBuilder {
