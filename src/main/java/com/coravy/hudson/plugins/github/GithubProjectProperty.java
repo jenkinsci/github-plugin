@@ -13,9 +13,12 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Logger;
+
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * Stores the github related project properties.
@@ -39,7 +42,7 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
      * @see com.cloudbees.jenkins.GitHubCommitNotifier
      * @see com.cloudbees.jenkins.GitHubSetCommitStatusBuilder
      */
-    private String statusContext;
+    private String displayName;
 
     @DataBoundConstructor
     public GithubProjectProperty(String projectUrlStr) {
@@ -64,13 +67,13 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
     }
 
     @CheckForNull
-    public String getStatusContext() {
-        return statusContext;
+    public String getDisplayName() {
+        return displayName;
     }
 
     @DataBoundSetter
-    public void setStatusContext(String statusContext) {
-        this.statusContext = statusContext;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     @Override
@@ -79,6 +82,22 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
             return Collections.singleton(new GithubLinkAction(this));
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * Extracts value of display name from given job, or just returns full name if field or prop is not defined
+     *
+     * @param job project which wants to get current context name to use in GH status API
+     *
+     * @return display name or full job name if field is not defined
+     */
+    public static String displayNameFor(@Nonnull Job<?, ?> job) {
+        GithubProjectProperty ghProp = job.getProperty(GithubProjectProperty.class);
+        if (ghProp != null && isNotBlank(ghProp.getDisplayName())) {
+            return ghProp.getDisplayName();
+        }
+
+        return job.getFullName();
     }
 
     @Extension

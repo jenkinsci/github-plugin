@@ -10,7 +10,7 @@ f.optionalBlock(name: GITHUB_PROJECT_BLOCK_NAME, title: _('github.project'), che
     }
 
     f.advanced() {
-        f.entry(title: _('github.build.status.context.for.commits'), field: 'statusContext') {
+        f.entry(title: _('github.build.display.name'), field: 'displayName') {
             f.textbox()
         }
     }
