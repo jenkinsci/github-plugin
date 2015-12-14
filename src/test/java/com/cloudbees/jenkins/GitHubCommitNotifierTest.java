@@ -12,50 +12,55 @@ import hudson.model.Result;
 import hudson.plugins.git.GitSCM;
 import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.Bug;
-import org.jvnet.hudson.test.HudsonTestCase;
+import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 
 /**
  * Tests for {@link GitHubCommitNotifier}.
+ *
  * @author Oleg Nenashev <o.v.nenashev@gmail.com>
  */
-public class GitHubCommitNotifierTest extends HudsonTestCase {
-    
+public class GitHubCommitNotifierTest {
+
+    @Rule
+    public JenkinsRule jRule = new JenkinsRule();
+
     @Test
-    @Bug(23641)
-    public void testNoBuildData() throws Exception, InterruptedException  {
-        FreeStyleProject prj = createFreeStyleProject("23641_noBuildData");
+    @Issue("JENKINS-23641")
+    public void testNoBuildData() throws Exception {
+        FreeStyleProject prj = jRule.createFreeStyleProject("23641_noBuildData");
         prj.getPublishersList().add(new GitHubCommitNotifier());
         Build b = prj.scheduleBuild2(0).get();
-        assertBuildStatus(Result.FAILURE, b);
-        assertLogContains(org.jenkinsci.plugins.github.util.Messages.BuildDataHelper_NoBuildDataError(), b);
+        jRule.assertBuildStatus(Result.FAILURE, b);
+        jRule.assertLogContains(org.jenkinsci.plugins.github.util.Messages.BuildDataHelper_NoBuildDataError(), b);
     }
-    
+
     @Test
-    @Bug(23641)
-    public void testNoBuildRevision() throws Exception, InterruptedException {
-        FreeStyleProject prj = createFreeStyleProject();
+    @Issue("JENKINS-23641")
+    public void testNoBuildRevision() throws Exception {
+        FreeStyleProject prj = jRule.createFreeStyleProject();
         prj.setScm(new GitSCM("http://non.existent.git.repo.nowhere/repo.git"));
         prj.getPublishersList().add(new GitHubCommitNotifier());
         Build b = prj.scheduleBuild2(0).get();
-        assertBuildStatus(Result.FAILURE, b);
-        assertLogContains(org.jenkinsci.plugins.github.util.Messages.BuildDataHelper_NoLastRevisionError(), b);
+        jRule.assertBuildStatus(Result.FAILURE, b);
+        jRule.assertLogContains(org.jenkinsci.plugins.github.util.Messages.BuildDataHelper_NoLastRevisionError(), b);
     }
-   
-    @Bug(25312)
-    public @Test void testMarkUnstableOnCommitNotifierFailure() throws Exception, InterruptedException {
-        FreeStyleProject prj = createFreeStyleProject();
+
+    @Test
+    @Issue("JENKINS-25312")
+    public void testMarkUnstableOnCommitNotifierFailure() throws Exception {
+        FreeStyleProject prj = jRule.createFreeStyleProject();
         prj.getPublishersList().add(new GitHubCommitNotifier(Result.UNSTABLE.toString()));
         Build b = prj.scheduleBuild2(0).get();
-        assertBuildStatus(Result.UNSTABLE, b);
+        jRule.assertBuildStatus(Result.UNSTABLE, b);
     }
-    
-    @Bug(25312)
-    public @Test void testMarkSuccessOnCommitNotifierFailure() throws Exception, InterruptedException {
-        FreeStyleProject prj = createFreeStyleProject();
+
+    @Test
+    @Issue("JENKINS-25312")
+    public void testMarkSuccessOnCommitNotifierFailure() throws Exception {
+        FreeStyleProject prj = jRule.createFreeStyleProject();
         prj.getPublishersList().add(new GitHubCommitNotifier(Result.SUCCESS.toString()));
         Build b = prj.scheduleBuild2(0).get();
-        assertBuildStatus(Result.SUCCESS, b);
+        jRule.assertBuildStatus(Result.SUCCESS, b);
     }
 }

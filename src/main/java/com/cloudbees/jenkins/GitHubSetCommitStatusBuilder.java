@@ -8,19 +8,40 @@ import hudson.model.BuildListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import org.eclipse.jgit.lib.ObjectId;
+import org.jenkinsci.plugins.github.common.ExpandableMessage;
 import org.jenkinsci.plugins.github.util.BuildDataHelper;
 import org.kohsuke.github.GHCommitState;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 import java.io.IOException;
 
 import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_SettingCommitStatus;
+import static com.coravy.hudson.plugins.github.GithubProjectProperty.displayNameFor;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
 @Extension
 public class GitHubSetCommitStatusBuilder extends Builder {
+    private ExpandableMessage statusMessage = new ExpandableMessage("");
+
     @DataBoundConstructor
     public GitHubSetCommitStatusBuilder() {
+    }
+
+    /**
+     * @since 1.14.1
+     */
+    public ExpandableMessage getStatusMessage() {
+        return statusMessage;
+    }
+
+    /**
+     * @since 1.14.1
+     */
+    @DataBoundSetter
+    public void setStatusMessage(ExpandableMessage statusMessage) {
+        this.statusMessage = statusMessage;
     }
 
     @Override
@@ -28,6 +49,12 @@ public class GitHubSetCommitStatusBuilder extends Builder {
                            Launcher launcher,
                            BuildListener listener) throws InterruptedException, IOException {
         final String sha1 = ObjectId.toString(BuildDataHelper.getCommitSHA1(build));
+        String message = defaultIfEmpty(
+                statusMessage.expandAll(build, listener),
+                Messages.CommitNotifier_Pending(build.getDisplayName())
+        );
+        String contextName = displayNameFor(build.getProject());
+
         for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(build.getProject())) {
             for (GHRepository repository : name.resolve()) {
                 listener.getLogger().println(
@@ -36,8 +63,8 @@ public class GitHubSetCommitStatusBuilder extends Builder {
                 repository.createCommitStatus(sha1,
                         GHCommitState.PENDING,
                         build.getAbsoluteUrl(),
-                        Messages.CommitNotifier_Pending(build.getDisplayName()),
-                        build.getProject().getFullName());
+                        message,
+                        contextName);
             }
         }
         return true;
@@ -52,7 +79,7 @@ public class GitHubSetCommitStatusBuilder extends Builder {
 
         @Override
         public String getDisplayName() {
-            return "Set build status to \"pending\" on GitHub commit";
+            return Messages.GitHubSetCommitStatusBuilder_DisplayName();
         }
     }
 }
