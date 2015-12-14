@@ -29,10 +29,16 @@ public class GitHubSetCommitStatusBuilder extends Builder {
     public GitHubSetCommitStatusBuilder() {
     }
 
+    /**
+     * @since 1.14.1
+     */
     public ExpandableMessage getStatusMessage() {
         return statusMessage;
     }
 
+    /**
+     * @since 1.14.1
+     */
     @DataBoundSetter
     public void setStatusMessage(ExpandableMessage statusMessage) {
         this.statusMessage = statusMessage;

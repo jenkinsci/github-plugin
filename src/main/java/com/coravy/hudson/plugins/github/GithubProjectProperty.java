@@ -66,11 +66,18 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
         return new GithubUrl(projectUrl);
     }
 
+    /**
+     * @see #displayName
+     * @since 1.14.1
+     */
     @CheckForNull
     public String getDisplayName() {
         return displayName;
     }
 
+    /**
+     * @since 1.14.1
+     */
     @DataBoundSetter
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
@@ -90,6 +97,7 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
      * @param job project which wants to get current context name to use in GH status API
      *
      * @return display name or full job name if field is not defined
+     * @since 1.14.1
      */
     public static String displayNameFor(@Nonnull Job<?, ?> job) {
         GithubProjectProperty ghProp = job.getProperty(GithubProjectProperty.class);
