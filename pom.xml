@@ -10,7 +10,7 @@
 
     <groupId>com.coravy.hudson.plugins.github</groupId>
     <artifactId>github</artifactId>
-    <version>1.14.1-SNAPSHOT</version>
+    <version>1.14.2-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <name>GitHub plugin</name>
@@ -124,6 +124,12 @@
             <version>1.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>token-macro</artifactId>
+            <version>1.11</version>
+        </dependency>
+
         <dependency><!-- exists in the core -->
             <groupId>org.jenkins-ci.modules</groupId>
             <artifactId>instance-identity</artifactId>
@@ -132,6 +138,13 @@
         </dependency>
 
         <!--TEST DEPS-->
+        <dependency>
+            <groupId>com.jayway.restassured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>2.4.0</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-all</artifactId>
@@ -150,13 +163,6 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>1.10.19</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.jayway.restassured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <version>2.4.0</version>
             <scope>test</scope>
         </dependency>
 
