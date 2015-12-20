@@ -19,11 +19,14 @@ import java.io.IOException;
 
 import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_SettingCommitStatus;
 import static com.coravy.hudson.plugins.github.GithubProjectProperty.displayNameFor;
+import static com.google.common.base.Objects.firstNonNull;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
 @Extension
 public class GitHubSetCommitStatusBuilder extends Builder {
-    private ExpandableMessage statusMessage = new ExpandableMessage("");
+    private static final ExpandableMessage DEFAULT_MESSAGE = new ExpandableMessage("");
+
+    private ExpandableMessage statusMessage = DEFAULT_MESSAGE;
 
     @DataBoundConstructor
     public GitHubSetCommitStatusBuilder() {
@@ -50,7 +53,7 @@ public class GitHubSetCommitStatusBuilder extends Builder {
                            BuildListener listener) throws InterruptedException, IOException {
         final String sha1 = ObjectId.toString(BuildDataHelper.getCommitSHA1(build));
         String message = defaultIfEmpty(
-                statusMessage.expandAll(build, listener),
+                firstNonNull(statusMessage, DEFAULT_MESSAGE).expandAll(build, listener),
                 Messages.CommitNotifier_Pending(build.getDisplayName())
         );
         String contextName = displayNameFor(build.getProject());
