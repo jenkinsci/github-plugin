@@ -28,6 +28,7 @@ import java.io.IOException;
 import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_DisplayName;
 import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_SettingCommitStatus;
 import static com.coravy.hudson.plugins.github.GithubProjectProperty.displayNameFor;
+import static com.google.common.base.Objects.firstNonNull;
 import static hudson.model.Result.FAILURE;
 import static hudson.model.Result.SUCCESS;
 import static hudson.model.Result.UNSTABLE;
@@ -41,8 +42,9 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  */
 public class GitHubCommitNotifier extends Notifier {
+    private static final ExpandableMessage DEFAULT_MESSAGE = new ExpandableMessage("");
 
-    private ExpandableMessage statusMessage = new ExpandableMessage("");
+    private ExpandableMessage statusMessage = DEFAULT_MESSAGE;
 
     private final String resultOnFailure;
     private static final Result[] SUPPORTED_RESULTS = {FAILURE, UNSTABLE, SUCCESS};
@@ -124,7 +126,8 @@ public class GitHubCommitNotifier extends Notifier {
         final String sha1 = ObjectId.toString(BuildDataHelper.getCommitSHA1(build));
 
         StatusResult status = statusFrom(build);
-        String message = defaultIfEmpty(statusMessage.expandAll(build, listener), status.getMsg());
+        String message = defaultIfEmpty(firstNonNull(statusMessage, DEFAULT_MESSAGE)
+                .expandAll(build, listener), status.getMsg());
         String contextName = displayNameFor(build.getProject());
 
         for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(build.getProject())) {
