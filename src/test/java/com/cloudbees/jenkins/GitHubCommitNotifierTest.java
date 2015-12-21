@@ -1,29 +1,81 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package com.cloudbees.jenkins;
 
+import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import hudson.Launcher;
+import hudson.model.AbstractBuild;
 import hudson.model.Build;
+import hudson.model.BuildListener;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.plugins.git.GitSCM;
+import hudson.plugins.git.Revision;
+import hudson.plugins.git.util.BuildData;
+import org.eclipse.jgit.lib.ObjectId;
+import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
+import org.jenkinsci.plugins.github.test.GHMockRule;
+import org.jenkinsci.plugins.github.test.GHMockRule.FixedGHRepoNameTestContributor;
+import org.jenkinsci.plugins.github.test.InjectJenkinsMembersRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExternalResource;
+import org.junit.rules.RuleChain;
+import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.TestBuilder;
+import org.jvnet.hudson.test.TestExtension;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import javax.inject.Inject;
+
+import static com.cloudbees.jenkins.GitHubSetCommitStatusBuilderTest.SOME_SHA;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link GitHubCommitNotifier}.
  *
  * @author Oleg Nenashev <o.v.nenashev@gmail.com>
  */
+@RunWith(MockitoJUnitRunner.class)
 public class GitHubCommitNotifierTest {
 
-    @Rule
+    @Mock
+    public BuildData data;
+
+    @Mock
+    public Revision rev;
+
+    @Inject
+    public GitHubPluginConfig config;
+
     public JenkinsRule jRule = new JenkinsRule();
+
+    @Rule
+    public RuleChain chain = RuleChain.outerRule(jRule).around(new InjectJenkinsMembersRule(jRule, this));
+
+    @Rule
+    public GHMockRule github = new GHMockRule(
+            new WireMockRule(
+                    wireMockConfig().dynamicPort().notifier(new Slf4jNotifier(true))
+            ))
+            .stubUser()
+            .stubRepo()
+            .stubStatuses();
+
+
+    @Rule
+    public ExternalResource prep = new ExternalResource() {
+        @Override
+        protected void before() throws Throwable {
+            when(data.getLastBuiltRevision()).thenReturn(rev);
+            when(rev.getSha1()).thenReturn(ObjectId.fromString(SOME_SHA));
+        }
+    };
 
     @Test
     @Issue("JENKINS-23641")
@@ -63,4 +115,28 @@ public class GitHubCommitNotifierTest {
         Build b = prj.scheduleBuild2(0).get();
         jRule.assertBuildStatus(Result.SUCCESS, b);
     }
+
+    @Test
+    public void shouldWriteStatusOnGH() throws Exception {
+        config.getConfigs().add(github.serverConfig());
+        FreeStyleProject prj = jRule.createFreeStyleProject();
+
+        prj.getBuildersList().add(new TestBuilder() {
+            @Override
+            public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
+                build.addAction(data);
+                return true;
+            }
+        });
+
+        prj.getPublishersList().add(new GitHubCommitNotifier(Result.SUCCESS.toString()));
+
+        prj.scheduleBuild2(0).get();
+
+        github.service().verify(1, postRequestedFor(urlPathMatching(".*/" + SOME_SHA)));
+    }
+
+    @TestExtension
+    public static final FixedGHRepoNameTestContributor CONTRIBUTOR = new FixedGHRepoNameTestContributor();
+
 }

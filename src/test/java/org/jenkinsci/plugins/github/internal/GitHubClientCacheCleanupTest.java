@@ -2,7 +2,7 @@ package org.jenkinsci.plugins.github.internal;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
-import org.junit.Before;
+import org.jenkinsci.plugins.github.test.GHMockRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -12,10 +12,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 import java.util.Collections;
 
-import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.nio.file.Files.newDirectoryStream;
@@ -36,12 +32,8 @@ public class GitHubClientCacheCleanupTest {
     public JenkinsRule jRule = new JenkinsRule();
 
     @Rule
-    public WireMockRule github = new WireMockRule(wireMockConfig().dynamicPort());
+    public GHMockRule github = new GHMockRule(new WireMockRule(wireMockConfig().dynamicPort())).stubUser();
 
-    @Before
-    public void setUp() throws Exception {
-        stubUserResponse();
-    }
 
     @Test
     public void shouldCreateCachedFolder() throws Exception {
@@ -82,7 +74,7 @@ public class GitHubClientCacheCleanupTest {
 
         GitHubServerConfig config = new GitHubServerConfig(CHANGED_CREDS_ID);
         config.setCustomApiUrl(true);
-        config.setApiUrl(constructApiUrl());
+        config.setApiUrl(github.serverConfig().getApiUrl());
         config.setClientCacheSize(1);
 
         clearRedundantCaches(newArrayList(config));
@@ -96,7 +88,7 @@ public class GitHubClientCacheCleanupTest {
 
         GitHubServerConfig config = new GitHubServerConfig(CHANGED_CREDS_ID);
         config.setCustomApiUrl(true);
-        config.setApiUrl(constructApiUrl());
+        config.setApiUrl(github.serverConfig().getApiUrl());
         config.setClientCacheSize(0);
 
         clearRedundantCaches(newArrayList(config));
@@ -110,20 +102,8 @@ public class GitHubClientCacheCleanupTest {
         }
     }
 
-    private String constructApiUrl() {
-        return "http://localhost:" + github.port();
-    }
-
     private void makeCachedRequestWithCredsId(String credsId) throws IOException {
         jRule.getInstance().getDescriptorByType(GitHubServerConfig.DescriptorImpl.class)
-                .doVerifyCredentials(constructApiUrl(), credsId, 1);
-    }
-
-    private void stubUserResponse() throws IOException {
-        github.stubFor(get(urlPathEqualTo("/user"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json; charset=utf-8")
-                        .withBody(classpath(getClass(), "user.json"))));
+                .doVerifyCredentials(github.serverConfig().getApiUrl(), credsId, 1);
     }
 }
