@@ -20,6 +20,7 @@ import java.io.IOException;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.config.EncoderConfig.encoderConfig;
 import static com.jayway.restassured.config.RestAssuredConfig.newConfig;
+import static java.lang.String.format;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -139,13 +140,17 @@ public class GitHubWebHookFullTest {
         return new Header(GHEventHeader.PayloadHandler.EVENT_HEADER, event);
     }
 
-    public static String classpath(String path) throws IOException {
+    public static String classpath(String path) {
         return classpath(GitHubWebHookFullTest.class, path);
     }
 
-    public static String classpath(Class<?> clazz, String path) throws IOException {
-        return IOUtils.toString(clazz.getClassLoader().getResourceAsStream(
-                clazz.getName().replace(PACKAGE_SEPARATOR, File.separator) + File.separator + path
-        ), Charsets.UTF_8);
+    public static String classpath(Class<?> clazz, String path) {
+        try {
+            return IOUtils.toString(clazz.getClassLoader().getResourceAsStream(
+                    clazz.getName().replace(PACKAGE_SEPARATOR, File.separator) + File.separator + path
+            ), Charsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(format("Can't load %s for class %s", path, clazz), e);
+        }
     }
 }
