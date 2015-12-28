@@ -1,6 +1,6 @@
 package org.jenkinsci.plugins.github.util;
 
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import hudson.plugins.git.Revision;
 import hudson.plugins.git.util.BuildData;
 import org.eclipse.jgit.lib.ObjectId;
@@ -27,7 +27,7 @@ public final class BuildDataHelper {
      * @throws IOException Cannot get the info about commit ID
      */
     @Nonnull
-    public static ObjectId getCommitSHA1(@Nonnull AbstractBuild<?, ?> build) throws IOException {
+    public static ObjectId getCommitSHA1(@Nonnull Run<?, ?> build) throws IOException {
         BuildData buildData = build.getAction(BuildData.class);
         if (buildData == null) {
             throw new IOException(Messages.BuildDataHelper_NoBuildDataError());
