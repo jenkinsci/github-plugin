@@ -1,17 +1,20 @@
 package com.cloudbees.jenkins;
 
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
 import hudson.model.Result;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.util.ListBoxModel;
+import jenkins.tasks.SimpleBuildStep;
+
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.github.common.ExpandableMessage;
 import org.jenkinsci.plugins.github.util.BuildDataHelper;
@@ -41,7 +44,7 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
  *
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
  */
-public class GitHubCommitNotifier extends Notifier {
+public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
     private static final ExpandableMessage DEFAULT_MESSAGE = new ExpandableMessage("");
 
     private ExpandableMessage statusMessage = DEFAULT_MESSAGE;
@@ -100,12 +103,12 @@ public class GitHubCommitNotifier extends Notifier {
     }
 
     @Override
-    public boolean perform(AbstractBuild<?, ?> build,
+    public void perform(Run<?, ?> build,
+                           FilePath ws,
                            Launcher launcher,
-                           BuildListener listener) throws InterruptedException, IOException {
+                           TaskListener listener) throws InterruptedException, IOException {
         try {
             updateCommitStatus(build, listener);
-            return true;
         } catch (IOException error) {
             final Result buildResult = getEffectiveResultOnFailure();
             if (buildResult.equals(FAILURE)) {
@@ -118,19 +121,18 @@ public class GitHubCommitNotifier extends Notifier {
                 build.setResult(buildResult);
             }
         }
-        return true;
     }
 
-    private void updateCommitStatus(@Nonnull AbstractBuild<?, ?> build,
-                                    @Nonnull BuildListener listener) throws InterruptedException, IOException {
+    private void updateCommitStatus(@Nonnull Run<?, ?> build,
+                                    @Nonnull TaskListener listener) throws InterruptedException, IOException {
         final String sha1 = ObjectId.toString(BuildDataHelper.getCommitSHA1(build));
 
         StatusResult status = statusFrom(build);
         String message = defaultIfEmpty(firstNonNull(statusMessage, DEFAULT_MESSAGE)
                 .expandAll(build, listener), status.getMsg());
-        String contextName = displayNameFor(build.getProject());
+        String contextName = displayNameFor(build.getParent());
 
-        for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(build.getProject())) {
+        for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(build.getParent())) {
             for (GHRepository repository : name.resolve()) {
 
                 listener.getLogger().println(
@@ -146,7 +148,7 @@ public class GitHubCommitNotifier extends Notifier {
         }
     }
 
-    private static StatusResult statusFrom(@Nonnull AbstractBuild<?, ?> build) {
+    private static StatusResult statusFrom(@Nonnull Run<?, ?> build) {
         Result result = build.getResult();
 
         // We do not use `build.getDurationString()` because it appends 'and counting' (build is still running)
