@@ -1,6 +1,12 @@
 package com.coravy.hudson.plugins.github;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import hudson.Extension;
 import hudson.model.Action;
+import hudson.model.Job;
+import jenkins.model.TransientActionFactory;
 
 /**
  * Add the Github Logo/Icon to the sidebar.
@@ -8,7 +14,6 @@ import hudson.model.Action;
  * @author Stefan Saasen <stefan@coravy.com>
  */
 public final class GithubLinkAction implements Action {
-
     private final transient GithubProjectProperty projectProperty;
 
     public GithubLinkAction(GithubProjectProperty githubProjectProperty) {
@@ -30,4 +35,24 @@ public final class GithubLinkAction implements Action {
         return projectProperty.getProjectUrl().baseUrl();
     }
 
+    @SuppressWarnings({"rawtypes"})
+    @Extension
+    public static class Factory extends TransientActionFactory<Job> {
+        @Override
+        public Class<Job> type() {
+            return Job.class;
+        }
+
+        @Override
+        public Collection<? extends Action> createFor(Job j) {
+            GithubProjectProperty prop =
+                    (GithubProjectProperty) ((Job<?, ?>) j).getProperty(GithubProjectProperty.class);
+
+            if (prop == null) {
+                return Collections.emptySet();
+            } else {
+                return Collections.singleton(new GithubLinkAction(prop));
+            }
+        }
+    }
 }
