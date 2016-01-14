@@ -2,7 +2,6 @@ package com.coravy.hudson.plugins.github;
 
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import hudson.Extension;
-import hudson.model.Action;
 import hudson.model.Job;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
@@ -14,8 +13,6 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.logging.Logger;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -81,14 +78,6 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
     @DataBoundSetter
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
-    }
-
-    @Override
-    public Collection<? extends Action> getJobActions(Job<?, ?> job) {
-        if (null != projectUrl) {
-            return Collections.singleton(new GithubLinkAction(this));
-        }
-        return Collections.emptyList();
     }
 
     /**
