@@ -27,9 +27,8 @@ public class PingGHEventSubscriberTest {
     }
 
     @Test
-    @WithoutJenkins
     public void shouldParsePingPayload() throws Exception {
-        new PingGHEventSubscriber().onEvent(GHEvent.PING, classpath("payloads/ping.json"));
+        injectedPingSubscr().onEvent(GHEvent.PING, classpath("payloads/ping.json"));
     }
 
     @Issue("JENKINS-30626")
@@ -37,6 +36,12 @@ public class PingGHEventSubscriberTest {
     @WithoutJenkins
     public void shouldParseOrgPingPayload() throws Exception {
         new PingGHEventSubscriber().onEvent(GHEvent.PING, classpath("payloads/orgping.json"));
+    }
+    
+    private PingGHEventSubscriber injectedPingSubscr() {
+        PingGHEventSubscriber pingSubsc = new PingGHEventSubscriber();
+        jenkins.getInstance().getInjector().injectMembers(pingSubsc);
+        return pingSubsc;
     }
 
 }

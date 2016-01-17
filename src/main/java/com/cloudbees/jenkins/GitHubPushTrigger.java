@@ -1,6 +1,7 @@
 package com.cloudbees.jenkins;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
 import hudson.Extension;
 import hudson.Util;
 import hudson.XmlFile;
@@ -12,6 +13,7 @@ import hudson.model.Job;
 import hudson.model.Project;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
+import hudson.util.FormValidation;
 import hudson.util.SequentialExecutionQueue;
 import hudson.util.StreamTaskListener;
 import jenkins.model.Jenkins;
@@ -20,13 +22,16 @@ import jenkins.model.ParameterizedJobMixIn;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
 import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.plugins.github.GitHubPlugin;
+import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.migration.Migrator;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -40,6 +45,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.jenkinsci.plugins.github.Messages.github_trigger_check_method_warning_details;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJobMixIn;
 
 /**
@@ -226,6 +232,9 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
         private transient List<Credential> credentials;
 
+        @Inject
+        private transient GitHubHookRegisterProblemMonitor monitor;
+
         @Override
         public boolean isApplicable(Item item) {
             return item instanceof Job && SCMTriggerItems.asSCMTriggerItem(item) != null
@@ -322,6 +331,33 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
         public static boolean allowsHookUrlOverride() {
             return ALLOW_HOOKURL_OVERRIDE;
+        }
+
+        /**
+         * Checks that repo defined in this job is not in administrative monitor as failed to be registered.
+         * If that so, shows warning with some instructions
+         *
+         * @param job - to check against. Should be not null and have at least one repo defined
+         *
+         * @return warning or empty string
+         * @since TODO
+         */
+        @SuppressWarnings("unused")
+        public FormValidation doCheckHookRegistered(@AncestorInPath Job<?, ?> job) {
+            Preconditions.checkNotNull(job, "Job can't be null if wants to check hook in monitor");
+
+            Collection<GitHubRepositoryName> repos = GitHubRepositoryNameContributor.parseAssociatedNames(job);
+
+            for (GitHubRepositoryName repo : repos) {
+                if (monitor.isProblemWith(repo)) {
+                    return FormValidation.warning(
+                            github_trigger_check_method_warning_details(
+                                    repo.getUserName(), repo.getRepositoryName(), repo.getHost()
+                            ));
+                }
+            }
+
+            return FormValidation.ok();
         }
     }
 
