@@ -5,6 +5,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.Job;
 import org.apache.commons.lang.Validate;
+import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
@@ -132,6 +133,7 @@ public class WebhookManager {
 
         } catch (Throwable t) {
             LOGGER.warn("Failed to remove hook from {}", name, t);
+            GitHubHookRegisterProblemMonitor.get().registerProblem(name, t);
         }
     }
 
@@ -176,6 +178,7 @@ public class WebhookManager {
                     return createWebhook(endpoint, merged).apply(repo);
                 } catch (Throwable t) {
                     LOGGER.warn("Failed to add GitHub webhook for {}", name, t);
+                    GitHubHookRegisterProblemMonitor.get().registerProblem(name, t);
                 }
                 return null;
             }
