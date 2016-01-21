@@ -10,23 +10,69 @@ l.layout(title: _('page.title'), permission: app.ADMINISTER) {
         h1 {
             text(_('page.title'))
         }
-        table(class: 'pane bigtable', style: 'width:auto') {
-            tr {
-                th {
-                    text(_('project'))
+
+        if (!my.problems.isEmpty()) {
+            table(class: 'pane bigtable', style: 'width:auto') {
+                tr {
+                    th {
+                        text(_('Project with hook problem'))
+                    }
+                    th {
+                        text(_('Message'))
+                    }
+                    th {
+                        text('')
+                    }
                 }
-                th {
-                    text(_('message'))
+
+                my.problems.entrySet().each { entry ->
+                    tr {
+                        td {
+                            text("${entry.key.host}:${entry.key.userName}/${entry.key.repositoryName}")
+                        }
+                        td {
+                            text(entry.value?.message)
+                        }
+                        td {
+                            f.form(method: 'post', action: "${rootURL}/${my?.url}/ignore", name: 'ignore') {
+                                f.invisibleEntry {
+                                    f.textbox(name: 'repo', value: "https://${entry.key.host}/${entry.key.userName}/${entry.key.repositoryName}")
+                                }
+                                f.submit(name: 'yes', value: _('ignore'))
+                            }
+                        }
+                    }
                 }
             }
-
-            my.problems.entrySet().each { entry ->
+            br()
+            br()
+            br()
+        }
+       
+        if (!my.ignored.isEmpty()) {
+            table(class: 'pane bigtable', style: 'width:auto') {
                 tr {
-                    td {
-                        text(entry.key)
+                    th {
+                        text(_('Ignored Projects'))
                     }
-                    td {
-                        text(entry.value?.message)
+                    th {
+                        text('')
+                    }
+                }
+
+                my.ignored.each { entry ->
+                    tr {
+                        td {
+                            text("${entry.host}:${entry.userName}/${entry.repositoryName}")
+                        }
+                        td {
+                            f.form(method: 'post', action: "${rootURL}/${my?.url}/disignore", name: 'disignore') {
+                                f.invisibleEntry {
+                                    f.textbox(name: 'repo', value: "https://${entry.host}/${entry.userName}/${entry.repositoryName}")
+                                }
+                                f.submit(name: 'yes', value: _('disignore'))
+                            }
+                        }
                     }
                 }
             }
