@@ -20,6 +20,7 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -34,30 +35,42 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor implements Saveable {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHubHookRegisterProblemMonitor.class);
 
-    private transient Map<GitHubRepositoryName, Throwable> problems = new ConcurrentHashMap<>();
-    private PersistedList<GitHubRepositoryName> ignored = new PersistedList<>(this);
+    private transient Map<GitHubRepositoryName, String> problems = new ConcurrentHashMap<>();
+    private PersistedList<GitHubRepositoryName> ignored;
 
     public GitHubHookRegisterProblemMonitor() {
         super(GitHubHookRegisterProblemMonitor.class.getSimpleName());
         load();
+        ignored = (ignored == null ? new PersistedList<GitHubRepositoryName>(this) : ignored);
         ignored.setOwner(this);
     }
 
-    public Map<GitHubRepositoryName, Throwable> getProblems() {
+    public Map<GitHubRepositoryName, String> getProblems() {
         return ImmutableMap.copyOf(problems);
     }
 
-    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     public void registerProblem(GitHubRepositoryName repo, Throwable throwable) {
+        if (throwable == null) {
+            return;
+        }
+        registerProblem(repo, throwable.getMessage());
+    }
+
+    private void registerProblem(GitHubRepositoryName repo, String message) {
+        if (repo == null) {
+            return;
+        }
         if (!ignored.contains(repo)) {
-            problems.put(repo, throwable);
+            problems.put(repo, message);
         } else {
-            LOGGER.debug("Repo {} is in list of ignored, skip problem registering...");
+            LOGGER.debug("Repo {} is ignored by monitor, skip this problem...", repo);
         }
     }
 
-    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     public void resolveProblem(GitHubRepositoryName repo) {
+        if (repo == null) {
+            return;
+        }
         problems.remove(repo);
     }
 
@@ -83,6 +96,7 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
      * Depending on whether the user said "yes" or "no", send him to the right place.
      */
     @RequirePOST
+    @RequireAdminRights
     public HttpResponse doAct(StaplerRequest req) throws IOException {
         if (req.hasParameter("no")) {
             disable(true);
@@ -93,24 +107,22 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
     }
 
     @RequirePOST
-    public HttpResponse doIgnore(StaplerRequest req) throws IOException {
-        GitHubRepositoryName repo = GitHubRepositoryName.create(req.getParameter("repo"));
-        if (repo != null) {
-            if (!ignored.contains(repo)) {
-                ignored.add(repo);
-            }
-            resolveProblem(repo);
+    @ValidateRepoName
+    @RequireAdminRights
+    @RespondWithRedirect
+    public void doIgnore(@Nonnull @GHRepoName GitHubRepositoryName repo) throws IOException {
+        if (!ignored.contains(repo)) {
+            ignored.add(repo);
         }
-        return new HttpRedirect(".");
+        resolveProblem(repo);
     }
 
     @RequirePOST
-    public HttpResponse doDisignore(StaplerRequest req) throws IOException {
-        GitHubRepositoryName repo = GitHubRepositoryName.create(req.getParameter("repo"));
-        if (repo != null) {
-            ignored.remove(repo);
-        }
-        return new HttpRedirect(".");
+    @ValidateRepoName
+    @RequireAdminRights
+    @RespondWithRedirect
+    public void doDisignore(@Nonnull @GHRepoName GitHubRepositoryName repo) throws IOException {
+        ignored.remove(repo);
     }
 
     /**
@@ -129,7 +141,7 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
         }
     }
 
-    public synchronized void load() {
+    private synchronized void load() {
         XmlFile file = getConfigFile();
         if (!file.exists()) {
             return;
@@ -141,8 +153,8 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
         }
     }
 
-    public final XmlFile getConfigFile() {
-        return new XmlFile(new File(Jenkins.getInstance().getRootDir(), id + ".xml"));
+    private XmlFile getConfigFile() {
+        return new XmlFile(new File(Jenkins.getInstance().getRootDir(), getClass().getName() + ".xml"));
     }
 
 
@@ -160,7 +172,7 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
         public String getIconFileName() {
             return monitor.getProblems().isEmpty() && monitor.ignored.isEmpty()
                     ? null
-                    : "/plugin/github/img/ghlogo.svg";
+                    : "/plugin/github/img/logo.svg";
         }
 
         @Override

@@ -62,9 +62,8 @@ public class PingGHEventSubscriber extends GHEventsSubscriber {
         JSONObject parsedPayload = fromObject(payload);
         JSONObject repository = parsedPayload.optJSONObject("repository");
         if (repository != null) {
-            // something like <https://github.com/bar/foo>
-            LOGGER.info("{} webhook received from repo <{}>!", event, repository.getString("url"));
-            monitor.resolveProblem(GitHubRepositoryName.create(repository.getString("url")));
+            LOGGER.info("{} webhook received from repo <{}>!", event, repository.getString("git_url"));
+            monitor.resolveProblem(GitHubRepositoryName.create(repository.getString("git_url")));
         } else {
             JSONObject organization = parsedPayload.optJSONObject("organization");
             if (organization != null) {

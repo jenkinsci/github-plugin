@@ -32,6 +32,7 @@ import static org.apache.commons.codec.binary.Base64.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 import static org.kohsuke.stapler.HttpResponses.error;
+import static org.kohsuke.stapler.HttpResponses.errorWithoutStack;
 
 /**
  * InterceptorAnnotation annotation to use on WebMethod signature.
@@ -122,7 +123,7 @@ public @interface RequirePostWithGHHookPayload {
          */
         private void isTrue(boolean condition, String msg) throws InvocationTargetException {
             if (!condition) {
-                throw new InvocationTargetException(error(SC_BAD_REQUEST, msg));
+                throw new InvocationTargetException(errorWithoutStack(SC_BAD_REQUEST, msg));
             }
         }
     }
