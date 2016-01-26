@@ -1,13 +1,16 @@
 package org.jenkinsci.plugins.github.webhook.subscriber;
 
+import com.cloudbees.jenkins.GitHubRepositoryName;
 import hudson.Extension;
 import hudson.model.Job;
 import net.sf.json.JSONObject;
+import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.immutableEnumSet;
@@ -24,6 +27,9 @@ import static org.kohsuke.github.GHEvent.PING;
 @SuppressWarnings("unused")
 public class PingGHEventSubscriber extends GHEventsSubscriber {
     private static final Logger LOGGER = LoggerFactory.getLogger(PingGHEventSubscriber.class);
+
+    @Inject
+    private transient GitHubHookRegisterProblemMonitor monitor;
 
     /**
      * This subscriber is not applicable to any job
@@ -56,8 +62,8 @@ public class PingGHEventSubscriber extends GHEventsSubscriber {
         JSONObject parsedPayload = fromObject(payload);
         JSONObject repository = parsedPayload.optJSONObject("repository");
         if (repository != null) {
-            // something like <https://github.com/bar/foo>
-            LOGGER.info("{} webhook received from repo <{}>!", event, repository.getString("url"));
+            LOGGER.info("{} webhook received from repo <{}>!", event, repository.getString("html_url"));
+            monitor.resolveProblem(GitHubRepositoryName.create(repository.getString("html_url")));
         } else {
             JSONObject organization = parsedPayload.optJSONObject("organization");
             if (organization != null) {
