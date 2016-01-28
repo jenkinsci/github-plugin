@@ -60,7 +60,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      * @param payload payload of gh-event. Never blank
      */
     @Override
-    protected void onEvent(GHEvent event, String payload) {
+    protected void onEvent(GHEvent event, final String payload) {
         JSONObject json = JSONObject.fromObject(payload);
         String repoUrl = json.getJSONObject("repository").getString("url");
         final String pusherName = json.getJSONObject("pusher").getString("name");
@@ -81,7 +81,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                             LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
                             if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
                                 LOGGER.info("Poked {}", job.getFullDisplayName());
-                                trigger.onPost(pusherName);
+                                trigger.onPost(pusherName, payload);
                             } else {
                                 LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
                                         job.getFullDisplayName());
