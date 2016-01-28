@@ -53,7 +53,7 @@ public class DefaultPushGHEventListenerTest {
         new DefaultPushGHEventSubscriber()
                 .onEvent(GHEvent.PUSH, classpath("payloads/push.json"));
 
-        verify(trigger).onPost(TRIGGERED_BY_USER_FROM_RESOURCE);
+        verify(trigger).onPost(TRIGGERED_BY_USER_FROM_RESOURCE, classpath("payloads/push.json"));
     }
 
     @Test
@@ -70,7 +70,7 @@ public class DefaultPushGHEventListenerTest {
         new DefaultPushGHEventSubscriber()
                 .onEvent(GHEvent.PUSH, classpath("payloads/push.json"));
 
-        verify(trigger).onPost(TRIGGERED_BY_USER_FROM_RESOURCE);
+        verify(trigger).onPost(TRIGGERED_BY_USER_FROM_RESOURCE, classpath("payloads/push.json"));
     }
 
     @Test
@@ -85,6 +85,6 @@ public class DefaultPushGHEventListenerTest {
         new DefaultPushGHEventSubscriber()
                 .onEvent(GHEvent.PUSH, classpath("payloads/push.json"));
 
-        verify(trigger, never()).onPost(TRIGGERED_BY_USER_FROM_RESOURCE);
+        verify(trigger, never()).onPost(TRIGGERED_BY_USER_FROM_RESOURCE, classpath("payloads/push.json"));
     }
 }

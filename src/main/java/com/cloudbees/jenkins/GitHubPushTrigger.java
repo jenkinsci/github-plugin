@@ -8,6 +8,7 @@ import hudson.XmlFile;
 import hudson.console.AnnotatedLargeText;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
+import hudson.model.CauseAction;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.Project;
@@ -46,7 +47,6 @@ import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.jenkinsci.plugins.github.Messages.github_trigger_check_method_warning_details;
-import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJobMixIn;
 
 /**
  * Triggers a build when we receive a GitHub post-commit webhook.
@@ -70,7 +70,15 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     /**
      * Called when a POST is made.
      */
+    @Deprecated
     public void onPost(String triggeredByUser) {
+        onPost(triggeredByUser, "");
+    }
+
+    /**
+     * Called when a POST is made.
+     */
+    public void onPost(String triggeredByUser, final String payload) {
         final String pushBy = triggeredByUser;
         getDescriptor().queue.execute(new Runnable() {
             private boolean runPolling() {
@@ -116,7 +124,15 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         LOGGER.warn("Failed to parse the polling log", e);
                         cause = new GitHubPushCause(pushBy);
                     }
-                    if (asParameterizedJobMixIn(job).scheduleBuild(cause)) {
+                    ParameterizedJobMixIn pJob = new ParameterizedJobMixIn() {
+                        @Override
+                        protected Job asJob() {
+                            return job;
+                        }
+                    };
+                    GitHubPayload gitHubPayload = new GitHubPayload(payload);
+                    pJob.scheduleBuild2(5, new CauseAction(cause), gitHubPayload);
+                    if (pJob.scheduleBuild(cause)) {
                         LOGGER.info("SCM changes detected in " + job.getName() + ". Triggering " + name);
                     } else {
                         LOGGER.info("SCM changes detected in " + job.getName() + ". Job is already in the queue");
