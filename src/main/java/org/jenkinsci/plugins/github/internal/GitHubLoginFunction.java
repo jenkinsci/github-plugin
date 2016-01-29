@@ -20,6 +20,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 
@@ -90,7 +91,11 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
         if (jenkins.proxy == null) {
             return Proxy.NO_PROXY;
         } else {
-            return jenkins.proxy.createProxy(apiUrl);
+            try {
+                return jenkins.proxy.createProxy(new URL(apiUrl).getHost());
+            } catch (MalformedURLException e) {
+                return jenkins.proxy.createProxy(apiUrl);
+            }
         }
     }
 
