@@ -2,6 +2,16 @@ package com.cloudbees.jenkins.GitHubPushTrigger
 
 import com.cloudbees.jenkins.GitHubPushTrigger
 
+def f = namespace(lib.FormTagLib)
+
+tr {
+    td(colspan: 4) {
+        f.entry(title: _("Ignorable Pusher"), field: "ignorablePusher") {
+            f.textbox()
+        }
+    }
+}
+
 tr {
     td(colspan: 4) {
         div(id: 'gh-hooks-warn')
