@@ -49,7 +49,7 @@ public class GitHubRepositoryName {
             Pattern.compile("https?://[^/]+@([^/]+)/([^/]+)/([^/]+)\\.git"),
             Pattern.compile("https?://([^/]+)/([^/]+)/([^/]+)\\.git"),
             Pattern.compile("git://([^/]+)/([^/]+)/([^/]+)\\.git"),
-            Pattern.compile("ssh://git@([^/]+)/([^/]+)/([^/]+)\\.git"),
+            Pattern.compile("ssh://(?:git@)?([^/]+)/([^/]+)/([^/]+)\\.git"),
             /**
              * The second set of patterns extract the host, owner and repository names
              * from all other URLs. Note that these patterns must be processed *after*
@@ -60,7 +60,7 @@ public class GitHubRepositoryName {
             Pattern.compile("https?://[^/]+@([^/]+)/([^/]+)/([^/]+)/?"),
             Pattern.compile("https?://([^/]+)/([^/]+)/([^/]+)/?"),
             Pattern.compile("git://([^/]+)/([^/]+)/([^/]+)/?"),
-            Pattern.compile("ssh://git@([^/]+)/([^/]+)/([^/]+)/?")
+            Pattern.compile("ssh://(?:git@)?([^/]+)/([^/]+)/([^/]+)/?")
     };
 
     /**
