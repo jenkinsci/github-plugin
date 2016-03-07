@@ -26,6 +26,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_DisplayName;
@@ -139,11 +140,19 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
                         GitHubCommitNotifier_SettingCommitStatus(repository.getHtmlUrl() + "/commit/" + sha1)
                 );
 
-                repository.createCommitStatus(
-                        sha1, status.getState(), build.getAbsoluteUrl(),
-                        message,
-                        contextName
-                );
+                try {
+                    repository.createCommitStatus(
+                            sha1, status.getState(), build.getAbsoluteUrl(),
+                            message,
+                            contextName
+                    );
+                } catch (FileNotFoundException e) {
+                    // PR builds and other merge activities can create a merge commit that
+                    // doesn't exist in the upstream. Don't let the build fail
+                    // TODO: ideally we'd like other plugins to designate a commit to put the status update to
+                    listener.getLogger().println("Commit doesn't exist in " +
+                            repository.getFullName() + ". Status is not set");
+                }
             }
         }
     }
