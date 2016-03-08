@@ -10,7 +10,8 @@ f.section(title: descriptor.displayName) {
         
         f.repeatableHeteroProperty(
                 field: "configs",
-                hasHeader: "true")
+                hasHeader: "true",
+                addCaption: _("Add GitHub Server"))
     }
 
     f.advanced() {

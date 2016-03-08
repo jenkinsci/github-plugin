@@ -105,7 +105,7 @@ public class GitHubClientCacheCleanupTest {
         GitHubServerConfig config = new GitHubServerConfig(credsId);
         config.setApiUrl(github.serverConfig().getApiUrl());
         config.setClientCacheSize(1);
-        GitHub gitHub = new GitHubLoginFunction().apply(config);
+        GitHub gitHub = GitHubServerConfig.loginToGithub().apply(config);
         gitHub.getMyself();
     }
 }
