@@ -24,12 +24,13 @@ import org.kohsuke.github.GHCommitState;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_DisplayName;
 import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_SettingCommitStatus;
@@ -55,7 +56,7 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
     private final String resultOnFailure;
     private static final Result[] SUPPORTED_RESULTS = {FAILURE, UNSTABLE, SUCCESS};
 
-    private static final Logger LOGGER = Logger.getLogger(GitHubCommitNotifier.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubWebHook.class);
 
     @Restricted(NoExternalUse.class)
     public GitHubCommitNotifier() {
@@ -154,7 +155,7 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
                     // PR builds and other merge activities can create a merge commit that
                     // doesn't exist in the upstream. Don't let the build fail
                     // TODO: ideally we'd like other plugins to designate a commit to put the status update to
-                    LOGGER.log(Level.FINE, "Failed to update commit status", e);
+                    LOGGER.debug("Failed to update commit status", e);
                     listener.getLogger().println("Commit doesn't exist in "
                             + repository.getFullName() + ". Status is not set");
                 }
