@@ -150,8 +150,8 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
                     // PR builds and other merge activities can create a merge commit that
                     // doesn't exist in the upstream. Don't let the build fail
                     // TODO: ideally we'd like other plugins to designate a commit to put the status update to
-                    listener.getLogger().println("Commit doesn't exist in " +
-                            repository.getFullName() + ". Status is not set");
+                    listener.getLogger().println("Commit doesn't exist in "
+                            + repository.getFullName() + ". Status is not set");
                 }
             }
         }
