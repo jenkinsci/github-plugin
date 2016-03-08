@@ -281,12 +281,11 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
         @SuppressWarnings("unused")
         public FormValidation doVerifyCredentials(
                 @QueryParameter String apiUrl,
-                @QueryParameter String credentialsId,
-                @QueryParameter Integer clientCacheSize) throws IOException {
+                @QueryParameter String credentialsId) throws IOException {
 
             GitHubServerConfig config = new GitHubServerConfig(credentialsId);
             config.setApiUrl(apiUrl);
-            config.setClientCacheSize(clientCacheSize);
+            config.setClientCacheSize(0);
             GitHub gitHub = new GitHubLoginFunction().apply(config);
 
             try {

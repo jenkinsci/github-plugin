@@ -6,6 +6,7 @@ import org.jenkinsci.plugins.github.test.GHMockRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.kohsuke.github.GitHub;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -101,7 +102,10 @@ public class GitHubClientCacheCleanupTest {
     }
 
     private void makeCachedRequestWithCredsId(String credsId) throws IOException {
-        jRule.getInstance().getDescriptorByType(GitHubServerConfig.DescriptorImpl.class)
-                .doVerifyCredentials(github.serverConfig().getApiUrl(), credsId, 1);
+        GitHubServerConfig config = new GitHubServerConfig(credsId);
+        config.setApiUrl(github.serverConfig().getApiUrl());
+        config.setClientCacheSize(1);
+        GitHub gitHub = new GitHubLoginFunction().apply(config);
+        gitHub.getMyself();
     }
 }
