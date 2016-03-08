@@ -73,7 +73,6 @@ public class GitHubClientCacheCleanupTest {
         makeCachedRequestWithCredsId(CHANGED_CREDS_ID);
 
         GitHubServerConfig config = new GitHubServerConfig(CHANGED_CREDS_ID);
-        config.setCustomApiUrl(true);
         config.setApiUrl(github.serverConfig().getApiUrl());
         config.setClientCacheSize(1);
 
@@ -87,7 +86,6 @@ public class GitHubClientCacheCleanupTest {
         makeCachedRequestWithCredsId(CHANGED_CREDS_ID);
 
         GitHubServerConfig config = new GitHubServerConfig(CHANGED_CREDS_ID);
-        config.setCustomApiUrl(true);
         config.setApiUrl(github.serverConfig().getApiUrl());
         config.setClientCacheSize(0);
 

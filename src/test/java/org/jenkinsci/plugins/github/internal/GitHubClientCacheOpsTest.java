@@ -49,7 +49,6 @@ public class GitHubClientCacheOpsTest {
     @Test
     public void shouldPointToDifferentCachesOnChangedApiPath() throws Exception {
         GitHubServerConfig config = new GitHubServerConfig(CREDENTIALS_ID);
-        config.setCustomApiUrl(true);
         config.setApiUrl(CUSTOM_API_URL);
 
         GitHubServerConfig config2 = new GitHubServerConfig(CREDENTIALS_ID);

@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
-import static org.jenkinsci.plugins.github.config.GitHubServerConfig.isUrlCustom;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 
 /**
@@ -83,7 +82,6 @@ public class Migrator {
                 );
 
                 GitHubServerConfig gitHubServerConfig = new GitHubServerConfig(credentials.getId());
-                gitHubServerConfig.setCustomApiUrl(isUrlCustom(input.getApiUrl()));
                 gitHubServerConfig.setApiUrl(input.getApiUrl());
 
                 return gitHubServerConfig;

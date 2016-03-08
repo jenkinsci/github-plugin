@@ -83,11 +83,6 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     private int clientCacheSize = DEFAULT_CLIENT_CACHE_SIZE_MB;
 
     /**
-     * only to set to default apiUrl when uncheck. Can be removed if optional block can nullify value if unchecked
-     */
-    private transient boolean customApiUrl;
-
-    /**
      * To avoid creation of new one on every login with this config
      */
     private transient GitHub cachedClient;
@@ -98,28 +93,26 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     }
 
     /**
-     * {@link #customApiUrl} field should be defined earlier. Because of we get full content of optional block,
-     * even if it already unchecked. So if we want to return api url to default value - custom value should affect
+     * Set the API endpoint.
      *
      * @param apiUrl custom url if GH. Default value will be used in case of custom is unchecked or value is blank
      */
     @DataBoundSetter
     public void setApiUrl(String apiUrl) {
-        if (customApiUrl) {
-            this.apiUrl = defaultIfBlank(apiUrl, GITHUB_URL);
-        } else {
-            this.apiUrl = GITHUB_URL;
-        }
+        this.apiUrl = defaultIfBlank(apiUrl, GITHUB_URL);
     }
 
     /**
-     * Should be called before {@link #setApiUrl(String)}
      *
      * @param customApiUrl true if optional block "Custom GH Api Url" checked in UI
+     * @deprecated
+     *      just set {@link #setApiUrl(String)}
      */
     @DataBoundSetter
     public void setCustomApiUrl(boolean customApiUrl) {
-        this.customApiUrl = customApiUrl;
+        if (!customApiUrl) {
+            this.apiUrl = GITHUB_URL;
+        }
     }
 
     /**
@@ -138,6 +131,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
 
     /**
      * @see #isUrlCustom(String)
+     * @deprecated
      */
     @Restricted(NoExternalUse.class)
     public boolean isCustomApiUrl() {
@@ -291,7 +285,6 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
                 @QueryParameter Integer clientCacheSize) throws IOException {
 
             GitHubServerConfig config = new GitHubServerConfig(credentialsId);
-            config.setCustomApiUrl(isUrlCustom(apiUrl));
             config.setApiUrl(apiUrl);
             config.setClientCacheSize(clientCacheSize);
             GitHub gitHub = new GitHubLoginFunction().apply(config);
