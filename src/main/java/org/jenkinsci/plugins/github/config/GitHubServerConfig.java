@@ -261,7 +261,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
 
         @Override
         public String getDisplayName() {
-            return "GitHub Server Config";
+            return "GitHub Server";
         }
 
         @SuppressWarnings("unused")
