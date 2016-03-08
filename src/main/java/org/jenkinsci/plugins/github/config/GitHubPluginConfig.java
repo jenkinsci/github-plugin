@@ -171,7 +171,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     @Override
     public String getDisplayName() {
-        return "GitHub Plugin Configuration";
+        return "GitHub Configuration";
     }
 
     @SuppressWarnings("unused")
