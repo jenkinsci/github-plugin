@@ -73,6 +73,7 @@ public class GitHubCommitNotifierTest {
         @Override
         protected void before() throws Throwable {
             when(data.getLastBuiltRevision()).thenReturn(rev);
+            data.lastBuild = new hudson.plugins.git.util.Build(rev,rev,0,Result.SUCCESS);
             when(rev.getSha1()).thenReturn(ObjectId.fromString(SOME_SHA));
         }
     };
