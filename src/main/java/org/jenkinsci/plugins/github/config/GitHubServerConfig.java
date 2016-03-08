@@ -103,19 +103,6 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     }
 
     /**
-     *
-     * @param customApiUrl true if optional block "Custom GH Api Url" checked in UI
-     * @deprecated
-     *      just set {@link #setApiUrl(String)}
-     */
-    @DataBoundSetter
-    public void setCustomApiUrl(boolean customApiUrl) {
-        if (!customApiUrl) {
-            this.apiUrl = GITHUB_URL;
-        }
-    }
-
-    /**
      * This server config will be used to manage GH Hooks if true
      *
      * @param manageHooks false to ignore this config on hook auto-management
@@ -127,15 +114,6 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
 
     public String getApiUrl() {
         return apiUrl;
-    }
-
-    /**
-     * @see #isUrlCustom(String)
-     * @deprecated
-     */
-    @Restricted(NoExternalUse.class)
-    public boolean isCustomApiUrl() {
-        return isUrlCustom(apiUrl);
     }
 
     public boolean isManageHooks() {
