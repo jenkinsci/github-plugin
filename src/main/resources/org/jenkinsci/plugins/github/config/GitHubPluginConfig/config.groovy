@@ -5,7 +5,7 @@ import com.cloudbees.jenkins.GitHubPushTrigger
 def f = namespace(lib.FormTagLib);
 
 f.section(title: descriptor.displayName) {
-    f.entry(title: _("Servers configs with credentials to manage GitHub integrations"),
+    f.entry(title: _("GitHub Servers"),
             description: _("List of GitHub Servers to manage hooks, set commit statuses etc."),
             help: descriptor.getHelpFile()) {
         
