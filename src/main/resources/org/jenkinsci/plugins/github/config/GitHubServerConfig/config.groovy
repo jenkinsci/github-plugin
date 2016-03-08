@@ -16,8 +16,8 @@ f.entry(title: _("Credentials"), field: "credentialsId") {
 
 f.block() {
     f.validateButton(
-            title: _("Verify credentials"),
-            progress: _("Verifying..."),
+            title: _("Test connection"),
+            progress: _("Testing..."),
             method: "verifyCredentials",
             with: "apiUrl,credentialsId,clientCacheSize"
     )
