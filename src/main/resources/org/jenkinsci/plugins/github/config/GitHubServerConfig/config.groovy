@@ -19,7 +19,7 @@ f.block() {
             title: _("Test connection"),
             progress: _("Testing..."),
             method: "verifyCredentials",
-            with: "apiUrl,credentialsId,clientCacheSize"
+            with: "apiUrl,credentialsId"
     )
 }
 
