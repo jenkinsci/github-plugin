@@ -19,8 +19,6 @@ import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
-import org.kohsuke.accmod.Restricted;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
