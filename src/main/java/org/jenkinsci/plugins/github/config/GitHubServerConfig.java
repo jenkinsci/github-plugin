@@ -19,8 +19,6 @@ import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
-import org.kohsuke.accmod.Restricted;
-import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -83,11 +81,6 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     private int clientCacheSize = DEFAULT_CLIENT_CACHE_SIZE_MB;
 
     /**
-     * only to set to default apiUrl when uncheck. Can be removed if optional block can nullify value if unchecked
-     */
-    private transient boolean customApiUrl;
-
-    /**
      * To avoid creation of new one on every login with this config
      */
     private transient GitHub cachedClient;
@@ -98,28 +91,13 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     }
 
     /**
-     * {@link #customApiUrl} field should be defined earlier. Because of we get full content of optional block,
-     * even if it already unchecked. So if we want to return api url to default value - custom value should affect
+     * Set the API endpoint.
      *
      * @param apiUrl custom url if GH. Default value will be used in case of custom is unchecked or value is blank
      */
     @DataBoundSetter
     public void setApiUrl(String apiUrl) {
-        if (customApiUrl) {
-            this.apiUrl = defaultIfBlank(apiUrl, GITHUB_URL);
-        } else {
-            this.apiUrl = GITHUB_URL;
-        }
-    }
-
-    /**
-     * Should be called before {@link #setApiUrl(String)}
-     *
-     * @param customApiUrl true if optional block "Custom GH Api Url" checked in UI
-     */
-    @DataBoundSetter
-    public void setCustomApiUrl(boolean customApiUrl) {
-        this.customApiUrl = customApiUrl;
+        this.apiUrl = defaultIfBlank(apiUrl, GITHUB_URL);
     }
 
     /**
@@ -134,14 +112,6 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
 
     public String getApiUrl() {
         return apiUrl;
-    }
-
-    /**
-     * @see #isUrlCustom(String)
-     */
-    @Restricted(NoExternalUse.class)
-    public boolean isCustomApiUrl() {
-        return isUrlCustom(apiUrl);
     }
 
     public boolean isManageHooks() {
@@ -267,7 +237,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
 
         @Override
         public String getDisplayName() {
-            return "GitHub Server Config";
+            return "GitHub Server";
         }
 
         @SuppressWarnings("unused")
@@ -287,13 +257,11 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
         @SuppressWarnings("unused")
         public FormValidation doVerifyCredentials(
                 @QueryParameter String apiUrl,
-                @QueryParameter String credentialsId,
-                @QueryParameter Integer clientCacheSize) throws IOException {
+                @QueryParameter String credentialsId) throws IOException {
 
             GitHubServerConfig config = new GitHubServerConfig(credentialsId);
-            config.setCustomApiUrl(isUrlCustom(apiUrl));
             config.setApiUrl(apiUrl);
-            config.setClientCacheSize(clientCacheSize);
+            config.setClientCacheSize(0);
             GitHub gitHub = new GitHubLoginFunction().apply(config);
 
             try {

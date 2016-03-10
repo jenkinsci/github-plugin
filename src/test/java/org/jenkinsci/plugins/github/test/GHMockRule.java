@@ -63,7 +63,6 @@ public class GHMockRule implements TestRule {
      */
     public GitHubServerConfig serverConfig() {
         GitHubServerConfig conf = new GitHubServerConfig("creds");
-        conf.setCustomApiUrl(true);
         conf.setApiUrl("http://localhost:" + service().port());
         return conf;
     }

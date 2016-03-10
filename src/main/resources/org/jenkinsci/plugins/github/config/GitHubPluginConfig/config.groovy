@@ -5,15 +5,13 @@ import com.cloudbees.jenkins.GitHubPushTrigger
 def f = namespace(lib.FormTagLib);
 
 f.section(title: descriptor.displayName) {
-    f.entry(title: _("Servers configs with credentials to manage GitHub integrations"),
-            description: _("List of GitHub Servers to manage hooks, set commit statuses etc."),
+    f.entry(title: _("GitHub Servers"),
             help: descriptor.getHelpFile()) {
         
         f.repeatableHeteroProperty(
                 field: "configs",
                 hasHeader: "true",
-                addCaption: _("Add GitHub Server Config"),
-                deleteCaption: _("Delete GitHub Server Config"))
+                addCaption: _("Add GitHub Server"))
     }
 
     f.advanced() {

@@ -6,21 +6,26 @@ def f = namespace(lib.FormTagLib);
 def c = namespace(lib.CredentialsTagLib)
 
 
-f.entry(title: _("Manage hooks"), field: "manageHooks") {
-    f.checkbox(default: true)
+f.entry(title: _("API URL"), field: "apiUrl") {
+    f.textbox(default: GitHubServerConfig.GITHUB_URL)
 }
 
 f.entry(title: _("Credentials"), field: "credentialsId") {
     c.select()
 }
 
-f.optionalBlock(title: _("Custom GitHub API URL"),
-        inline: true,
-        field: "customApiUrl",
-        checked: instance?.customApiUrl) {
-    f.entry(title: _("GitHub API URL"), field: "apiUrl") {
-        f.textbox(default: GitHubServerConfig.GITHUB_URL)
-    }
+f.block() {
+    f.validateButton(
+            title: _("Test connection"),
+            progress: _("Testing..."),
+            method: "verifyCredentials",
+            with: "apiUrl,credentialsId"
+    )
+}
+
+
+f.entry(title: _("Manage hooks"), field: "manageHooks") {
+    f.checkbox(default: true)
 }
 
 f.advanced() {
@@ -28,13 +33,3 @@ f.advanced() {
         f.textbox(default: GitHubServerConfig.DEFAULT_CLIENT_CACHE_SIZE_MB)
     }
 }
-
-f.block() {
-    f.validateButton(
-            title: _("Verify credentials"),
-            progress: _("Verifying..."),
-            method: "verifyCredentials",
-            with: "apiUrl,credentialsId,clientCacheSize"
-    )
-}
-

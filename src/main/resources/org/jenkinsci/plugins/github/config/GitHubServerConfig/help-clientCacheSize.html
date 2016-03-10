@@ -1,7 +1,12 @@
 <div>
-    Cache size in MB used by GitHub client. This can speed up fetching data form GH and reduce rate limits consuming.<br/>
-    GH + okHttp do all work for results reliability 
-    (<a href="https://developer.github.com/v3/#conditional-requests">Conditional-requests in GitHub documentation</a>)<br/>
-    
-    Set <b>0</b> to disable this feature
+    <p>
+        Jenkins will use this much space, measured in megabytes,
+        in <tt>$JENKINS_HOME</tt> to cache data retrieved from GitHub API calls.
+        A cache will help improve the performance by avoiding unnecessary data transfer, and by doing so it also
+        makes it less likely to hit <a href="https://developer.github.com/v3/#rate-limiting">API rate limit</a>
+        (by the use of <a href="https://developer.github.com/v3/#conditional-requests">conditional GET</a> calls.)
+    </p>
+    <p>
+        In an unlikely event that cache is causing a problem, set this to <b>0</b> to disable cache altogether.
+    </p>
 </div>
