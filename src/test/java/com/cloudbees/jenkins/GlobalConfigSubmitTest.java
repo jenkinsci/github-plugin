@@ -50,8 +50,6 @@ public class GlobalConfigSubmitTest {
 
     private JenkinsRule.WebClient configureWebClient() {
         JenkinsRule.WebClient client = jenkins.createWebClient();
-        client.setThrowExceptionOnFailingStatusCode(false);
-        client.setCssEnabled(false);
         client.setJavaScriptEnabled(true);
         return client;
     }
