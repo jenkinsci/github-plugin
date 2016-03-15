@@ -1,12 +1,13 @@
 package com.coravy.hudson.plugins.github;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import hudson.Extension;
 import hudson.model.Action;
 import hudson.model.Job;
 import jenkins.model.TransientActionFactory;
+import org.jenkinsci.plugins.github.util.XSSApi;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Add the Github Logo/Icon to the sidebar.
@@ -33,7 +34,7 @@ public final class GithubLinkAction implements Action {
 
     @Override
     public String getUrlName() {
-        return projectProperty.getProjectUrl().baseUrl();
+        return XSSApi.asValidHref(projectProperty.getProjectUrl().baseUrl());
     }
 
     @SuppressWarnings("rawtypes")
