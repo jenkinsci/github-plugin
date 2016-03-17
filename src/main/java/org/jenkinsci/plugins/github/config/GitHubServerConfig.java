@@ -110,6 +110,18 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
         this.manageHooks = manageHooks;
     }
 
+    /**
+     * This method was introduced to hide custom api url under checkbox, but now UI simplified to show url all the time
+     * see jenkinsci/github-plugin/pull/112 for more details
+     *
+     * @param customApiUrl ignored
+     *
+     * @deprecated simply remove usage of this method, it ignored now. Should be removed after 20 sep 2016.
+     */
+    @Deprecated
+    public void setCustomApiUrl(boolean customApiUrl) {
+    }
+
     public String getApiUrl() {
         return apiUrl;
     }
@@ -248,9 +260,9 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
             return new StandardListBoxModel()
                     .withEmptySelection()
                     .withAll(lookupCredentials(
-                                    StringCredentials.class,
-                                    Jenkins.getInstance(),
-                                    ACL.SYSTEM, fromUri(defaultIfBlank(apiUrl, GITHUB_URL)).build())
+                            StringCredentials.class,
+                            Jenkins.getInstance(),
+                            ACL.SYSTEM, fromUri(defaultIfBlank(apiUrl, GITHUB_URL)).build())
                     );
         }
 
