@@ -42,11 +42,11 @@ public class MigratorTest {
     public static final String TOKEN3 = "some-oauth-token3";
 
     /**
-     * Just ignore mailformed hook in old config
+     * Just ignore malformed hook in old config
      */
     @Test
     @LocalData
-    public void shouldNotThrowExcMailformedHookUrlInOldConfig() throws IOException {
+    public void shouldNotThrowExcMalformedHookUrlInOldConfig() throws IOException {
         FreeStyleProject job = jenkins.createFreeStyleProject();
         GitHubPushTrigger trigger = new GitHubPushTrigger();
         trigger.start(job, true);
@@ -87,7 +87,7 @@ public class MigratorTest {
                 withApiUrl(is(CUSTOM_GH_URL)),
                 withApiUrl(is(GITHUB_URL))
         ));
-        assertThat("should load hook url", 
+        assertThat("should load hook url",
                 GitHubPlugin.configuration().getHookUrl().toString(), equalTo(HOOK_FROM_LOCAL_DATA));
     }
 
