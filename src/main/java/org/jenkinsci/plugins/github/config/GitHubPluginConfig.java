@@ -162,7 +162,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
             LOGGER.debug("Problem while submitting form for GitHub Plugin ({})", e.getMessage(), e);
             LOGGER.trace("GH form data: {}", json.toString());
             throw new FormException(
-                    format("Mailformed GitHub Plugin configuration (%s)", e.getMessage()), e, "github-configuration");
+                    format("Malformed GitHub Plugin configuration (%s)", e.getMessage()), e, "github-configuration");
         }
         save();
         clearRedundantCaches(configs);
