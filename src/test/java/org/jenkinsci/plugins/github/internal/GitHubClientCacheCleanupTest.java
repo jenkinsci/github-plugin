@@ -6,6 +6,7 @@ import org.jenkinsci.plugins.github.test.GHMockRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.kohsuke.github.GitHub;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -73,7 +74,6 @@ public class GitHubClientCacheCleanupTest {
         makeCachedRequestWithCredsId(CHANGED_CREDS_ID);
 
         GitHubServerConfig config = new GitHubServerConfig(CHANGED_CREDS_ID);
-        config.setCustomApiUrl(true);
         config.setApiUrl(github.serverConfig().getApiUrl());
         config.setClientCacheSize(1);
 
@@ -87,7 +87,6 @@ public class GitHubClientCacheCleanupTest {
         makeCachedRequestWithCredsId(CHANGED_CREDS_ID);
 
         GitHubServerConfig config = new GitHubServerConfig(CHANGED_CREDS_ID);
-        config.setCustomApiUrl(true);
         config.setApiUrl(github.serverConfig().getApiUrl());
         config.setClientCacheSize(0);
 
@@ -103,7 +102,10 @@ public class GitHubClientCacheCleanupTest {
     }
 
     private void makeCachedRequestWithCredsId(String credsId) throws IOException {
-        jRule.getInstance().getDescriptorByType(GitHubServerConfig.DescriptorImpl.class)
-                .doVerifyCredentials(github.serverConfig().getApiUrl(), credsId, 1);
+        GitHubServerConfig config = new GitHubServerConfig(credsId);
+        config.setApiUrl(github.serverConfig().getApiUrl());
+        config.setClientCacheSize(1);
+        GitHub gitHub = GitHubServerConfig.loginToGithub().apply(config);
+        gitHub.getMyself();
     }
 }

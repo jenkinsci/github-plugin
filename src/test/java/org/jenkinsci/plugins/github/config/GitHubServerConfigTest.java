@@ -59,7 +59,6 @@ public class GitHubServerConfigTest {
     @Test
     public void shouldNotMatchNonDefaultConfigWithGHDefaultHost() throws Exception {
         GitHubServerConfig input = new GitHubServerConfig("");
-        input.setCustomApiUrl(true);
         input.setApiUrl(CUSTOM_GH_SERVER);
         assertThat(withHost(DEFAULT_GH_API_HOST).apply(input), is(false));
     }
