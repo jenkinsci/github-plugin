@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>2.3</version>
+        <version>2.6</version>
     </parent>
 
     <groupId>com.coravy.hudson.plugins.github</groupId>
@@ -52,6 +52,7 @@
         <release.skipTests>false</release.skipTests>
         <maven.javadoc.skip>true</maven.javadoc.skip>
         <findbugs-maven-plugin.version>3.0.2</findbugs-maven-plugin.version>
+        <concurrency>1</concurrency>
     </properties>
 
     <repositories>
