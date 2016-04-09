@@ -34,6 +34,8 @@ import static com.cloudbees.jenkins.GitHubSetCommitStatusBuilderTest.SOME_SHA;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.jenkinsci.plugins.github.util.Messages.BuildDataHelper_NoBuildDataError;
+import static org.jenkinsci.plugins.github.util.Messages.BuildDataHelper_NoLastRevisionError;
 import static org.mockito.Mockito.when;
 
 /**
@@ -73,6 +75,7 @@ public class GitHubCommitNotifierTest {
         @Override
         protected void before() throws Throwable {
             when(data.getLastBuiltRevision()).thenReturn(rev);
+            data.lastBuild = new hudson.plugins.git.util.Build(rev, rev, 0, Result.SUCCESS);
             when(rev.getSha1()).thenReturn(ObjectId.fromString(SOME_SHA));
         }
     };
@@ -84,7 +87,7 @@ public class GitHubCommitNotifierTest {
         prj.getPublishersList().add(new GitHubCommitNotifier());
         Build b = prj.scheduleBuild2(0).get();
         jRule.assertBuildStatus(Result.FAILURE, b);
-        jRule.assertLogContains(org.jenkinsci.plugins.github.util.Messages.BuildDataHelper_NoBuildDataError(), b);
+        jRule.assertLogContains(BuildDataHelper_NoBuildDataError(), b);
     }
 
     @Test
@@ -95,7 +98,7 @@ public class GitHubCommitNotifierTest {
         prj.getPublishersList().add(new GitHubCommitNotifier());
         Build b = prj.scheduleBuild2(0).get();
         jRule.assertBuildStatus(Result.FAILURE, b);
-        jRule.assertLogContains(org.jenkinsci.plugins.github.util.Messages.BuildDataHelper_NoLastRevisionError(), b);
+        jRule.assertLogContains(BuildDataHelper_NoLastRevisionError(), b);
     }
 
     @Test

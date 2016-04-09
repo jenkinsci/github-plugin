@@ -14,7 +14,6 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.util.ListBoxModel;
 import jenkins.tasks.SimpleBuildStep;
-
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.github.common.ExpandableMessage;
 import org.jenkinsci.plugins.github.util.BuildDataHelper;
@@ -24,8 +23,11 @@ import org.kohsuke.github.GHCommitState;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_DisplayName;
@@ -51,6 +53,8 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
 
     private final String resultOnFailure;
     private static final Result[] SUPPORTED_RESULTS = {FAILURE, UNSTABLE, SUCCESS};
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubCommitNotifier.class);
 
     @Restricted(NoExternalUse.class)
     public GitHubCommitNotifier() {
@@ -104,9 +108,9 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
 
     @Override
     public void perform(Run<?, ?> build,
-                           FilePath ws,
-                           Launcher launcher,
-                           TaskListener listener) throws InterruptedException, IOException {
+                        FilePath ws,
+                        Launcher launcher,
+                        TaskListener listener) throws InterruptedException, IOException {
         try {
             updateCommitStatus(build, listener);
         } catch (IOException error) {
@@ -139,11 +143,20 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
                         GitHubCommitNotifier_SettingCommitStatus(repository.getHtmlUrl() + "/commit/" + sha1)
                 );
 
-                repository.createCommitStatus(
-                        sha1, status.getState(), build.getAbsoluteUrl(),
-                        message,
-                        contextName
-                );
+                try {
+                    repository.createCommitStatus(
+                            sha1, status.getState(), build.getAbsoluteUrl(),
+                            message,
+                            contextName
+                    );
+                } catch (FileNotFoundException e) {
+                    // PR builds and other merge activities can create a merge commit that
+                    // doesn't exist in the upstream. Don't let the build fail
+                    // TODO: ideally we'd like other plugins to designate a commit to put the status update to
+                    LOGGER.debug("Failed to update commit status", e);
+                    listener.getLogger()
+                            .format("Commit doesn't exist in %s. Status is not set%n", repository.getFullName());
+                }
             }
         }
     }
