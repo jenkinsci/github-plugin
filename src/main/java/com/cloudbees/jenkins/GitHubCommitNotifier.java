@@ -14,7 +14,6 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.util.ListBoxModel;
 import jenkins.tasks.SimpleBuildStep;
-
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.github.common.ExpandableMessage;
 import org.jenkinsci.plugins.github.util.BuildDataHelper;
@@ -55,7 +54,7 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
     private final String resultOnFailure;
     private static final Result[] SUPPORTED_RESULTS = {FAILURE, UNSTABLE, SUCCESS};
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubWebHook.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubCommitNotifier.class);
 
     @Restricted(NoExternalUse.class)
     public GitHubCommitNotifier() {
@@ -109,9 +108,9 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
 
     @Override
     public void perform(Run<?, ?> build,
-                           FilePath ws,
-                           Launcher launcher,
-                           TaskListener listener) throws InterruptedException, IOException {
+                        FilePath ws,
+                        Launcher launcher,
+                        TaskListener listener) throws InterruptedException, IOException {
         try {
             updateCommitStatus(build, listener);
         } catch (IOException error) {
@@ -155,8 +154,8 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
                     // doesn't exist in the upstream. Don't let the build fail
                     // TODO: ideally we'd like other plugins to designate a commit to put the status update to
                     LOGGER.debug("Failed to update commit status", e);
-                    listener.getLogger().println("Commit doesn't exist in "
-                            + repository.getFullName() + ". Status is not set");
+                    listener.getLogger()
+                            .format("Commit doesn't exist in %s. Status is not set%n", repository.getFullName());
                 }
             }
         }
