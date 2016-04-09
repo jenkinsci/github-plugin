@@ -289,7 +289,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
             try {
                 return new URL(hookUrl);
             } catch (MalformedURLException e) {
-                LOGGER.warn("Mailformed hook url skipped while migration ({})", e.getMessage());
+                LOGGER.warn("Malformed hook url skipped while migration ({})", e.getMessage());
                 return null;
             }
         }
