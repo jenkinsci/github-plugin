@@ -2,8 +2,9 @@ Jenkins Github Plugin
 ===================== 
 
 [![Coverage](https://img.shields.io/sonar/http/sonar.lanwen.ru/com.coravy.hudson.plugins.github:github/coverage.svg?style=flat)](http://sonar.lanwen.ru/dashboard/index?id=com.coravy.hudson.plugins.github:github)
+[![License](https://img.shields.io/github/license/jenkinsci/github-plugin.svg)](LICENSE)
+[![wiki](https://img.shields.io/badge/GitHub%20Plugin-WIKI-blue.svg?style=flat)](http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin)
 
-Read more: [http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin](http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin)
 
 Development
 ===========
@@ -50,32 +51,7 @@ Plugin releases
 	mvn release:prepare release:perform -Dusername=juretta -Dpassword=******
 
 
-License
--------
-
-	(The MIT License)
-
-	Copyright (c) 2009 Stefan Saasen
-
-	Permission is hereby granted, free of charge, to any person obtaining
-	a copy of this software and associated documentation files (the
-	'Software'), to deal in the Software without restriction, including
-	without limitation the rights to use, copy, modify, merge, publish,
-	distribute, sublicense, and/or sell copies of the Software, and to
-	permit persons to whom the Software is furnished to do so, subject to
-	the following conditions:
-
-	The above copyright notice and this permission notice shall be
-	included in all copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-	CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-	TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+## License notes
 
 This plugin uses part of Guava's code in class named 
 `org.jenkinsci.plugins.github.util.FluentIterableWrapper` licensed under Apache 2.0 license
