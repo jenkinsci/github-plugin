@@ -57,11 +57,11 @@ public class GitHubSetCommitStatusBuilderTest {
 
     @Inject
     public GitHubPluginConfig config;
-    
+
     public JenkinsRule jRule = new JenkinsRule();
 
     @Rule
-    public RuleChain chain = RuleChain.outerRule(jRule).around(new InjectJenkinsMembersRule(jRule, this)); 
+    public RuleChain chain = RuleChain.outerRule(jRule).around(new InjectJenkinsMembersRule(jRule, this));
 
     @Rule
     public GHMockRule github = new GHMockRule(
@@ -77,6 +77,7 @@ public class GitHubSetCommitStatusBuilderTest {
         @Override
         protected void before() throws Throwable {
             when(data.getLastBuiltRevision()).thenReturn(rev);
+            data.lastBuild = new hudson.plugins.git.util.Build(rev, rev, 0, Result.SUCCESS);
             when(rev.getSha1()).thenReturn(ObjectId.fromString(SOME_SHA));
         }
     };

@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.github.util;
 
 import hudson.model.Run;
 import hudson.plugins.git.Revision;
+import hudson.plugins.git.util.Build;
 import hudson.plugins.git.util.BuildData;
 import org.eclipse.jgit.lib.ObjectId;
 
@@ -32,11 +33,20 @@ public final class BuildDataHelper {
         if (buildData == null) {
             throw new IOException(Messages.BuildDataHelper_NoBuildDataError());
         }
-        final Revision lastBuildRevision = buildData.getLastBuiltRevision();
-        final ObjectId sha1 = lastBuildRevision != null ? lastBuildRevision.getSha1() : null;
-        if (sha1 == null) { // Nowhere to report => fail the build
-            throw new IOException(Messages.BuildDataHelper_NoLastRevisionError());
+
+        // buildData?.lastBuild?.marked and fall back to .revision with null check everywhere to be defensive
+        Build b = buildData.lastBuild;
+        if (b != null) {
+            Revision r = b.marked;
+            if (r == null) {
+                r = b.revision;
+            }
+            if (r != null) {
+                return r.getSha1();
+            }
         }
-        return sha1;
+
+        // Nowhere to report => fail the build
+        throw new IOException(Messages.BuildDataHelper_NoLastRevisionError());
     }
 }
