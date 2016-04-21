@@ -27,7 +27,7 @@ f.advanced {
                 f.hetero_list(items: CollectionUtils.isEmpty(instance?.errorHandlers)
                         ? []
                         : instance.errorHandlers,
-                        addCaption: 'Add handler',
+                        addCaption: 'Add error handler',
                         name: 'errorHandlers',
                         oneEach: true, hasHeader: true, descriptors: StatusErrorHandler.all())
             }

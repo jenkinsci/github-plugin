@@ -30,6 +30,8 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_SettingCommitStatus;
+
 /**
  * @author lanwen (Merkushev Kirill)
  */
@@ -106,6 +108,10 @@ public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildSte
             GHCommitState state = result.getState();
 
             for (GHRepository repo : repos) {
+                listener.getLogger().println(
+                        GitHubCommitNotifier_SettingCommitStatus(repo.getHtmlUrl() + "/commit/" + sha)
+                );
+
                 repo.createCommitStatus(sha, state, backref, message, contextName);
             }
 

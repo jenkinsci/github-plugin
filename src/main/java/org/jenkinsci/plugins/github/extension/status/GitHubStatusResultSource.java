@@ -7,6 +7,7 @@ import hudson.model.TaskListener;
 import org.kohsuke.github.GHCommitState;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 
 /**
  * @author lanwen (Merkushev Kirill)
@@ -14,7 +15,8 @@ import javax.annotation.Nonnull;
 public abstract class GitHubStatusResultSource extends AbstractDescribableImpl<GitHubStatusResultSource>
         implements ExtensionPoint {
 
-    public abstract StatusResult get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener);
+    public abstract StatusResult get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) 
+            throws IOException, InterruptedException;
 
     public static class StatusResult {
         private GHCommitState state;
