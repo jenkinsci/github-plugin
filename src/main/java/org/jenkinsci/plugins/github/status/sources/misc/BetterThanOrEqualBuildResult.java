@@ -1,29 +1,35 @@
-package org.jenkinsci.plugins.github.status.err;
+package org.jenkinsci.plugins.github.status.sources.misc;
 
 import hudson.Extension;
-import hudson.model.Descriptor;
 import hudson.model.Result;
 import hudson.model.Run;
-import hudson.model.TaskListener;
 import hudson.util.ListBoxModel;
-import org.jenkinsci.plugins.github.extension.status.StatusErrorHandler;
+import org.jenkinsci.plugins.github.extension.status.misc.ConditionalResult;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 
 import static hudson.model.Result.FAILURE;
+import static hudson.model.Result.SUCCESS;
 import static hudson.model.Result.UNSTABLE;
+import static hudson.model.Result.fromString;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 /**
  * @author lanwen (Merkushev Kirill)
  */
-public class ChangingBuildStatusErrorHandler extends StatusErrorHandler {
+public class BetterThanOrEqualBuildResult extends ConditionalResult {
 
     private String result;
 
     @DataBoundConstructor
-    public ChangingBuildStatusErrorHandler(String result) {
+    public BetterThanOrEqualBuildResult() {
+    }
+
+    @DataBoundSetter
+    public void setResult(String result) {
         this.result = result;
     }
 
@@ -32,25 +38,21 @@ public class ChangingBuildStatusErrorHandler extends StatusErrorHandler {
     }
 
     @Override
-    public boolean handle(Exception e, @Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
-        Result toSet = Result.fromString(trimToEmpty(result));
-
-        listener.error("[GitHub Commit Status Setter] - %s, setting build result to %s", e.getMessage(), toSet);
-
-        run.setResult(toSet);
-        return true;
+    public boolean matches(@Nonnull Run<?, ?> run) {
+        return defaultIfNull(run.getResult(), Result.NOT_BUILT).isBetterOrEqualTo(fromString(trimToEmpty(result)));
     }
 
     @Extension
-    public static class ChangingBuildStatusErrorHandlerDescriptor extends Descriptor<StatusErrorHandler> {
+    public static class BetterThanOrEqualBuildResultDescriptor extends ConditionalResultDescriptor {
         private static final Result[] SUPPORTED_RESULTS = {
-                FAILURE, 
+                SUCCESS,
                 UNSTABLE,
+                FAILURE,
         };
-        
+
         @Override
         public String getDisplayName() {
-            return "Change build status";
+            return "Result better than or equal to";
         }
 
         @SuppressWarnings("unused")
