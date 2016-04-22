@@ -40,7 +40,7 @@ public abstract class ConditionalResult extends AbstractDescribableImpl<Conditio
 
     public abstract boolean matches(@Nonnull Run<?, ?> run);
 
-    public static abstract class ConditionalResultDescriptor extends Descriptor<ConditionalResult> {
+    public abstract static class ConditionalResultDescriptor extends Descriptor<ConditionalResult> {
 
         public static DescriptorExtensionList<ConditionalResult, Descriptor<ConditionalResult>> all() {
             return Jenkins.getInstance().getDescriptorList(ConditionalResult.class);

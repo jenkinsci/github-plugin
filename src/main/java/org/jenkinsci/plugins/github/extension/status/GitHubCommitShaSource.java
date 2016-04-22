@@ -14,5 +14,5 @@ import java.io.IOException;
 public abstract class GitHubCommitShaSource extends AbstractDescribableImpl<GitHubCommitShaSource>
         implements ExtensionPoint {
 
-    public abstract String get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) throws IOException;
+    public abstract String get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) throws IOException, InterruptedException;
 }
