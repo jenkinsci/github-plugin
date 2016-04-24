@@ -156,7 +156,7 @@ public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildSte
 
         @Override
         public String getDisplayName() {
-            return "[NEW] Set status for GitHub commit";
+            return "Set status for GitHub commit [universal]";
         }
 
     }

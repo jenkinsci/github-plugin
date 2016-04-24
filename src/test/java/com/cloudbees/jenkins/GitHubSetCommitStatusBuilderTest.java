@@ -84,12 +84,11 @@ public class GitHubSetCommitStatusBuilderTest {
 
     @Test
     @Issue("JENKINS-23641")
-    public void testNoBuildData() throws Exception {
+    public void shouldIgnoreIfNoBuildData() throws Exception {
         FreeStyleProject prj = jRule.createFreeStyleProject("23641_noBuildData");
         prj.getBuildersList().add(new GitHubSetCommitStatusBuilder());
         Build b = prj.scheduleBuild2(0).get();
-        jRule.assertBuildStatus(Result.FAILURE, b);
-        jRule.assertLogContains(org.jenkinsci.plugins.github.util.Messages.BuildDataHelper_NoBuildDataError(), b);
+        jRule.assertBuildStatus(Result.SUCCESS, b);
     }
 
     @Test
