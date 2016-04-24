@@ -12,7 +12,10 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 
 /**
+ * Allows to enter sha manually
+ *
  * @author lanwen (Merkushev Kirill)
+ * @since 1.19.0
  */
 public class ManuallyEnteredShaSource extends GitHubCommitShaSource {
 
@@ -27,6 +30,9 @@ public class ManuallyEnteredShaSource extends GitHubCommitShaSource {
         return sha;
     }
 
+    /**
+     * Expands env vars and token macro in entered sha
+     */
     @Override
     public String get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) throws IOException, InterruptedException {
         return new ExpandableMessage(sha).expandAll(run, listener);

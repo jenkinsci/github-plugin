@@ -5,6 +5,7 @@ import hudson.model.Result;
 import hudson.model.Run;
 import hudson.util.ListBoxModel;
 import org.jenkinsci.plugins.github.extension.status.misc.ConditionalResult;
+import org.kohsuke.github.GHCommitState;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
@@ -18,7 +19,10 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 /**
+ * if run result better than or equal to selected
+ *
  * @author lanwen (Merkushev Kirill)
+ * @since 1.19.0
  */
 public class BetterThanOrEqualBuildResult extends ConditionalResult {
 
@@ -37,13 +41,34 @@ public class BetterThanOrEqualBuildResult extends ConditionalResult {
         return result;
     }
 
+    /**
+     * @return matches if run result better than or equal to selected
+     */
     @Override
     public boolean matches(@Nonnull Run<?, ?> run) {
         return defaultIfNull(run.getResult(), Result.NOT_BUILT).isBetterOrEqualTo(fromString(trimToEmpty(result)));
     }
 
+    /**
+     * Convenient way to reuse logic of checking for the build status
+     *
+     * @param result to check against
+     * @param state  state to set
+     * @param msg    message to set. Can contain env vars
+     *
+     * @return new instance of this conditional result
+     */
+    public static BetterThanOrEqualBuildResult betterThanOrEqualTo(Result result, GHCommitState state, String msg) {
+        BetterThanOrEqualBuildResult conditional = new BetterThanOrEqualBuildResult();
+        conditional.setResult(result.toString());
+        conditional.setState(state.name());
+        conditional.setMessage(msg);
+        return conditional;
+    }
+
     @Extension
     public static class BetterThanOrEqualBuildResultDescriptor extends ConditionalResultDescriptor {
+
         private static final Result[] SUPPORTED_RESULTS = {
                 SUCCESS,
                 UNSTABLE,
@@ -52,7 +77,7 @@ public class BetterThanOrEqualBuildResult extends ConditionalResult {
 
         @Override
         public String getDisplayName() {
-            return "Result better than or equal to";
+            return "result better than or equal to";
         }
 
         @SuppressWarnings("unused")

@@ -8,7 +8,7 @@ f.entry(title: _('Build result better than or equal to'), field: 'result') {
     f.select()
 }
 
-f.entry(title: _('Status'), field: 'status') {
+f.entry(title: _('Status'), field: 'state') {
     f.select()
 }
 

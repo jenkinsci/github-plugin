@@ -10,7 +10,10 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import javax.annotation.Nonnull;
 
 /**
+ * Just logs message to the build console and do nothing after it
+ *
  * @author lanwen (Merkushev Kirill)
+ * @since 1.19.0
  */
 public class ShallowAnyErrorHandler extends StatusErrorHandler {
 
@@ -18,9 +21,12 @@ public class ShallowAnyErrorHandler extends StatusErrorHandler {
     public ShallowAnyErrorHandler() {
     }
 
+    /**
+     * @return true as of its terminating handler
+     */
     @Override
     public boolean handle(Exception e, @Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
-        listener.error("[GitHub Commit Status Setter] Failed to update commit status on GitHub. " +
+        listener.error("[GitHub Commit Status Setter] Failed to update commit state on GitHub. " +
                 "Ignoring exception [%s]", e.getMessage());
         return true;
     }

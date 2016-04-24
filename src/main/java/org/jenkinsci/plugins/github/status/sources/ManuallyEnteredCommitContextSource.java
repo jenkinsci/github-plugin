@@ -4,25 +4,45 @@ import hudson.Extension;
 import hudson.model.Descriptor;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import org.jenkinsci.plugins.github.common.ExpandableMessage;
 import org.jenkinsci.plugins.github.extension.status.GitHubStatusContextSource;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
 /**
+ * Allows to manually enter context
+ *
  * @author lanwen (Merkushev Kirill)
+ * @since 1.19.0
  */
 public class ManuallyEnteredCommitContextSource extends GitHubStatusContextSource {
+    private static final Logger LOG = LoggerFactory.getLogger(ManuallyEnteredCommitContextSource.class);
+
     private String context;
-    
+
     @DataBoundConstructor
     public ManuallyEnteredCommitContextSource(String context) {
         this.context = context;
     }
 
+    public String getContext() {
+        return context;
+    }
+
+    /**
+     * Just returns what user entered. Expands env vars and token macro
+     */
     @Override
     public String context(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
-        return context;
+        try {
+            return new ExpandableMessage(context).expandAll(run, listener);
+        } catch (Exception e) {
+            LOG.debug("Can't expand context, returning as is", e);
+            return context;
+        }
     }
 
     @Extension

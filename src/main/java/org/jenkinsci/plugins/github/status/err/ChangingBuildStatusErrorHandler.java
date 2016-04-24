@@ -16,7 +16,10 @@ import static hudson.model.Result.UNSTABLE;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 /**
+ * Can change build status in case of errors
+ *
  * @author lanwen (Merkushev Kirill)
+ * @since 1.19.0
  */
 public class ChangingBuildStatusErrorHandler extends StatusErrorHandler {
 
@@ -31,6 +34,11 @@ public class ChangingBuildStatusErrorHandler extends StatusErrorHandler {
         return result;
     }
 
+    /**
+     * Logs error to build console and changes build result
+     *
+     * @return true as of it terminating handler
+     */
     @Override
     public boolean handle(Exception e, @Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
         Result toSet = Result.fromString(trimToEmpty(result));
@@ -43,11 +51,12 @@ public class ChangingBuildStatusErrorHandler extends StatusErrorHandler {
 
     @Extension
     public static class ChangingBuildStatusErrorHandlerDescriptor extends Descriptor<StatusErrorHandler> {
+        
         private static final Result[] SUPPORTED_RESULTS = {
-                FAILURE, 
+                FAILURE,
                 UNSTABLE,
         };
-        
+
         @Override
         public String getDisplayName() {
             return "Change build status";

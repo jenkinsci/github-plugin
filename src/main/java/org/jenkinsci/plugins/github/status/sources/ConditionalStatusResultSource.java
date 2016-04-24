@@ -4,7 +4,6 @@ import hudson.Extension;
 import hudson.model.Descriptor;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.util.ListBoxModel;
 import org.apache.commons.lang3.EnumUtils;
 import org.jenkinsci.plugins.github.common.ExpandableMessage;
 import org.jenkinsci.plugins.github.extension.status.GitHubStatusResultSource;
@@ -38,6 +37,12 @@ public class ConditionalStatusResultSource extends GitHubStatusResultSource {
         return defaultIfNull(results, Collections.<ConditionalResult>emptyList());
     }
 
+    /**
+     * First matching result win. Or will be used pending state.
+     * Messages are expanded with token macro and env variables
+     *
+     * @return first matched result or pending state with warn msg
+     */
     @Override
     public StatusResult get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener)
             throws IOException, InterruptedException {
@@ -45,7 +50,7 @@ public class ConditionalStatusResultSource extends GitHubStatusResultSource {
         for (ConditionalResult conditionalResult : getResults()) {
             if (conditionalResult.matches(run)) {
                 return new StatusResult(
-                        defaultIfNull(EnumUtils.getEnum(GHCommitState.class, conditionalResult.getStatus()), ERROR),
+                        defaultIfNull(EnumUtils.getEnum(GHCommitState.class, conditionalResult.getState()), ERROR),
                         new ExpandableMessage(conditionalResult.getMessage()).expandAll(run, listener)
                 );
             }
@@ -62,15 +67,6 @@ public class ConditionalStatusResultSource extends GitHubStatusResultSource {
         @Override
         public String getDisplayName() {
             return "Based on build result manually defined";
-        }
-
-        @SuppressWarnings("unused")
-        public ListBoxModel doFillStatusItems() {
-            ListBoxModel items = new ListBoxModel();
-            for (GHCommitState status : GHCommitState.values()) {
-                items.add(status.name());
-            }
-            return items;
         }
     }
 

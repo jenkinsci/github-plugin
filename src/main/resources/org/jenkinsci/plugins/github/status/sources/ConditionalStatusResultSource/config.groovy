@@ -5,11 +5,14 @@ import org.jenkinsci.plugins.github.extension.status.misc.ConditionalResult.Cond
 
 def f = namespace(lib.FormTagLib);
 
+f.helpLink(url: descriptor.getHelpFile())
+f.helpArea()
+
 f.block {
     f.hetero_list(items: CollectionUtils.isEmpty(instance?.results)
             ? []
             : instance.results,
-            addCaption: 'If build',
+            addCaption: 'If Run',
             name: 'results',
             oneEach: false, hasHeader: true, descriptors: ConditionalResultDescriptor.all())
 }

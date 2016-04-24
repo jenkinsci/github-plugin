@@ -18,7 +18,10 @@ import java.util.List;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 
 /**
+ * Just uses contributors to get list of resolved repositories
+ *
  * @author lanwen (Merkushev Kirill)
+ * @since 1.19.0
  */
 public class AnyDefinedRepositorySource extends GitHubReposSource {
 
@@ -26,6 +29,9 @@ public class AnyDefinedRepositorySource extends GitHubReposSource {
     public AnyDefinedRepositorySource() {
     }
 
+    /**
+     * @return all repositories which can be found by repo-contributors
+     */
     @Override
     public List<GHRepository> repos(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
         final Collection<GitHubRepositoryName> names = GitHubRepositoryNameContributor

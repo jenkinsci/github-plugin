@@ -13,7 +13,10 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 
 /**
+ * Gets sha from build data
+ *
  * @author lanwen (Merkushev Kirill)
+ * @since 1.19.0
  */
 public class BuildDataRevisionShaSource extends GitHubCommitShaSource {
 
@@ -21,6 +24,9 @@ public class BuildDataRevisionShaSource extends GitHubCommitShaSource {
     public BuildDataRevisionShaSource() {
     }
 
+    /**
+     * @return sha from git's scm build data action
+     */
     @Override
     public String get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) throws IOException {
         return ObjectId.toString(BuildDataHelper.getCommitSHA1(run));

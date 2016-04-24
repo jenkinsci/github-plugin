@@ -12,15 +12,15 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.plugins.github.common.CombineErrorHandler;
-import org.jenkinsci.plugins.github.extension.status.StatusErrorHandler;
-import org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource;
-import org.jenkinsci.plugins.github.status.sources.DefaultCommitContextSource;
-import org.jenkinsci.plugins.github.status.sources.DefaultStatusResultSource;
-import org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource;
 import org.jenkinsci.plugins.github.extension.status.GitHubCommitShaSource;
 import org.jenkinsci.plugins.github.extension.status.GitHubReposSource;
 import org.jenkinsci.plugins.github.extension.status.GitHubStatusContextSource;
 import org.jenkinsci.plugins.github.extension.status.GitHubStatusResultSource;
+import org.jenkinsci.plugins.github.extension.status.StatusErrorHandler;
+import org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource;
+import org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource;
+import org.jenkinsci.plugins.github.status.sources.DefaultCommitContextSource;
+import org.jenkinsci.plugins.github.status.sources.DefaultStatusResultSource;
 import org.kohsuke.github.GHCommitState;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -33,7 +33,10 @@ import java.util.List;
 import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_SettingCommitStatus;
 
 /**
+ * Create commit state notifications on the commits based on the outcome of the build.
+ *
  * @author lanwen (Merkushev Kirill)
+ * @since 1.19.0
  */
 public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildStep {
 
@@ -72,26 +75,44 @@ public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildSte
         this.errorHandlers = errorHandlers;
     }
 
+    /**
+     * @return SHA provider
+     */
     public GitHubCommitShaSource getCommitShaSource() {
         return commitShaSource;
     }
 
+    /**
+     * @return Repository list provider
+     */
     public GitHubReposSource getReposSource() {
         return reposSource;
     }
 
+    /**
+     * @return Context provider
+     */
     public GitHubStatusContextSource getContextSource() {
         return contextSource;
     }
 
+    /**
+     * @return state + msg provider
+     */
     public GitHubStatusResultSource getStatusResultSource() {
         return statusResultSource;
     }
 
+    /**
+     * @return error handlers
+     */
     public List<StatusErrorHandler> getErrorHandlers() {
         return errorHandlers;
     }
 
+    /**
+     * Gets info from the providers and updates commit status
+     */
     @Override
     public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
                         @Nonnull TaskListener listener) {
@@ -135,7 +156,7 @@ public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildSte
 
         @Override
         public String getDisplayName() {
-            return "[NEW] Set status for GitHub";
+            return "[NEW] Set status for GitHub commit";
         }
 
     }

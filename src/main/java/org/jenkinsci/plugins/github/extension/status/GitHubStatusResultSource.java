@@ -10,14 +10,26 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 
 /**
+ * Extension point to provide exact state and message for the commit
+ *
  * @author lanwen (Merkushev Kirill)
+ * @since 1.19.0
  */
 public abstract class GitHubStatusResultSource extends AbstractDescribableImpl<GitHubStatusResultSource>
         implements ExtensionPoint {
 
-    public abstract StatusResult get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) 
+    /**
+     * @param run      actual run
+     * @param listener run listener
+     *
+     * @return bean with state and already expanded message
+     */
+    public abstract StatusResult get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener)
             throws IOException, InterruptedException;
 
+    /**
+     * Bean with state and msg info
+     */
     public static class StatusResult {
         private GHCommitState state;
         private String msg;
