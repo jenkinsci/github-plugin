@@ -22,8 +22,8 @@ import javax.annotation.Nonnull;
  */
 public abstract class ConditionalResult extends AbstractDescribableImpl<ConditionalResult> implements ExtensionPoint {
 
-    protected String state;
-    protected String message;
+    private String state;
+    private String message;
 
     @DataBoundSetter
     public void setState(String state) {

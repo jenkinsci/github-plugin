@@ -69,11 +69,7 @@ public class BetterThanOrEqualBuildResult extends ConditionalResult {
     @Extension
     public static class BetterThanOrEqualBuildResultDescriptor extends ConditionalResultDescriptor {
 
-        private static final Result[] SUPPORTED_RESULTS = {
-                SUCCESS,
-                UNSTABLE,
-                FAILURE,
-        };
+        private static final Result[] SUPPORTED_RESULTS = {SUCCESS, UNSTABLE, FAILURE};
 
         @Override
         public String getDisplayName() {

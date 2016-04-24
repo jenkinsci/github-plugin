@@ -26,8 +26,8 @@ public class ShallowAnyErrorHandler extends StatusErrorHandler {
      */
     @Override
     public boolean handle(Exception e, @Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
-        listener.error("[GitHub Commit Status Setter] Failed to update commit state on GitHub. " +
-                "Ignoring exception [%s]", e.getMessage());
+        listener.error("[GitHub Commit Status Setter] Failed to update commit state on GitHub. "
+                + "Ignoring exception [%s]", e.getMessage());
         return true;
     }
 

@@ -21,6 +21,8 @@ import static org.kohsuke.github.GHCommitState.ERROR;
 import static org.kohsuke.github.GHCommitState.PENDING;
 
 /**
+ * Allows to define message and state for commit for different run results
+ *
  * @author lanwen (Merkushev Kirill)
  */
 public class ConditionalStatusResultSource extends GitHubStatusResultSource {

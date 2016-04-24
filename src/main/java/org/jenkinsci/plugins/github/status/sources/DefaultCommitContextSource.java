@@ -2,7 +2,6 @@ package org.jenkinsci.plugins.github.status.sources;
 
 import hudson.Extension;
 import hudson.model.Descriptor;
-import hudson.model.Job;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.jenkinsci.plugins.github.extension.status.GitHubStatusContextSource;
@@ -26,7 +25,7 @@ public class DefaultCommitContextSource extends GitHubStatusContextSource {
 
     /**
      * @return context name
-     * @see com.coravy.hudson.plugins.github.GithubProjectProperty#displayNameFor(Job)
+     * @see com.coravy.hudson.plugins.github.GithubProjectProperty#displayNameFor(hudson.model.Job)
      */
     @Override
     public String context(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {

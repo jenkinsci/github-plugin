@@ -51,11 +51,8 @@ public class ChangingBuildStatusErrorHandler extends StatusErrorHandler {
 
     @Extension
     public static class ChangingBuildStatusErrorHandlerDescriptor extends Descriptor<StatusErrorHandler> {
-        
-        private static final Result[] SUPPORTED_RESULTS = {
-                FAILURE,
-                UNSTABLE,
-        };
+
+        private static final Result[] SUPPORTED_RESULTS = {FAILURE, UNSTABLE};
 
         @Override
         public String getDisplayName() {
