@@ -1,19 +1,25 @@
-package com.cloudbees.jenkins;
+package org.jenkinsci.plugins.github.status;
 
+import com.cloudbees.jenkins.GitHubSetCommitStatusBuilder;
 import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
-import hudson.model.Build;
 import hudson.model.BuildListener;
+import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.plugins.git.Revision;
 import hudson.plugins.git.util.BuildData;
-import hudson.tasks.Builder;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
+import org.jenkinsci.plugins.github.extension.status.StatusErrorHandler;
+import org.jenkinsci.plugins.github.status.err.ChangingBuildStatusErrorHandler;
+import org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource;
+import org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource;
+import org.jenkinsci.plugins.github.status.sources.DefaultCommitContextSource;
+import org.jenkinsci.plugins.github.status.sources.DefaultStatusResultSource;
 import org.jenkinsci.plugins.github.test.GHMockRule;
 import org.jenkinsci.plugins.github.test.GHMockRule.FixedGHRepoNameTestContributor;
 import org.jenkinsci.plugins.github.test.InjectJenkinsMembersRule;
@@ -22,21 +28,18 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
-import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestBuilder;
 import org.jvnet.hudson.test.TestExtension;
-import org.jvnet.hudson.test.recipes.LocalData;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.inject.Inject;
-import java.util.List;
+import java.util.Collections;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static com.google.common.collect.Lists.newArrayList;
 import static org.mockito.Mockito.when;
 
 /**
@@ -45,7 +48,7 @@ import static org.mockito.Mockito.when;
  * @author Oleg Nenashev <o.v.nenashev@gmail.com>
  */
 @RunWith(MockitoJUnitRunner.class)
-public class GitHubSetCommitStatusBuilderTest {
+public class GitHubCommitStatusSetterTest {
 
     public static final String SOME_SHA = StringUtils.repeat("f", 40);
 
@@ -82,24 +85,20 @@ public class GitHubSetCommitStatusBuilderTest {
         }
     };
 
-    @Test
-    @Issue("JENKINS-23641")
-    public void shouldIgnoreIfNoBuildData() throws Exception {
-        FreeStyleProject prj = jRule.createFreeStyleProject("23641_noBuildData");
-        prj.getBuildersList().add(new GitHubSetCommitStatusBuilder());
-        Build b = prj.scheduleBuild2(0).get();
-        jRule.assertBuildStatus(Result.SUCCESS, b);
-    }
 
     @Test
-    @LocalData
-    @Issue("JENKINS-32132")
-    public void shouldLoadNullStatusMessage() throws Exception {
+    public void shouldSetGHCommitStatus() throws Exception {
         config.getConfigs().add(github.serverConfig());
-        FreeStyleProject prj = jRule.getInstance().getItemByFullName("step", FreeStyleProject.class);
+        FreeStyleProject prj = jRule.createFreeStyleProject();
 
-        List<Builder> builders = newArrayList(prj.getBuildersList().toList());
-        builders.add(0, new TestBuilder() {
+        GitHubCommitStatusSetter statusSetter = new GitHubCommitStatusSetter();
+        statusSetter.setCommitShaSource(new BuildDataRevisionShaSource());
+        statusSetter.setContextSource(new DefaultCommitContextSource());
+        statusSetter.setReposSource(new AnyDefinedRepositorySource());
+        statusSetter.setStatusResultSource(new DefaultStatusResultSource());
+
+
+        prj.getBuildersList().add(new TestBuilder() {
             @Override
             public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
                 build.addAction(data);
@@ -107,10 +106,27 @@ public class GitHubSetCommitStatusBuilderTest {
             }
         });
 
-        prj.getBuildersList().replaceBy(builders);
+        prj.getPublishersList().add(statusSetter);
         prj.scheduleBuild2(0).get();
 
         github.service().verify(1, postRequestedFor(urlPathMatching(".*/" + SOME_SHA)));
+    }
+
+    @Test
+    public void shouldHandleError() throws Exception {
+        FreeStyleProject prj = jRule.createFreeStyleProject();
+
+        GitHubCommitStatusSetter statusSetter = new GitHubCommitStatusSetter();
+        statusSetter.setCommitShaSource(new BuildDataRevisionShaSource());
+        statusSetter.setErrorHandlers(Collections.<StatusErrorHandler>singletonList(
+                new ChangingBuildStatusErrorHandler(Result.UNSTABLE.toString())
+        ));
+        statusSetter.setReposSource(new AnyDefinedRepositorySource());
+        statusSetter.setStatusResultSource(new DefaultStatusResultSource());
+
+        prj.getPublishersList().add(statusSetter);
+        FreeStyleBuild build = prj.scheduleBuild2(0).get();
+        jRule.assertBuildStatus(Result.UNSTABLE, build);
     }
 
     @TestExtension

@@ -1,9 +1,9 @@
 package com.cloudbees.jenkins;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.model.Result;
 import hudson.model.Run;
@@ -14,32 +14,38 @@ import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import hudson.util.ListBoxModel;
 import jenkins.tasks.SimpleBuildStep;
-import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.github.common.ExpandableMessage;
-import org.jenkinsci.plugins.github.util.BuildDataHelper;
+import org.jenkinsci.plugins.github.extension.status.StatusErrorHandler;
+import org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter;
+import org.jenkinsci.plugins.github.status.err.ChangingBuildStatusErrorHandler;
+import org.jenkinsci.plugins.github.status.err.ShallowAnyErrorHandler;
+import org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource;
+import org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource;
+import org.jenkinsci.plugins.github.status.sources.ConditionalStatusResultSource;
+import org.jenkinsci.plugins.github.status.sources.DefaultCommitContextSource;
+import org.jenkinsci.plugins.github.status.sources.DefaultStatusResultSource;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.github.GHCommitState;
-import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collections;
 
 import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_DisplayName;
-import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_SettingCommitStatus;
-import static com.coravy.hudson.plugins.github.GithubProjectProperty.displayNameFor;
 import static com.google.common.base.Objects.firstNonNull;
 import static hudson.model.Result.FAILURE;
 import static hudson.model.Result.SUCCESS;
 import static hudson.model.Result.UNSTABLE;
-import static java.lang.String.format;
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult.onAnyResult;
+import static org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult.betterThanOrEqualTo;
 
 /**
  * Create commit status notifications on the commits based on the outcome of the build.
@@ -107,105 +113,41 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
     }
 
     @Override
-    public void perform(Run<?, ?> build,
-                        FilePath ws,
-                        Launcher launcher,
-                        TaskListener listener) throws InterruptedException, IOException {
-        try {
-            updateCommitStatus(build, listener);
-        } catch (IOException error) {
-            final Result buildResult = getEffectiveResultOnFailure();
-            if (buildResult.equals(FAILURE)) {
-                throw error;
-            } else {
-                listener.error(format("[GitHub Commit Notifier] - %s", error.getMessage()));
-                listener.getLogger().println(
-                        format("[GitHub Commit Notifier] - Build result will be set to %s", buildResult)
-                );
-                build.setResult(buildResult);
-            }
-        }
-    }
+    public void perform(@NonNull Run<?, ?> build,
+                        @NonNull FilePath ws,
+                        @NonNull Launcher launcher,
+                        @NonNull TaskListener listener) throws InterruptedException, IOException {
 
-    private void updateCommitStatus(@Nonnull Run<?, ?> build,
-                                    @Nonnull TaskListener listener) throws InterruptedException, IOException {
-        final String sha1 = ObjectId.toString(BuildDataHelper.getCommitSHA1(build));
+        GitHubCommitStatusSetter setter = new GitHubCommitStatusSetter();
+        setter.setReposSource(new AnyDefinedRepositorySource());
+        setter.setCommitShaSource(new BuildDataRevisionShaSource());
+        setter.setContextSource(new DefaultCommitContextSource());
 
-        StatusResult status = statusFrom(build);
-        String message = defaultIfEmpty(firstNonNull(statusMessage, DEFAULT_MESSAGE)
-                .expandAll(build, listener), status.getMsg());
-        String contextName = displayNameFor(build.getParent());
 
-        for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(build.getParent())) {
-            for (GHRepository repository : name.resolve()) {
+        String content = firstNonNull(statusMessage, DEFAULT_MESSAGE).getContent();
 
-                listener.getLogger().println(
-                        GitHubCommitNotifier_SettingCommitStatus(repository.getHtmlUrl() + "/commit/" + sha1)
-                );
-
-                try {
-                    repository.createCommitStatus(
-                            sha1, status.getState(), build.getAbsoluteUrl(),
-                            message,
-                            contextName
-                    );
-                } catch (FileNotFoundException e) {
-                    // PR builds and other merge activities can create a merge commit that
-                    // doesn't exist in the upstream. Don't let the build fail
-                    // TODO: ideally we'd like other plugins to designate a commit to put the status update to
-                    LOGGER.debug("Failed to update commit status", e);
-                    listener.getLogger()
-                            .format("Commit doesn't exist in %s. Status is not set%n", repository.getFullName());
-                }
-            }
-        }
-    }
-
-    private static StatusResult statusFrom(@Nonnull Run<?, ?> build) {
-        Result result = build.getResult();
-
-        // We do not use `build.getDurationString()` because it appends 'and counting' (build is still running)
-        String duration = Util.getTimeSpanString(System.currentTimeMillis() - build.getTimeInMillis());
-
-        if (result == null) { // Build is ongoing
-            return new StatusResult(
-                    GHCommitState.PENDING,
-                    Messages.CommitNotifier_Pending(build.getDisplayName())
-            );
-        } else if (result.isBetterOrEqualTo(SUCCESS)) {
-            return new StatusResult(
-                    GHCommitState.SUCCESS,
-                    Messages.CommitNotifier_Success(build.getDisplayName(), duration)
-            );
-        } else if (result.isBetterOrEqualTo(UNSTABLE)) {
-            return new StatusResult(
-                    GHCommitState.FAILURE,
-                    Messages.CommitNotifier_Unstable(build.getDisplayName(), duration)
-            );
+        if (isNotBlank(content)) {
+            setter.setStatusResultSource(new ConditionalStatusResultSource(
+                    asList(
+                            betterThanOrEqualTo(SUCCESS, GHCommitState.SUCCESS, content),
+                            betterThanOrEqualTo(UNSTABLE, GHCommitState.FAILURE, content),
+                            betterThanOrEqualTo(FAILURE, GHCommitState.ERROR, content),
+                            onAnyResult(GHCommitState.PENDING, content)
+                    )));
         } else {
-            return new StatusResult(
-                    GHCommitState.ERROR,
-                    Messages.CommitNotifier_Failed(build.getDisplayName(), duration)
-            );
-        }
-    }
-
-    private static class StatusResult {
-        private GHCommitState state;
-        private String msg;
-
-        public StatusResult(GHCommitState state, String msg) {
-            this.state = state;
-            this.msg = msg;
+            setter.setStatusResultSource(new DefaultStatusResultSource());
         }
 
-        public GHCommitState getState() {
-            return state;
+        if (getEffectiveResultOnFailure().equals(SUCCESS)) {
+            setter.setErrorHandlers(Collections.<StatusErrorHandler>singletonList(new ShallowAnyErrorHandler()));
+        } else if (resultOnFailure == null) {
+            setter.setErrorHandlers(null);
+        } else {
+            setter.setErrorHandlers(Collections.<StatusErrorHandler>singletonList(
+                    new ChangingBuildStatusErrorHandler(getEffectiveResultOnFailure().toString())));
         }
 
-        public String getMsg() {
-            return msg;
-        }
+        setter.perform(build, ws, launcher, listener);
     }
 
     @Extension
