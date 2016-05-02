@@ -152,7 +152,6 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
             public void run() {
                 if (runPolling()) {
-                    String name = " #" + job.getNextBuildNumber();
                     GitHubPushCause cause;
                     try {
                         cause = new GitHubPushCause(getLogFile(), pushBy);
@@ -161,9 +160,10 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         cause = new GitHubPushCause(pushBy);
                     }
                     if (asParameterizedJobMixIn(job).scheduleBuild(cause)) {
-                        LOGGER.info("SCM changes detected in " + job.getName() + ". Triggering " + name);
+                        LOGGER.info("SCM changes detected in " + job.getFullName()
+                                  + ". Triggering #" + job.getNextBuildNumber());
                     } else {
-                        LOGGER.info("SCM changes detected in " + job.getName() + ". Job is already in the queue");
+                        LOGGER.info("SCM changes detected in " + job.getFullName() + ". Job is already in the queue");
                     }
                 }
             }
