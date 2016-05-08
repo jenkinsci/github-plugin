@@ -282,6 +282,19 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                    <mavenExecutorId>forked-path</mavenExecutorId>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <preparationGoals>clean install</preparationGoals>
+                    <goals>deploy</goals>
+                    <arguments>${arguments}</arguments>
+                    <releaseProfiles>jenkins-release,${releaseProfiles}</releaseProfiles>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
