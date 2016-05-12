@@ -10,7 +10,7 @@
 
     <groupId>com.coravy.hudson.plugins.github</groupId>
     <artifactId>github</artifactId>
-    <version>1.19.1-SNAPSHOT</version>
+    <version>1.19.1</version>
     <packaging>hpi</packaging>
 
     <name>GitHub plugin</name>
@@ -38,7 +38,7 @@
         <connection>scm:git:git://github.com/jenkinsci/github-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/github-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/github-plugin</url>
-        <tag>HEAD</tag>
+        <tag>v1.19.1</tag>
     </scm>
     <issueManagement>
         <system>JIRA</system>
