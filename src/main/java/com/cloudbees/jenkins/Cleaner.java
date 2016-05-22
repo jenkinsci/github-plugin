@@ -55,7 +55,7 @@ public class Cleaner extends PeriodicWork {
      */
     @Override
     protected void doRun() throws Exception {
-        if (!GitHubPlugin.configuration().isManageHooks()) {
+        if (! GitHubPlugin.configuration().isManageHooks()) {
             return;
         }
 
