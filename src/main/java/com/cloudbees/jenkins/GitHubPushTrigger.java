@@ -244,10 +244,6 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
         private transient int maximumThreads = Integer.MIN_VALUE;
 
-        private static ThreadFactory threadFactory() {
-            return new NamingThreadFactory(Executors.defaultThreadFactory(), "GitHubPushTrigger");
-        }
-
         public DescriptorImpl() {
             checkThreadPoolSize();
         }
@@ -364,6 +360,10 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
         public static boolean allowsHookUrlOverride() {
             return ALLOW_HOOKURL_OVERRIDE;
+        }
+
+        private static ThreadFactory threadFactory() {
+            return new NamingThreadFactory(Executors.defaultThreadFactory(), "GitHubPushTrigger");
         }
 
         /**
