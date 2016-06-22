@@ -256,6 +256,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
             if (scmTrigger != null) {
                 int count = scmTrigger.getPollingThreadCount();
                 if (maximumThreads != count) {
+                    maximumThreads = count;
                     queue.setExecutors(
                             (count == 0
                                     ? Executors.newCachedThreadPool(threadFactory())
