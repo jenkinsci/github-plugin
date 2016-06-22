@@ -19,6 +19,7 @@ import hudson.util.NamingThreadFactory;
 import hudson.util.SequentialExecutionQueue;
 import hudson.util.StreamTaskListener;
 import java.lang.reflect.Field;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import jenkins.model.Jenkins;
@@ -266,7 +267,11 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         Field getQueue = SCMTrigger.DescriptorImpl.class.getDeclaredField("queue");
                         getQueue.setAccessible(true);
                         SequentialExecutionQueue q = (SequentialExecutionQueue) getQueue.get(scmTrigger);
-                        this.queue.setExecutors(q.getExecutors());
+                        ExecutorService executors = q.getExecutors();
+                        if (this.queue.getExecutors() != executors) {
+                            // guard or otherwise we will shut it down :-(
+                            this.queue.setExecutors(executors);
+                        }
                     } catch (NoSuchFieldException | IllegalAccessException | ClassCastException e) {
                         queue.setExecutors(
                                 (count == 0
