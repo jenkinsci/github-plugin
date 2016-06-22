@@ -75,7 +75,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     public void onPost(String triggeredByUser) {
         final String pushBy = triggeredByUser;
         DescriptorImpl d = getDescriptor();
-        d.checkThreadPoolSize();
+        d.checkThreadPoolSizeAndUpdateIfNecessary();
         d.queue.execute(new Runnable() {
             private boolean runPolling() {
                 try {
@@ -245,14 +245,14 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         private transient int maximumThreads = Integer.MIN_VALUE;
 
         public DescriptorImpl() {
-            checkThreadPoolSize();
+            checkThreadPoolSizeAndUpdateIfNecessary();
         }
 
         /**
          * Update the {@link java.util.concurrent.ExecutorService} instance.
          */
         /*package*/
-        synchronized void checkThreadPoolSize() {
+        synchronized void checkThreadPoolSizeAndUpdateIfNecessary() {
             if (scmTrigger != null) {
                 int count = scmTrigger.getPollingThreadCount();
                 if (maximumThreads != count) {
