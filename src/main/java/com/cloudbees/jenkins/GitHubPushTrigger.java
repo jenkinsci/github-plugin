@@ -11,13 +11,16 @@ import hudson.model.Action;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.Project;
+import hudson.triggers.SCMTrigger;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import hudson.util.FormValidation;
+import hudson.util.NamingThreadFactory;
 import hudson.util.SequentialExecutionQueue;
 import hudson.util.StreamTaskListener;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import jenkins.model.Jenkins;
-import jenkins.model.Jenkins.MasterComputer;
 import jenkins.model.ParameterizedJobMixIn;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
 import org.apache.commons.jelly.XMLOutput;
@@ -45,7 +48,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.jenkinsci.plugins.github.Messages.github_trigger_check_method_warning_details;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJobMixIn;
 
 /**
@@ -72,7 +74,9 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
      */
     public void onPost(String triggeredByUser) {
         final String pushBy = triggeredByUser;
-        getDescriptor().queue.execute(new Runnable() {
+        DescriptorImpl d = getDescriptor();
+        d.checkThreadPoolSizeAndUpdateIfNecessary();
+        d.queue.execute(new Runnable() {
             private boolean runPolling() {
                 try {
                     StreamTaskListener listener = new StreamTaskListener(getLogFile());
@@ -226,7 +230,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     @Extension
     public static class DescriptorImpl extends TriggerDescriptor {
         private final transient SequentialExecutionQueue queue =
-                new SequentialExecutionQueue(MasterComputer.threadPoolForRemoting);
+                new SequentialExecutionQueue(Executors.newSingleThreadExecutor(threadFactory()));
 
         private transient String hookUrl;
 
@@ -234,6 +238,32 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
         @Inject
         private transient GitHubHookRegisterProblemMonitor monitor;
+
+        @Inject
+        private transient SCMTrigger.DescriptorImpl scmTrigger;
+
+        private transient int maximumThreads = Integer.MIN_VALUE;
+
+        public DescriptorImpl() {
+            checkThreadPoolSizeAndUpdateIfNecessary();
+        }
+
+        /**
+         * Update the {@link java.util.concurrent.ExecutorService} instance.
+         */
+        /*package*/
+        synchronized void checkThreadPoolSizeAndUpdateIfNecessary() {
+            if (scmTrigger != null) {
+                int count = scmTrigger.getPollingThreadCount();
+                if (maximumThreads != count) {
+                    maximumThreads = count;
+                    queue.setExecutors(
+                            (count == 0
+                                    ? Executors.newCachedThreadPool(threadFactory())
+                                    : Executors.newFixedThreadPool(maximumThreads, threadFactory())));
+                }
+            }
+        }
 
         @Override
         public boolean isApplicable(Item item) {
@@ -333,6 +363,10 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
             return ALLOW_HOOKURL_OVERRIDE;
         }
 
+        private static ThreadFactory threadFactory() {
+            return new NamingThreadFactory(Executors.defaultThreadFactory(), "GitHubPushTrigger");
+        }
+
         /**
          * Checks that repo defined in this job is not in administrative monitor as failed to be registered.
          * If that so, shows warning with some instructions
@@ -351,7 +385,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
             for (GitHubRepositoryName repo : repos) {
                 if (monitor.isProblemWith(repo)) {
                     return FormValidation.warning(
-                            github_trigger_check_method_warning_details(
+                            org.jenkinsci.plugins.github.Messages.github_trigger_check_method_warning_details(
                                     repo.getUserName(), repo.getRepositoryName(), repo.getHost()
                             ));
                 }
