@@ -10,7 +10,7 @@
 
     <groupId>com.coravy.hudson.plugins.github</groupId>
     <artifactId>github</artifactId>
-    <version>1.19.2-SNAPSHOT</version>
+    <version>1.19.3-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <name>GitHub plugin</name>
