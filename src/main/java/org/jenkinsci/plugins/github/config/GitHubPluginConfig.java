@@ -64,6 +64,8 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     private transient boolean overrideHookUrl;
 
+    private String globallySharedSecret;
+
     /**
      * Used to get current instance identity.
      * It compared with same value when testing hook url availability in {@link #doCheckHookUrl(String)}
@@ -119,6 +121,18 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     public boolean isOverrideHookURL() {
         return hookUrl != null;
+    }
+
+    /**
+     * Gets shared secret that is used on all projects for JSON body verification.
+     * @return Shared secret, null or empty if not set.
+     */
+    public String getGloballySharedSecret() {
+        return globallySharedSecret;
+    }
+
+    public void setGloballySharedSecret(String globallySharedSecret) {
+        this.globallySharedSecret = globallySharedSecret;
     }
 
     /**
