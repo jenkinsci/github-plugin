@@ -4,8 +4,11 @@ import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.Job;
+import hudson.util.Secret;
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.Validate;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
+import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
@@ -20,6 +23,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -290,7 +294,18 @@ public class WebhookManager {
         return new NullSafeFunction<GHRepository, GHHook>() {
             protected GHHook applyNullSafe(@Nonnull GHRepository repo) {
                 try {
-                    return repo.createWebHook(url, events);
+                    final HashMap<String, String> config = new HashMap<>();
+                    config.put("url", url.toExternalForm());
+                    config.put("content_type", "json");
+
+                    final Secret secret = Jenkins.getInstance()
+                            .getDescriptorByType(GitHubPluginConfig.class).getHookSecretConfig().getHookSecret();
+
+                    if (secret != null) {
+                        config.put("secret", secret.getPlainText());
+                    }
+
+                    return repo.createHook("web", config, events, true);
                 } catch (IOException e) {
                     throw new GHException("Failed to create hook", e);
                 }
