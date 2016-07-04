@@ -34,28 +34,28 @@ public class RequirePostWithGHHookPayloadTest {
 
     @Test
     public void shouldPassOnGHEventAndNotBlankPayload() throws Exception {
-        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(new Object[]{GHEvent.PUSH, "{}"});
+        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(new Object[]{GHEvent.PUSH, "{}", null});
     }
 
     @Test(expected = InvocationTargetException.class)
     public void shouldNotPassOnNullGHEventAndNotBlankPayload() throws Exception {
-        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(new Object[]{null, "{}"});
+        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(new Object[]{null, "{}", null});
     }
 
     @Test(expected = InvocationTargetException.class)
     public void shouldNotPassOnGHEventAndBlankPayload() throws Exception {
-        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(new Object[] {GHEvent.PUSH, " "});
+        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(new Object[] {GHEvent.PUSH, " ", null});
     }
 
     @Test(expected = InvocationTargetException.class)
     public void shouldNotPassOnNulls() throws Exception {
-        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(new Object[] {null, null});
+        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(new Object[] {null, null, null});
     }
 
     @Test(expected = InvocationTargetException.class)
     public void shouldNotPassOnGreaterCountOfArgs() throws Exception {
         new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
-                new Object[] {GHEvent.PUSH, "{}", " "}
+                new Object[] {GHEvent.PUSH, "{}", null, " "}
         );
     }
 

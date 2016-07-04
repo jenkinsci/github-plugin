@@ -144,7 +144,7 @@ public class GitHubHookRegisterProblemMonitorTest {
     @Test
     public void shouldReportAboutHookProblemOnRegister() throws IOException {
         FreeStyleProject job = jRule.createFreeStyleProject();
-        job.addTrigger(new GitHubPushTrigger());
+        job.addTrigger(new GitHubPushTrigger(null));
         job.setScm(REPO_GIT_SCM);
 
         WebhookManager.forHookUrl(WebhookManagerTest.HOOK_ENDPOINT)
@@ -165,7 +165,7 @@ public class GitHubHookRegisterProblemMonitorTest {
     public void shouldResolveOnPingHook() {
         monitor.registerProblem(REPO_FROM_PING_PAYLOAD, new IOException());
 
-        GHEventsSubscriber.processEvent(GHEvent.PING, classpath("payloads/ping.json")).apply(pingSubscr);
+        GHEventsSubscriber.processEvent(GHEvent.PING, classpath("payloads/ping.json"), null).apply(pingSubscr);
 
         assertThat("ping resolves problem", monitor.isProblemWith(REPO_FROM_PING_PAYLOAD), is(false));
     }

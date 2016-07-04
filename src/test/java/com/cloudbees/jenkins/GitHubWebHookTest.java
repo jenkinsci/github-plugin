@@ -48,19 +48,19 @@ public class GitHubWebHookTest {
 
     @Test
     public void shouldCallExtensionInterestedInIssues() throws Exception {
-        new GitHubWebHook().doIndex(GHEvent.ISSUES, PAYLOAD);
+        new GitHubWebHook().doIndex(GHEvent.ISSUES, PAYLOAD, null);
         assertThat("should get interested event", subscriber.lastEvent(), equalTo(GHEvent.ISSUES));
     }
 
     @Test
     public void shouldNotCallAnyExtensionsWithPublicEventIfNotRegistered() throws Exception {
-        new GitHubWebHook().doIndex(GHEvent.PUBLIC, PAYLOAD);
+        new GitHubWebHook().doIndex(GHEvent.PUBLIC, PAYLOAD, null);
         assertThat("should not get not interested event", subscriber.lastEvent(), nullValue());
     }
 
     @Test
     public void shouldCatchThrowableOnFailedSubscriber() throws Exception {
-        new GitHubWebHook().doIndex(GHEvent.PULL_REQUEST, PAYLOAD);
+        new GitHubWebHook().doIndex(GHEvent.PULL_REQUEST, PAYLOAD, null);
         assertThat("each extension should get event",
                 asList(
                         pullRequestSubscriber.lastEvent(),
@@ -95,8 +95,8 @@ public class GitHubWebHookTest {
         }
 
         @Override
-        protected void onEvent(GHEvent event, String payload) {
-            super.onEvent(event, payload);
+        protected void onEvent(GHEvent event, String payload, String signature) {
+            super.onEvent(event, payload, signature);
             throw new GotEventException("Something went wrong!");
         }
     }
@@ -121,7 +121,7 @@ public class GitHubWebHookTest {
         }
 
         @Override
-        protected void onEvent(GHEvent event, String payload) {
+        protected void onEvent(GHEvent event, String payload, String signature) {
             this.event = event;
         }
 

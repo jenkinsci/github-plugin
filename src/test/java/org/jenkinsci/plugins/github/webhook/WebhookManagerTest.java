@@ -183,7 +183,7 @@ public class WebhookManagerTest {
     @Test
     public void shouldAddPushEventByDefault() throws IOException {
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        project.addTrigger(new GitHubPushTrigger());
+        project.addTrigger(new GitHubPushTrigger(null));
         project.setScm(GIT_SCM);
 
         manager.registerFor(project).run();

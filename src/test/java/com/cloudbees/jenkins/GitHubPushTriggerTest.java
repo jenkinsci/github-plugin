@@ -55,7 +55,7 @@ public class GitHubPushTriggerTest {
     @Issue("JENKINS-27136")
     public void shouldStartWorkflowByTrigger() throws Exception {
         WorkflowJob job = jRule.getInstance().createProject(WorkflowJob.class, "test-workflow-job");
-        GitHubPushTrigger trigger = new GitHubPushTrigger();
+        GitHubPushTrigger trigger = new GitHubPushTrigger(null);
         trigger.start(job, false);
         job.addTrigger(trigger);
         job.setDefinition(

@@ -48,7 +48,7 @@ public class MigratorTest {
     @LocalData
     public void shouldNotThrowExcMalformedHookUrlInOldConfig() throws IOException {
         FreeStyleProject job = jenkins.createFreeStyleProject();
-        GitHubPushTrigger trigger = new GitHubPushTrigger();
+        GitHubPushTrigger trigger = new GitHubPushTrigger(null);
         trigger.start(job, true);
         trigger.registerHooks();
 
