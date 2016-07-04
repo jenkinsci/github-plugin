@@ -64,7 +64,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      * @param signature HMAC hex digest of payload from GH. Null if no signature was set.
      */
     @Override
-    protected void onEvent(GHEvent event, final String payload, final String signature) {
+    protected void onEvent(final GHEvent event, final String payload, final String signature) {
         JSONObject json = JSONObject.fromObject(payload);
         String repoUrl = json.getJSONObject("repository").getString("url");
         final String pusherName = json.getJSONObject("pusher").getString("name");
