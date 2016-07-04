@@ -50,8 +50,8 @@ public class CryptoUtil {
             final byte[] rawHMACBytes = mac.doFinal(payload.getBytes("UTF-8"));
 
             return "sha1=" + Hex.encodeHexString(rawHMACBytes);
-        } catch (Exception ex) {
-            LOGGER.error(ex.getMessage(), ex);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
             return null;
         }
     }
