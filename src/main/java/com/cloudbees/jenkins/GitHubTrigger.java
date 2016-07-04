@@ -25,6 +25,11 @@ public interface GitHubTrigger {
     void onPost(String triggeredByUser);
 
     /**
+     * @return The shared secret specific for a job/trigger.
+     */
+    String getSharedSecret();
+
+    /**
      * Obtains the list of the repositories that this trigger is looking at.
      *
      * If the implementation of this class maintain its own list of GitHub repositories, it should

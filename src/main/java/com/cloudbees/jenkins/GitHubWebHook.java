@@ -14,12 +14,14 @@ import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.webhook.GHEventHeader;
 import org.jenkinsci.plugins.github.webhook.GHEventPayload;
+import org.jenkinsci.plugins.github.webhook.GHSignatureHeader;
 import org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload;
 import org.kohsuke.github.GHEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.net.URL;
 import java.util.List;
 
@@ -92,13 +94,14 @@ public class GitHubWebHook implements UnprotectedRootAction {
      *
      * @param event   GH event type. Never null
      * @param payload Payload from hook. Never blank
+     * @param signature GH signature of the payload. Null if header is not present.
      */
     @SuppressWarnings("unused")
     @RequirePostWithGHHookPayload
-    public void doIndex(@Nonnull @GHEventHeader GHEvent event, @Nonnull @GHEventPayload String payload) {
+    public void doIndex(@Nonnull @GHEventHeader GHEvent event, @Nonnull @GHEventPayload String payload, @Nullable @GHSignatureHeader String signature) {
         from(GHEventsSubscriber.all())
                 .filter(isInterestedIn(event))
-                .transform(processEvent(event, payload)).toList();
+                .transform(processEvent(event, payload, signature)).toList();
     }
 
     private Function<Job, Job> reRegisterHookForJob() {

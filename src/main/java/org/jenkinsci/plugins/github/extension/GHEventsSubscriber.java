@@ -55,12 +55,13 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      * This method called when root action receives webhook from GH and this extension is interested in such
      * events (provided by {@link #events()} method). By default do nothing and can be overrided to implement any
      * parse logic
-     * Don't call it directly, use {@link #processEvent(GHEvent, String)} static function
+     * Don't call it directly, use {@link #processEvent(GHEvent, String, String)} static function
      *
      * @param event   gh-event (as of PUSH, ISSUE...). One of returned by {@link #events()} method. Never null.
      * @param payload payload of gh-event. Never blank. Can be parsed with help of GitHub#parseEventPayload
+     * @param signature X-Hub-Signature header value, HMAC hex digest of payload from GitHub.
      */
-    protected void onEvent(GHEvent event, String payload) {
+    protected void onEvent(GHEvent event, String payload, String signature) {
         // do nothing by default
     }
 
@@ -119,19 +120,20 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
     }
 
     /**
-     * Function which calls {@link #onEvent(GHEvent, String)} for every subscriber on apply
+     * Function which calls {@link #onEvent(GHEvent, String, String)} for every subscriber on apply
      *
      * @param event   from hook. Applied only with event from {@link #events()} set
      * @param payload string content of hook from GH. Never blank
+     * @param signature HMAC
      *
      * @return function to process {@link GHEventsSubscriber} list. Returns null on apply.
      */
-    public static Function<GHEventsSubscriber, Void> processEvent(final GHEvent event, final String payload) {
+    public static Function<GHEventsSubscriber, Void> processEvent(final GHEvent event, final String payload, final String signature) {
         return new NullSafeFunction<GHEventsSubscriber, Void>() {
             @Override
             protected Void applyNullSafe(@Nonnull GHEventsSubscriber subscriber) {
                 try {
-                    subscriber.onEvent(event, payload);
+                    subscriber.onEvent(event, payload, signature);
                 } catch (Throwable t) {
                     LOGGER.error("Subscriber {} failed to process {} hook, skipping...",
                             subscriber.getClass().getName(), event, t);
