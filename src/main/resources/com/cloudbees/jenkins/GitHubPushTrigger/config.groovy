@@ -5,7 +5,7 @@ import com.cloudbees.jenkins.GitHubPushTrigger
 def f = namespace(lib.FormTagLib);
 
 f.entry(field: "sharedSecret", title: "Shared secret", help: descriptor.getHelpFile('sharedSecret')) {
-    f.textbox()
+    f.password()
 }
 
 tr {
