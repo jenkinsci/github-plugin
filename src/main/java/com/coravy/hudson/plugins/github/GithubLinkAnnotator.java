@@ -42,7 +42,9 @@ public class GithubLinkAnnotator extends ChangeLogAnnotator {
 
         if (change instanceof GitChangeSet) {
             GitChangeSet cs = (GitChangeSet) change;
-            text.wrapBy("", " (<a href='" + url.commitId(cs.getId()) + "'>commit: " + cs.getId() + "</a>)");
+            final String id = cs.getId();
+            text.wrapBy("", " (<a href='" + url.commitId(id)
+                        + "'>commit: " + id.substring(0, Math.min(id.length(), 7)) + "</a>)");
         }
     }
 
