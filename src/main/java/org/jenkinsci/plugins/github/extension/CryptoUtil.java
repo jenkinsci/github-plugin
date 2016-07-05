@@ -49,9 +49,22 @@ public class CryptoUtil {
             mac.init(keySpec);
             final byte[] rawHMACBytes = mac.doFinal(payload.getBytes("UTF-8"));
 
-            return "sha1=" + Hex.encodeHexString(rawHMACBytes);
+            return Hex.encodeHexString(rawHMACBytes);
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Grabs the value after "sha1=" in a string.
+     * @param secret The string to get the sha1 value from.
+     * @return Value after "sha1" present in the secret value. Null if not present.
+     */
+    public static @Nullable String parseSHA1Value(@Nullable final String secret) {
+        if (secret != null && secret.startsWith("sha1=")) {
+            return secret.substring(5);
+        } else {
             return null;
         }
     }

@@ -18,7 +18,7 @@ public class CryptoUtilTest {
 
     private static final String GLOBAL_SECRET = "global secret";
     private static final String PROJECT_SECRET = "project secret";
-    private static final String EXPECTED_SIGNATURE = "sha1=85d155c55ed286a300bd1cf124de08d87e914f3a";
+    private static final String EXPECTED_SIGNATURE = "85d155c55ed286a300bd1cf124de08d87e914f3a";
     private static final String PAYLOAD = "foo";
     private static final String SECRET = "bar";
 

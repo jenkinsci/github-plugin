@@ -16,10 +16,12 @@ import org.kohsuke.github.GHEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.immutableEnumSet;
 import static org.jenkinsci.plugins.github.extension.CryptoUtil.computeSHA1Signature;
+import static org.jenkinsci.plugins.github.extension.CryptoUtil.parseSHA1Value;
 import static org.jenkinsci.plugins.github.extension.CryptoUtil.selectSecret;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.triggerFrom;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.withTrigger;
@@ -93,9 +95,10 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
         }
     }
 
-    private void triggerJobs(final GitHubRepositoryName changedRepository, final String payload,
-                             final String pusherName, final String signature) {
+    public void triggerJobs(final GitHubRepositoryName changedRepository, final String payload,
+                            final String pusherName, final String signature) {
         final String globalSecret = GitHubPlugin.configuration().getGloballySharedSecret();
+        final String parsedSignature = parseSHA1Value(signature);
         LOGGER.debug("Request signature: {}", signature);
 
         for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
@@ -105,15 +108,16 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                 final String secret = selectSecret(globalSecret, trigger.getSharedSecret());
 
                 LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
+                Collection<GitHubRepositoryName> b = GitHubRepositoryNameContributor.parseAssociatedNames(job);
 
                 String computedSignature;
-                if (secret != null && signature == null) {
+                if (secret != null && parsedSignature == null) {
                     LOGGER.info("No signature signature provided for job {}", job.getFullDisplayName());
                 } else if (secret != null &&
-                        !signature.equals(computedSignature = computeSHA1Signature(payload, secret))) {
+                        !parsedSignature.equals(computedSignature = computeSHA1Signature(payload, secret))) {
                     LOGGER.info("Registered signature for job {} does not match (computed signature was {})",
                             job.getFullDisplayName(), computedSignature);
-                } else if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
+                } else if (b.contains(changedRepository)) {
                     LOGGER.info("Poked {}", job.getFullDisplayName());
                     trigger.onPost(pusherName);
                 } else {
