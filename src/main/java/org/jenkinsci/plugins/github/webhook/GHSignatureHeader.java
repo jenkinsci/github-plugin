@@ -34,7 +34,7 @@ public @interface GHSignatureHeader {
          * Header key being used for the payload signatures.
          * @see <a href=https://developer.github.com/webhooks/>Developer manual</a>
          */
-        private static final String SIGNATURE_HEADER = "X-Hub-Signature";
+        public static final String SIGNATURE_HEADER = "X-Hub-Signature";
 
         /**
          * @return header value for payload signature. Null if header is not set.

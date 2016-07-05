@@ -34,22 +34,33 @@ public class RequirePostWithGHHookPayloadTest {
 
     @Test
     public void shouldPassOnGHEventAndNotBlankPayload() throws Exception {
-        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(new Object[]{GHEvent.PUSH, "{}", null});
+        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
+                new Object[]{GHEvent.PUSH, "{}", null});
     }
+
+    @Test
+    public void shouldPassOnGHEventAndNotBlankPayloadAndValidSignature() throws Exception {
+        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
+                new Object[]{GHEvent.PUSH, "{}", "sha1=3cf05c80c409aeec9416808cf02d4f71c978bb87"});
+    }
+
 
     @Test(expected = InvocationTargetException.class)
     public void shouldNotPassOnNullGHEventAndNotBlankPayload() throws Exception {
-        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(new Object[]{null, "{}", null});
+        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
+                new Object[]{null, "{}", null});
     }
 
     @Test(expected = InvocationTargetException.class)
     public void shouldNotPassOnGHEventAndBlankPayload() throws Exception {
-        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(new Object[] {GHEvent.PUSH, " ", null});
+        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
+                new Object[] {GHEvent.PUSH, " ", null});
     }
 
     @Test(expected = InvocationTargetException.class)
     public void shouldNotPassOnNulls() throws Exception {
-        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(new Object[] {null, null, null});
+        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
+                new Object[] {null, null, null});
     }
 
     @Test(expected = InvocationTargetException.class)
@@ -63,6 +74,27 @@ public class RequirePostWithGHHookPayloadTest {
     public void shouldNotPassOnLessCountOfArgs() throws Exception {
         new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
                 new Object[] {GHEvent.PUSH}
+        );
+    }
+
+    @Test(expected = InvocationTargetException.class)
+    public void shouldNotPassOnTooShortHash() throws Exception {
+        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
+                new Object[] {GHEvent.PUSH, "{}", "sha1=123"}
+        );
+    }
+
+    @Test(expected = InvocationTargetException.class)
+    public void shouldNotPassOnUnknownHash() throws Exception {
+        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
+                new Object[] {GHEvent.PUSH, "{}", "md5=123"}
+        );
+    }
+
+    @Test(expected = InvocationTargetException.class)
+    public void shouldNotPassOnMalformedHash() throws Exception {
+        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
+                new Object[] {GHEvent.PUSH, "{}", " "}
         );
     }
 }
