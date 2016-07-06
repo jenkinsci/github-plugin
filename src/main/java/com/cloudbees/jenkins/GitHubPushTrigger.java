@@ -25,9 +25,11 @@ import jenkins.model.ParameterizedJobMixIn;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
 import net.sf.json.JSONObject;
 import org.apache.commons.jelly.XMLOutput;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
+import org.jenkinsci.plugins.github.extension.CryptoUtil;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.migration.Migrator;
 import org.kohsuke.stapler.AncestorInPath;
@@ -161,6 +163,10 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     public void start(Job<?, ?> project, boolean newInstance) {
         super.start(project, newInstance);
         if (newInstance && GitHubPlugin.configuration().isManageHooks()) {
+            if (StringUtils.isEmpty(sharedSecret)) {
+                sharedSecret = CryptoUtil.generateSecret();
+            }
+
             registerHooks();
         }
     }

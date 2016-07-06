@@ -9,6 +9,9 @@ import javax.annotation.Nullable;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
+
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
 /**
@@ -18,6 +21,7 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 public class CryptoUtil {
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
     private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
+    private static final SecureRandom random = new SecureRandom();
 
     /**
      * Selects the appropriate secret to be used. Project-specific secrets override globally configured secrets.
@@ -67,5 +71,13 @@ public class CryptoUtil {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Generates a random secret being used as shared secret between the Jenkins CI and GitHub.
+     * @return A 60 character long random string.
+     */
+    public static String generateSecret() {
+        return new BigInteger(130, random).toString(60);
     }
 }

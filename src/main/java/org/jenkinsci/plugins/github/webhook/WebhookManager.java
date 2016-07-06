@@ -1,11 +1,17 @@
 package org.jenkinsci.plugins.github.webhook;
 
+import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
+import com.cloudbees.jenkins.GitHubTrigger;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.Job;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
+import org.jenkinsci.plugins.github.config.GitHubServerConfig;
+import org.jenkinsci.plugins.github.extension.CryptoUtil;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
@@ -20,6 +26,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -33,6 +40,7 @@ import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToMa
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.extractEvents;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
+import static org.jenkinsci.plugins.github.util.JobInfoHelpers.triggerFrom;
 
 /**
  * Class to incapsulate manipulation with webhooks on GH
@@ -75,7 +83,7 @@ public class WebhookManager {
      * @param project to find for which repos we should create hooks
      *
      * @return runnable to create hooks on run
-     * @see #createHookSubscribedTo(List)
+     * @see #createHookSubscribedTo(List, String)
      */
     public Runnable registerFor(final Job<?, ?> project) {
         final Collection<GitHubRepositoryName> names = parseAssociatedNames(project);
@@ -83,6 +91,13 @@ public class WebhookManager {
         final List<GHEvent> events = from(GHEventsSubscriber.all())
                 .filter(isApplicableFor(project))
                 .transformAndConcat(extractEvents()).toList();
+
+        final GitHubTrigger trigger = triggerFrom(project, GitHubPushTrigger.class);
+
+        final String globalSecret = GitHubPlugin.configuration().getGloballySharedSecret();
+        final String projectSecret = trigger.getSharedSecret();
+
+        final String secret = CryptoUtil.selectSecret(globalSecret, projectSecret);
 
         return new Runnable() {
             public void run() {
@@ -96,7 +111,7 @@ public class WebhookManager {
                         project.getFullName(), names, events);
 
                 from(names)
-                        .transform(createHookSubscribedTo(events))
+                        .transform(createHookSubscribedTo(events, secret))
                         .filter(notNull())
                         .filter(log("Created hook")).toList();
             }
@@ -145,7 +160,7 @@ public class WebhookManager {
      *
      * @return function to register hooks for given events
      */
-    protected Function<GitHubRepositoryName, GHHook> createHookSubscribedTo(final List<GHEvent> events) {
+    protected Function<GitHubRepositoryName, GHHook> createHookSubscribedTo(final List<GHEvent> events, final String secret) {
         return new NullSafeFunction<GitHubRepositoryName, GHHook>() {
             @Override
             protected GHHook applyNullSafe(@Nonnull GitHubRepositoryName name) {
@@ -175,7 +190,7 @@ public class WebhookManager {
                             .filter(deleteWebhook())
                             .filter(log("Replaced hook")).toList();
 
-                    return createWebhook(endpoint, merged).apply(repo);
+                    return createWebhook(endpoint, merged, secret).apply(repo);
                 } catch (Throwable t) {
                     LOGGER.warn("Failed to add GitHub webhook for {}", name, t);
                     GitHubHookRegisterProblemMonitor.get().registerProblem(name, t);
@@ -286,11 +301,18 @@ public class WebhookManager {
      *
      * @return converter to create GH hook for given url with given events
      */
-    protected Function<GHRepository, GHHook> createWebhook(final URL url, final Set<GHEvent> events) {
+    protected Function<GHRepository, GHHook> createWebhook(final URL url, final Set<GHEvent> events, final String secret) {
         return new NullSafeFunction<GHRepository, GHHook>() {
             protected GHHook applyNullSafe(@Nonnull GHRepository repo) {
                 try {
-                    return repo.createWebHook(url, events);
+                    final HashMap<String, String> config = new HashMap<>();
+                    config.put("url", url.toExternalForm());
+
+                    if (StringUtils.isNotEmpty(secret)) {
+                        config.put("secret", secret);
+                    }
+
+                    return repo.createHook("web", config, events, true);
                 } catch (IOException e) {
                     throw new GHException("Failed to create hook", e);
                 }
