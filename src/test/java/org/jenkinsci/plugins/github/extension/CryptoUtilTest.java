@@ -18,7 +18,7 @@ public class CryptoUtilTest {
 
     private static final String GLOBAL_SECRET = "global secret";
     private static final String PROJECT_SECRET = "project secret";
-    private static final String EXPECTED_SIGNATURE = "85d155c55ed286a300bd1cf124de08d87e914f3a";
+    private static final String SIGNATURE = "85d155c55ed286a300bd1cf124de08d87e914f3a";
     private static final String PAYLOAD = "foo";
     private static final String SECRET = "bar";
 
@@ -51,9 +51,21 @@ public class CryptoUtilTest {
     }
 
     @Test
-    public void computeSHA1Signature() throws Exception {
+    public void shouldComputeSHA1Signature() throws Exception {
         final String signature = CryptoUtil.computeSHA1Signature(PAYLOAD, SECRET);
 
-        assertThat("signature is valid", signature, equalTo(EXPECTED_SIGNATURE));
+        assertThat("signature is valid", signature, equalTo(SIGNATURE));
+    }
+
+    @Test
+    public void shouldParseCorrectSHA1Signature() throws Exception {
+        final String parsedSignature = CryptoUtil.parseSHA1Value("sha1=" + SIGNATURE);
+        assertThat("parsed signature is valid", parsedSignature, equalTo(SIGNATURE));
+    }
+
+    @Test
+    public void shouldReturnNullWithNoSignature() throws Exception {
+        final String parsedSignature = CryptoUtil.parseSHA1Value(null);
+        assertThat("signature is null", parsedSignature, nullValue());
     }
 }
