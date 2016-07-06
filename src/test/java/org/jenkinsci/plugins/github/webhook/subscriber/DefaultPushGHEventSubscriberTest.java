@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.*;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Jenkins.class, GitHubRepositoryNameContributor.class, JobInfoHelpers.class, GitHubPlugin.class })
+@PowerMockIgnore("javax.crypto.*")
 public class DefaultPushGHEventSubscriberTest {
 
     @Mock
@@ -98,6 +100,7 @@ public class DefaultPushGHEventSubscriberTest {
     public void shouldNotRunJobsWithoutRequiredProjectSignature() throws Exception {
         final DefaultPushGHEventSubscriber subscriber = new DefaultPushGHEventSubscriber();
 
+        when(registeredRepositories.contains(requestingRepoName)).thenReturn(true);
         when(trigger.getSharedSecret()).thenReturn(PROJECT_SECRET);
 
         subscriber.triggerJobs(requestingRepoName, null, PUSHER_NAME, null);
@@ -109,6 +112,7 @@ public class DefaultPushGHEventSubscriberTest {
     public void shouldNotRunJobsWithoutRequiredGlobalSignature() throws Exception {
         final DefaultPushGHEventSubscriber subscriber = new DefaultPushGHEventSubscriber();
 
+        when(registeredRepositories.contains(requestingRepoName)).thenReturn(true);
         when(config.getGloballySharedSecret()).thenReturn(GLOBAL_SECRET);
 
         subscriber.triggerJobs(requestingRepoName, null, PUSHER_NAME, null);
@@ -120,9 +124,10 @@ public class DefaultPushGHEventSubscriberTest {
     public void shouldRunJobsWithValidProjectSignature() throws Exception {
         final DefaultPushGHEventSubscriber subscriber = new DefaultPushGHEventSubscriber();
 
+        when(registeredRepositories.contains(requestingRepoName)).thenReturn(true);
         when(trigger.getSharedSecret()).thenReturn(PROJECT_SECRET);
 
-        subscriber.triggerJobs(requestingRepoName, PAYLOAD, PUSHER_NAME, computeSHA1Signature(PAYLOAD, PROJECT_SECRET));
+        subscriber.triggerJobs(requestingRepoName, PAYLOAD, PUSHER_NAME, createSignature(PAYLOAD, PROJECT_SECRET));
 
         verify(trigger, times(1)).onPost(PUSHER_NAME);
     }
@@ -131,9 +136,10 @@ public class DefaultPushGHEventSubscriberTest {
     public void shouldRunJobsWithValidGlobalSignature() throws Exception {
         final DefaultPushGHEventSubscriber subscriber = new DefaultPushGHEventSubscriber();
 
+        when(registeredRepositories.contains(requestingRepoName)).thenReturn(true);
         when(config.getGloballySharedSecret()).thenReturn(GLOBAL_SECRET);
 
-        subscriber.triggerJobs(requestingRepoName, PAYLOAD, PUSHER_NAME, computeSHA1Signature(PAYLOAD, GLOBAL_SECRET));
+        subscriber.triggerJobs(requestingRepoName, PAYLOAD, PUSHER_NAME, createSignature(PAYLOAD, GLOBAL_SECRET));
 
         verify(trigger, times(1)).onPost(PUSHER_NAME);
     }
@@ -142,10 +148,11 @@ public class DefaultPushGHEventSubscriberTest {
     public void shouldOverrideGlobalSecretWhenProjectSecretIsSpecified() throws Exception {
         final DefaultPushGHEventSubscriber subscriber = new DefaultPushGHEventSubscriber();
 
+        when(registeredRepositories.contains(requestingRepoName)).thenReturn(true);
         when(config.getGloballySharedSecret()).thenReturn(GLOBAL_SECRET);
         when(trigger.getSharedSecret()).thenReturn(PROJECT_SECRET);
 
-        subscriber.triggerJobs(requestingRepoName, PAYLOAD, PUSHER_NAME, computeSHA1Signature(PAYLOAD, PROJECT_SECRET));
+        subscriber.triggerJobs(requestingRepoName, PAYLOAD, PUSHER_NAME, createSignature(PAYLOAD, PROJECT_SECRET));
 
         verify(trigger, times(1)).onPost(PUSHER_NAME);
     }
@@ -154,11 +161,16 @@ public class DefaultPushGHEventSubscriberTest {
     public void shouldNotRunJobsWithInvalidRequiredSignature() throws Exception {
         final DefaultPushGHEventSubscriber subscriber = new DefaultPushGHEventSubscriber();
 
+        when(registeredRepositories.contains(requestingRepoName)).thenReturn(true);
         when(config.getGloballySharedSecret()).thenReturn(GLOBAL_SECRET);
         when(trigger.getSharedSecret()).thenReturn(PROJECT_SECRET);
 
-        subscriber.triggerJobs(requestingRepoName, PAYLOAD, PUSHER_NAME, computeSHA1Signature(PAYLOAD, PROJECT_SECRET));
+        subscriber.triggerJobs(requestingRepoName, PAYLOAD, PUSHER_NAME, "sha1=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3");
 
         verify(trigger, times(0)).onPost(anyString());
+    }
+
+    private String createSignature(final String payload, final String secret) {
+        return "sha1=" + computeSHA1Signature(payload, secret);
     }
 }
