@@ -57,6 +57,7 @@ public class WebhookManagerTest {
     public static final GitSCM GIT_SCM = new GitSCM("ssh://git@github.com/dummy/dummy.git");
     public static final URL HOOK_ENDPOINT = endpoint("http://hook.endpoint/");
     public static final URL ANOTHER_HOOK_ENDPOINT = endpoint("http://another.url/");
+    public static final String SECRET = "secret";
 
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
@@ -153,9 +154,9 @@ public class WebhookManagerTest {
         GHHook prhook = hook(HOOK_ENDPOINT, PULL_REQUEST);
         when(repo.getHooks()).thenReturn(newArrayList(hook, prhook));
 
-        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH)), null).apply(nonactive);
+        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH)), SECRET).apply(nonactive);
         verify(del, times(2)).apply(any(GHHook.class));
-        verify(manager).createWebhook(HOOK_ENDPOINT, EnumSet.copyOf(newArrayList(CREATE, PULL_REQUEST, PUSH)), null);
+        verify(manager).createWebhook(HOOK_ENDPOINT, EnumSet.copyOf(newArrayList(CREATE, PULL_REQUEST, PUSH)), SECRET);
     }
 
     @Test
@@ -166,9 +167,9 @@ public class WebhookManagerTest {
         GHHook hook = hook(HOOK_ENDPOINT, PUSH);
         when(repo.getHooks()).thenReturn(newArrayList(hook));
 
-        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH)), null).apply(nonactive);
+        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH)), SECRET).apply(nonactive);
         verify(manager, never()).deleteWebhook();
-        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class), null);
+        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class), any(String.class));
     }
 
     @Test
@@ -177,17 +178,17 @@ public class WebhookManagerTest {
         project.setScm(GIT_SCM);
 
         manager.registerFor(project).run();
-        verify(manager, never()).createHookSubscribedTo(anyListOf(GHEvent.class), null);
+        verify(manager, never()).createHookSubscribedTo(anyListOf(GHEvent.class), any(String.class));
     }
 
     @Test
     public void shouldAddPushEventByDefault() throws IOException {
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        project.addTrigger(new GitHubPushTrigger(null));
+        project.addTrigger(new GitHubPushTrigger(SECRET));
         project.setScm(GIT_SCM);
 
         manager.registerFor(project).run();
-        verify(manager).createHookSubscribedTo(newArrayList(PUSH), null);
+        verify(manager).createHookSubscribedTo(newArrayList(PUSH), SECRET);
     }
 
     @Test
