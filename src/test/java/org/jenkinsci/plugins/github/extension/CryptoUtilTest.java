@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.jenkinsci.plugins.github.extension.CryptoUtil.selectSecret;
@@ -67,5 +68,19 @@ public class CryptoUtilTest {
     public void shouldReturnNullWithNoSignature() throws Exception {
         final String parsedSignature = CryptoUtil.parseSHA1Value(null);
         assertThat("signature is null", parsedSignature, nullValue());
+    }
+
+    @Test
+    public void shouldReturnSecret() throws Exception {
+        final String secret = CryptoUtil.generateSecret();
+        assertThat("secret is not null", secret, notNullValue());
+    }
+
+    @Test
+    public void shouldReturnUniqueSecret() throws Exception {
+        final String firstSecret = CryptoUtil.generateSecret();
+        final String secondSecret = CryptoUtil.generateSecret();
+
+        assertNotSame("secrets are different", secondSecret, firstSecret);
     }
 }
