@@ -95,7 +95,11 @@ public class WebhookManager {
         final GitHubTrigger trigger = triggerFrom(project, GitHubPushTrigger.class);
 
         final String globalSecret = GitHubPlugin.configuration().getGloballySharedSecret();
-        final String projectSecret = trigger.getSharedSecret();
+
+        String projectSecret = null;
+        if (trigger != null) {
+            projectSecret = trigger.getSharedSecret();
+        }
 
         final String secret = CryptoUtil.selectSecret(globalSecret, projectSecret);
 

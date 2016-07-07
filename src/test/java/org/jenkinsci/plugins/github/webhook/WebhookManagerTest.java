@@ -153,9 +153,9 @@ public class WebhookManagerTest {
         GHHook prhook = hook(HOOK_ENDPOINT, PULL_REQUEST);
         when(repo.getHooks()).thenReturn(newArrayList(hook, prhook));
 
-        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
+        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH)), null).apply(nonactive);
         verify(del, times(2)).apply(any(GHHook.class));
-        verify(manager).createWebhook(HOOK_ENDPOINT, EnumSet.copyOf(newArrayList(CREATE, PULL_REQUEST, PUSH)));
+        verify(manager).createWebhook(HOOK_ENDPOINT, EnumSet.copyOf(newArrayList(CREATE, PULL_REQUEST, PUSH)), null);
     }
 
     @Test
@@ -166,9 +166,9 @@ public class WebhookManagerTest {
         GHHook hook = hook(HOOK_ENDPOINT, PUSH);
         when(repo.getHooks()).thenReturn(newArrayList(hook));
 
-        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
+        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH)), null).apply(nonactive);
         verify(manager, never()).deleteWebhook();
-        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class));
+        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class), null);
     }
 
     @Test
@@ -177,7 +177,7 @@ public class WebhookManagerTest {
         project.setScm(GIT_SCM);
 
         manager.registerFor(project).run();
-        verify(manager, never()).createHookSubscribedTo(anyListOf(GHEvent.class));
+        verify(manager, never()).createHookSubscribedTo(anyListOf(GHEvent.class), null);
     }
 
     @Test
@@ -187,7 +187,7 @@ public class WebhookManagerTest {
         project.setScm(GIT_SCM);
 
         manager.registerFor(project).run();
-        verify(manager).createHookSubscribedTo(newArrayList(PUSH));
+        verify(manager).createHookSubscribedTo(newArrayList(PUSH), null);
     }
 
     @Test
@@ -197,7 +197,7 @@ public class WebhookManagerTest {
 
         assertThat("empty events list not allowed to be registered",
                 forHookUrl(HOOK_ENDPOINT)
-                        .createHookSubscribedTo(Collections.<GHEvent>emptyList()).apply(active), nullValue());
+                        .createHookSubscribedTo(Collections.<GHEvent>emptyList(), null).apply(active), nullValue());
     }
 
     @Test
@@ -206,7 +206,7 @@ public class WebhookManagerTest {
         conf.setManageHooks(false);
         GitHubPlugin.configuration().getConfigs().add(conf);
 
-        assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH))
+        assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH), null)
                 .apply(new GitHubRepositoryName("github.com", "name", "repo")), nullValue());
     }
 
@@ -217,7 +217,7 @@ public class WebhookManagerTest {
         conf.setManageHooks(false);
         GitHubPlugin.configuration().getConfigs().add(conf);
 
-        assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH))
+        assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH), null)
                 .apply(new GitHubRepositoryName("github.com", "name", "repo")), nullValue());
     }
 
