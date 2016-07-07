@@ -99,7 +99,7 @@ public class DefaultPushGHEventSubscriberTest {
         new DefaultPushGHEventSubscriber()
                 .triggerJobs(requestingRepoName, null, PUSHER_NAME, null);
 
-        verify(trigger, times(0)).onPost(anyString());
+        verify(trigger, never()).onPost(anyString());
     }
 
     @Test
@@ -110,7 +110,7 @@ public class DefaultPushGHEventSubscriberTest {
         new DefaultPushGHEventSubscriber()
                 .triggerJobs(requestingRepoName, null, PUSHER_NAME, null);
 
-        verify(trigger, times(0)).onPost(anyString());
+        verify(trigger, never()).onPost(anyString());
     }
 
     @Test
@@ -156,7 +156,7 @@ public class DefaultPushGHEventSubscriberTest {
         new DefaultPushGHEventSubscriber()
                 .triggerJobs(requestingRepoName, PAYLOAD, PUSHER_NAME, "sha1=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3");
 
-        verify(trigger, times(0)).onPost(anyString());
+        verify(trigger, never()).onPost(anyString());
     }
 
     private String createSignature(final String payload, final String secret) {
