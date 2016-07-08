@@ -58,7 +58,7 @@ public class WebhookManagerTest {
     public static final GitSCM GIT_SCM = new GitSCM("ssh://git@github.com/dummy/dummy.git");
     public static final URL HOOK_ENDPOINT = endpoint("http://hook.endpoint/");
     public static final URL ANOTHER_HOOK_ENDPOINT = endpoint("http://another.url/");
-    public static final Secret SECRET = Secret.fromString("secret");
+    private static final String SECRET_VALUE = "secret";
 
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
@@ -74,7 +74,6 @@ public class WebhookManagerTest {
 
     @Mock
     private GHRepository repo;
-
 
     @Test
     public void shouldDoNothingOnNoAdminRights() throws Exception {
@@ -146,6 +145,8 @@ public class WebhookManagerTest {
 
     @Test
     public void shouldMergeEventsOnRegisterNewAndDeleteOldOnes() throws IOException {
+        final Secret secret = Secret.fromString(SECRET_VALUE);
+
         doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
         Predicate<GHHook> del = spy(Predicate.class);
@@ -155,20 +156,21 @@ public class WebhookManagerTest {
         GHHook prhook = hook(HOOK_ENDPOINT, PULL_REQUEST);
         when(repo.getHooks()).thenReturn(newArrayList(hook, prhook));
 
-        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH)), SECRET).apply(nonactive);
+        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH)), secret).apply(nonactive);
         verify(del, times(2)).apply(any(GHHook.class));
-        verify(manager).createWebhook(HOOK_ENDPOINT, EnumSet.copyOf(newArrayList(CREATE, PULL_REQUEST, PUSH)), SECRET);
+        verify(manager).createWebhook(HOOK_ENDPOINT, EnumSet.copyOf(newArrayList(CREATE, PULL_REQUEST, PUSH)), secret);
     }
 
     @Test
     public void shouldNotReplaceAlreadyRegisteredHook() throws IOException {
+        final Secret secret = Secret.fromString(SECRET_VALUE);
         doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
 
         GHHook hook = hook(HOOK_ENDPOINT, PUSH);
         when(repo.getHooks()).thenReturn(newArrayList(hook));
 
-        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH)), SECRET).apply(nonactive);
+        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH)), secret).apply(nonactive);
         verify(manager, never()).deleteWebhook();
         verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class), any(Secret.class));
     }
@@ -184,12 +186,13 @@ public class WebhookManagerTest {
 
     @Test
     public void shouldAddPushEventByDefault() throws IOException {
+        final Secret secret = Secret.fromString(SECRET_VALUE);
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        project.addTrigger(new GitHubPushTrigger(SECRET));
+        project.addTrigger(new GitHubPushTrigger(secret));
         project.setScm(GIT_SCM);
 
         manager.registerFor(project).run();
-        verify(manager).createHookSubscribedTo(newArrayList(PUSH), SECRET);
+        verify(manager).createHookSubscribedTo(newArrayList(PUSH), secret);
     }
 
     @Test

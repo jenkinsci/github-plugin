@@ -2,7 +2,6 @@ package com.cloudbees.jenkins;
 
 import com.google.inject.Inject;
 
-import hudson.model.AbstractProject;
 import hudson.model.Job;
 
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
