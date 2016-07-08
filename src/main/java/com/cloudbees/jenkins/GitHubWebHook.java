@@ -98,7 +98,8 @@ public class GitHubWebHook implements UnprotectedRootAction {
      */
     @SuppressWarnings("unused")
     @RequirePostWithGHHookPayload
-    public void doIndex(@Nonnull @GHEventHeader GHEvent event, @Nonnull @GHEventPayload String payload, @Nullable @GHSignatureHeader String signature) {
+    public void doIndex(@Nonnull @GHEventHeader GHEvent event, @Nonnull @GHEventPayload String payload,
+                        @Nullable @GHSignatureHeader String signature) {
         from(GHEventsSubscriber.all())
                 .filter(isInterestedIn(event))
                 .transform(processEvent(event, payload, signature)).toList();

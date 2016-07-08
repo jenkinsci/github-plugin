@@ -128,7 +128,8 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      *
      * @return function to process {@link GHEventsSubscriber} list. Returns null on apply.
      */
-    public static Function<GHEventsSubscriber, Void> processEvent(final GHEvent event, final String payload, final String signature) {
+    public static Function<GHEventsSubscriber, Void> processEvent(final GHEvent event, final String payload,
+                                                                  final String signature) {
         return new NullSafeFunction<GHEventsSubscriber, Void>() {
             @Override
             protected Void applyNullSafe(@Nonnull GHEventsSubscriber subscriber) {

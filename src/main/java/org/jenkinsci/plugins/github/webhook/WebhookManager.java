@@ -163,7 +163,8 @@ public class WebhookManager {
      *
      * @return function to register hooks for given events
      */
-    protected Function<GitHubRepositoryName, GHHook> createHookSubscribedTo(final List<GHEvent> events, final Secret secret) {
+    protected Function<GitHubRepositoryName, GHHook> createHookSubscribedTo(final List<GHEvent> events,
+                                                                            final Secret secret) {
         return new NullSafeFunction<GitHubRepositoryName, GHHook>() {
             @Override
             protected GHHook applyNullSafe(@Nonnull GitHubRepositoryName name) {
@@ -304,7 +305,8 @@ public class WebhookManager {
      *
      * @return converter to create GH hook for given url with given events
      */
-    protected Function<GHRepository, GHHook> createWebhook(final URL url, final Set<GHEvent> events, final Secret secret) {
+    protected Function<GHRepository, GHHook> createWebhook(final URL url, final Set<GHEvent> events,
+                                                           final Secret secret) {
         return new NullSafeFunction<GHRepository, GHHook>() {
             protected GHHook applyNullSafe(@Nonnull GHRepository repo) {
                 try {

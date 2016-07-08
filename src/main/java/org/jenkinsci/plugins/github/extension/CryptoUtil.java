@@ -20,7 +20,10 @@ import java.security.SecureRandom;
 public class CryptoUtil {
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
     private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
-    private static final SecureRandom random = new SecureRandom();
+    private static final SecureRandom RANDOM = new SecureRandom();
+
+    private CryptoUtil() {
+    }
 
     /**
      * Selects the appropriate secret to be used. Project-specific secrets override globally configured secrets.
@@ -29,7 +32,8 @@ public class CryptoUtil {
      * @param projectSecret Secret specific to one hook.
      * @return Secret to use. Null if no secrets are configured.
      */
-    public static @Nullable Secret selectSecret(@Nullable Secret globalSecret, @Nullable Secret projectSecret) {
+    @Nullable
+    public static Secret selectSecret(@Nullable Secret globalSecret, @Nullable Secret projectSecret) {
         if (projectSecret != null) {
             return projectSecret;
         } else if (globalSecret != null) {
@@ -45,7 +49,12 @@ public class CryptoUtil {
      * @param secret Key to sign with.
      * @return HMAC digest of payload using secret as key.
      */
-    public static @Nullable String computeSHA1Signature(@Nonnull final String payload, final @Nonnull Secret secret) {
+    @Nullable
+    public static String computeSHA1Signature(@Nullable final String payload, final @Nullable Secret secret) {
+        if (payload == null || secret == null) {
+            return null;
+        }
+
         try {
             final SecretKeySpec keySpec = new SecretKeySpec(secret.getPlainText().getBytes(), HMAC_SHA1_ALGORITHM);
             final Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
@@ -64,7 +73,8 @@ public class CryptoUtil {
      * @param digest The string to get the sha1 value from.
      * @return Value after "sha1" present in the digest value. Null if not present.
      */
-    public static @Nullable String parseSHA1Value(@Nullable final String digest) {
+    @Nullable
+    public static String parseSHA1Value(@Nullable final String digest) {
         if (digest != null && digest.startsWith("sha1=")) {
             return digest.substring(5);
         } else {
@@ -77,6 +87,6 @@ public class CryptoUtil {
      * @return A 60 character long random string.
      */
     public static Secret generateSecret() {
-        return Secret.fromString(new BigInteger(130, random).toString(60));
+        return Secret.fromString(new BigInteger(130, RANDOM).toString(60));
     }
 }

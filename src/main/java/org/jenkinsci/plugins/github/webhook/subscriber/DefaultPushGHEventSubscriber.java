@@ -111,11 +111,11 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                 LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
                 Collection<GitHubRepositoryName> b = GitHubRepositoryNameContributor.parseAssociatedNames(job);
 
-                String computedSignature;
+                final String computedSignature = computeSHA1Signature(payload, secret);
+
                 if (secret != null && parsedSignature == null) {
                     LOGGER.info("No signature signature provided for job {}", job.getFullDisplayName());
-                } else if (secret != null &&
-                        !parsedSignature.equals(computedSignature = computeSHA1Signature(payload, secret))) {
+                } else if (secret != null && !parsedSignature.equals(computedSignature)) {
                     LOGGER.info("Registered signature for job {} does not match (computed signature was {})",
                             job.getFullDisplayName(), computedSignature);
                 } else if (b.contains(changedRepository)) {
