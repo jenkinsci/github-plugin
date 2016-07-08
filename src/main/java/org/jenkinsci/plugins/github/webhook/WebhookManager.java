@@ -310,6 +310,7 @@ public class WebhookManager {
                 try {
                     final HashMap<String, String> config = new HashMap<>();
                     config.put("url", url.toExternalForm());
+                    config.put("content_type", "json");
 
                     if (secret != null) {
                         config.put("secret", secret.getPlainText());
