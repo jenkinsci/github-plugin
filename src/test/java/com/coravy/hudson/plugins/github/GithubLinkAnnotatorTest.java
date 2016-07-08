@@ -43,9 +43,9 @@ public class GithubLinkAnnotatorTest {
     private static Object[] genActualAndExpected(String keyword) {
         int issueNumber = RANDOM.nextInt(1000000);
         final String innerText = keyword + " #" + issueNumber;
-        final String startURL = "<a href='" + GITHUB_URL + "/issues/" + issueNumber + "/find'>";
-        final String endURL = "</a>";
-        final String annotatedText = startURL + innerText + endURL;
+        final String startHREF = "<a href='" + GITHUB_URL + "/issues/" + issueNumber + "/find'>";
+        final String endHREF = "</a>";
+        final String annotatedText = startHREF + innerText + endHREF;
         return new Object[]{
             // Input text to the annotate method
             format("An issue %s link", innerText),
