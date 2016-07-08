@@ -43,8 +43,14 @@ public class GithubLinkAnnotator extends ChangeLogAnnotator {
         if (change instanceof GitChangeSet) {
             GitChangeSet cs = (GitChangeSet) change;
             final String id = cs.getId();
-            text.wrapBy("", " (<a href='" + url.commitId(id)
-                        + "'>commit: " + id.substring(0, Math.min(id.length(), 7)) + "</a>)");
+            final String innerText = "commit: " + id.substring(0, Math.min(id.length(), 7));
+            final String startHREF = "<a href='" + url.commitId(id) + "'>";
+            final String endHREF = "</a>":
+            text.wrapBy("", " ("
+                        + startHREF
+                        + innerText
+                        + endHREF
+                        + ")");
         }
     }
 
