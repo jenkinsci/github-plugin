@@ -8,6 +8,7 @@ import com.cloudbees.jenkins.GitHubWebHook;
 import hudson.Extension;
 import hudson.model.Job;
 import hudson.security.ACL;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.github.GitHubPlugin;
@@ -97,7 +98,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
 
     public void triggerJobs(final GitHubRepositoryName changedRepository, final String payload,
                             final String pusherName, final String signature) {
-        final String globalSecret = GitHubPlugin.configuration().getGloballySharedSecret();
+        final Secret globalSecret = GitHubPlugin.configuration().getGloballySharedSecret();
         final String parsedSignature = parseSHA1Value(signature);
         LOGGER.debug("Request signature: {}", signature);
 
@@ -105,7 +106,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
             final GitHubTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
 
             if (trigger != null) {
-                final String secret = selectSecret(globalSecret, trigger.getSharedSecret());
+                final Secret secret = selectSecret(globalSecret, trigger.getSharedSecret());
 
                 LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
                 Collection<GitHubRepositoryName> b = GitHubRepositoryNameContributor.parseAssociatedNames(job);

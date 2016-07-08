@@ -6,6 +6,7 @@ import com.cloudbees.jenkins.GitHubTrigger;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.Job;
+import hudson.util.Secret;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jenkinsci.plugins.github.GitHubPlugin;
@@ -83,7 +84,7 @@ public class WebhookManager {
      * @param project to find for which repos we should create hooks
      *
      * @return runnable to create hooks on run
-     * @see #createHookSubscribedTo(List, String)
+     * @see #createHookSubscribedTo(List, Secret)
      */
     public Runnable registerFor(final Job<?, ?> project) {
         final Collection<GitHubRepositoryName> names = parseAssociatedNames(project);
@@ -94,14 +95,14 @@ public class WebhookManager {
 
         final GitHubTrigger trigger = triggerFrom(project, GitHubPushTrigger.class);
 
-        final String globalSecret = GitHubPlugin.configuration().getGloballySharedSecret();
+        final Secret globalSecret = GitHubPlugin.configuration().getGloballySharedSecret();
 
-        String projectSecret = null;
+        Secret projectSecret = null;
         if (trigger != null) {
             projectSecret = trigger.getSharedSecret();
         }
 
-        final String secret = CryptoUtil.selectSecret(globalSecret, projectSecret);
+        final Secret secret = CryptoUtil.selectSecret(globalSecret, projectSecret);
 
         return new Runnable() {
             public void run() {
@@ -164,7 +165,7 @@ public class WebhookManager {
      *
      * @return function to register hooks for given events
      */
-    protected Function<GitHubRepositoryName, GHHook> createHookSubscribedTo(final List<GHEvent> events, final String secret) {
+    protected Function<GitHubRepositoryName, GHHook> createHookSubscribedTo(final List<GHEvent> events, final Secret secret) {
         return new NullSafeFunction<GitHubRepositoryName, GHHook>() {
             @Override
             protected GHHook applyNullSafe(@Nonnull GitHubRepositoryName name) {
@@ -305,15 +306,15 @@ public class WebhookManager {
      *
      * @return converter to create GH hook for given url with given events
      */
-    protected Function<GHRepository, GHHook> createWebhook(final URL url, final Set<GHEvent> events, final String secret) {
+    protected Function<GHRepository, GHHook> createWebhook(final URL url, final Set<GHEvent> events, final Secret secret) {
         return new NullSafeFunction<GHRepository, GHHook>() {
             protected GHHook applyNullSafe(@Nonnull GHRepository repo) {
                 try {
                     final HashMap<String, String> config = new HashMap<>();
                     config.put("url", url.toExternalForm());
 
-                    if (StringUtils.isNotEmpty(secret)) {
-                        config.put("secret", secret);
+                    if (secret != null) {
+                        config.put("secret", secret.getPlainText());
                     }
 
                     return repo.createHook("web", config, events, true);

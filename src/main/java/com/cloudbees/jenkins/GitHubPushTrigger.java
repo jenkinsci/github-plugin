@@ -14,10 +14,8 @@ import hudson.model.Project;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
-import hudson.util.FormValidation;
-import hudson.util.NamingThreadFactory;
-import hudson.util.SequentialExecutionQueue;
-import hudson.util.StreamTaskListener;
+import hudson.util.*;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import jenkins.model.Jenkins;
@@ -61,17 +59,17 @@ import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJo
  */
 public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigger {
 
-    private String sharedSecret;
+    private Secret sharedSecret;
 
     @DataBoundConstructor
-    public GitHubPushTrigger(String sharedSecret) {
+    public GitHubPushTrigger(Secret sharedSecret) {
         this.sharedSecret = sharedSecret;
     }
 
     /**
      * @return Project specific shared secret for JSON request verification.
      */
-    public String getSharedSecret() {
+    public Secret getSharedSecret() {
         return sharedSecret;
     }
 
@@ -163,7 +161,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     public void start(Job<?, ?> project, boolean newInstance) {
         super.start(project, newInstance);
         if (newInstance && GitHubPlugin.configuration().isManageHooks()) {
-            if (StringUtils.isEmpty(sharedSecret)) {
+            if (sharedSecret == null) {
                 sharedSecret = CryptoUtil.generateSecret();
             }
 

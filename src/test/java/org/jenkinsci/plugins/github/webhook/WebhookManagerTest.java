@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import hudson.model.FreeStyleProject;
 import hudson.plugins.git.GitSCM;
+import hudson.util.Secret;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.junit.Rule;
@@ -57,7 +58,7 @@ public class WebhookManagerTest {
     public static final GitSCM GIT_SCM = new GitSCM("ssh://git@github.com/dummy/dummy.git");
     public static final URL HOOK_ENDPOINT = endpoint("http://hook.endpoint/");
     public static final URL ANOTHER_HOOK_ENDPOINT = endpoint("http://another.url/");
-    public static final String SECRET = "secret";
+    public static final Secret SECRET = Secret.fromString("secret");
 
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
@@ -169,7 +170,7 @@ public class WebhookManagerTest {
 
         manager.createHookSubscribedTo(copyOf(newArrayList(PUSH)), SECRET).apply(nonactive);
         verify(manager, never()).deleteWebhook();
-        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class), any(String.class));
+        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class), any(Secret.class));
     }
 
     @Test
@@ -178,7 +179,7 @@ public class WebhookManagerTest {
         project.setScm(GIT_SCM);
 
         manager.registerFor(project).run();
-        verify(manager, never()).createHookSubscribedTo(anyListOf(GHEvent.class), any(String.class));
+        verify(manager, never()).createHookSubscribedTo(anyListOf(GHEvent.class), any(Secret.class));
     }
 
     @Test

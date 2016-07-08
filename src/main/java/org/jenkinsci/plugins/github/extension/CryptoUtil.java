@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.extension;
 
+import hudson.util.Secret;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,8 +12,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
-
-import static org.apache.commons.lang.StringUtils.isEmpty;
 
 /**
  * Utility class for dealing with signatures of incoming requests.
@@ -30,10 +29,10 @@ public class CryptoUtil {
      * @param projectSecret Secret specific to one hook.
      * @return Secret to use. Null if no secrets are configured.
      */
-    public static @Nullable String selectSecret(@Nullable String globalSecret, @Nullable String projectSecret) {
-        if (!isEmpty(projectSecret)) {
+    public static @Nullable Secret selectSecret(@Nullable Secret globalSecret, @Nullable Secret projectSecret) {
+        if (projectSecret != null) {
             return projectSecret;
-        } else if (!isEmpty(globalSecret)) {
+        } else if (globalSecret != null) {
             return globalSecret;
         } else {
             return null;
@@ -46,9 +45,9 @@ public class CryptoUtil {
      * @param secret Key to sign with.
      * @return HMAC digest of payload using secret as key.
      */
-    public static @Nullable String computeSHA1Signature(@Nonnull final String payload, final @Nonnull String secret) {
+    public static @Nullable String computeSHA1Signature(@Nonnull final String payload, final @Nonnull Secret secret) {
         try {
-            final SecretKeySpec keySpec = new SecretKeySpec(secret.getBytes(), HMAC_SHA1_ALGORITHM);
+            final SecretKeySpec keySpec = new SecretKeySpec(secret.getPlainText().getBytes(), HMAC_SHA1_ALGORITHM);
             final Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
             mac.init(keySpec);
             final byte[] rawHMACBytes = mac.doFinal(payload.getBytes("UTF-8"));
@@ -62,12 +61,12 @@ public class CryptoUtil {
 
     /**
      * Grabs the value after "sha1=" in a string.
-     * @param secret The string to get the sha1 value from.
-     * @return Value after "sha1" present in the secret value. Null if not present.
+     * @param digest The string to get the sha1 value from.
+     * @return Value after "sha1" present in the digest value. Null if not present.
      */
-    public static @Nullable String parseSHA1Value(@Nullable final String secret) {
-        if (secret != null && secret.startsWith("sha1=")) {
-            return secret.substring(5);
+    public static @Nullable String parseSHA1Value(@Nullable final String digest) {
+        if (digest != null && digest.startsWith("sha1=")) {
+            return digest.substring(5);
         } else {
             return null;
         }
@@ -77,7 +76,7 @@ public class CryptoUtil {
      * Generates a random secret being used as shared secret between the Jenkins CI and GitHub.
      * @return A 60 character long random string.
      */
-    public static String generateSecret() {
-        return new BigInteger(130, random).toString(60);
+    public static Secret generateSecret() {
+        return Secret.fromString(new BigInteger(130, random).toString(60));
     }
 }
