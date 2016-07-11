@@ -18,8 +18,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * InjectedParameter annotation to use on WebMethod parameters.
  * Grabs the X-Hub-Signature header value from HTTP requests and injects them to function parameters.
  *
- * @author lanwen (Merkushev Kirill)
- * @author martinmine
+ * @author martinmine, based off class {@link GHEventPayload} by lanwen (Merkushev Kirill)
  * @see <a href=https://wiki.jenkins-ci.org/display/JENKINS/Web+Method>Web Method</a>
  */
 @Retention(RUNTIME)

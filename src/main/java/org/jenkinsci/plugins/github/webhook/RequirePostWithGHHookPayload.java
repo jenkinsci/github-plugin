@@ -99,7 +99,8 @@ public @interface RequirePostWithGHHookPayload {
          */
         protected void shouldContainParseablePayload(Object[] arguments) throws InvocationTargetException {
             isTrue(arguments.length == 3,
-                    "GHHook root action should take <(GHEvent) event>, <(String) payload>, and <(String) signature> only");
+                    "GHHook root action should take <(GHEvent) event>, <(String) payload>, and <(String) "
+                            + "signature> only");
 
             FluentIterableWrapper<Object> from = from(newArrayList(arguments));
 
@@ -112,7 +113,7 @@ public @interface RequirePostWithGHHookPayload {
                     "Hook should contain payload"
             );
             isTrue(
-                    arguments[2] == null || ((String)arguments[2]).matches("^sha1=[a-f0-9]{40}$"),
+                    arguments[2] == null || ((String) arguments[2]).matches("^sha1=[a-f0-9]{40}$"),
                     "SHA1 signature must be on the format sha1=<sha1 checksum in hex>"
             );
         }

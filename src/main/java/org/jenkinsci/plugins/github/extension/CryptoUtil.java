@@ -5,7 +5,6 @@ import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -50,7 +49,7 @@ public class CryptoUtil {
      * @return HMAC digest of payload using secret as key.
      */
     @Nullable
-    public static String computeSHA1Signature(@Nullable final String payload, final @Nullable Secret secret) {
+    public static String computeSHA1Signature(@Nullable final String payload, @Nullable final Secret secret) {
         if (payload == null || secret == null) {
             return null;
         }
