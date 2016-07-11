@@ -8,6 +8,8 @@ import hudson.plugins.git.GitChangeSet;
 import hudson.scm.ChangeLogAnnotator;
 import hudson.scm.ChangeLogSet.Entry;
 
+import static java.lang.String.format;
+
 import java.util.regex.Pattern;
 
 /**
@@ -42,7 +44,10 @@ public class GithubLinkAnnotator extends ChangeLogAnnotator {
 
         if (change instanceof GitChangeSet) {
             GitChangeSet cs = (GitChangeSet) change;
-            text.wrapBy("", " (<a href='" + url.commitId(cs.getId()) + "'>commit: " + cs.getId() + "</a>)");
+            final String id = cs.getId();
+            text.wrapBy("", format(" (<a href='%s'>commit: %s</a>)",
+                                   url.commitId(id),
+                                   id.substring(0, Math.min(id.length(), 7))));
         }
     }
 
