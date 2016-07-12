@@ -1,15 +1,21 @@
 package org.jenkinsci.plugins.github.webhook;
 
+import hudson.util.Secret;
+import org.jenkinsci.plugins.github.GitHubPlugin;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.jvnet.hudson.test.JenkinsRule;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.stapler.StaplerRequest;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.lang.reflect.InvocationTargetException;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author lanwen (Merkushev Kirill)
@@ -17,8 +23,26 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class RequirePostWithGHHookPayloadTest {
 
+    private static final String SECRET_CONTENT = "secret";
+    private static final String PAYLOAD = "sample payload";
+
     @Mock
     private StaplerRequest req;
+
+    @Rule
+    public JenkinsRule jenkinsRule = new JenkinsRule();
+
+    @Mock
+    private StaplerRequest request;
+
+    @Spy
+    private RequirePostWithGHHookPayload.Processor processor;
+
+    @Before
+    public void setSecret() {
+        final Secret secret = Secret.fromString(SECRET_CONTENT);
+        GitHubPlugin.configuration().setGloballySharedSecret(secret);
+    }
 
     @Test
     public void shouldPassOnlyPost() throws Exception {
@@ -68,5 +92,42 @@ public class RequirePostWithGHHookPayloadTest {
         new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
                 new Object[] {GHEvent.PUSH}
         );
+    }
+
+    @Test(expected = InvocationTargetException.class)
+    public void shouldNotPassOnAbsentSignature() throws Exception {
+        doReturn(PAYLOAD).when(processor).readRequestBody(request);
+
+        processor.shouldProvideValidSignature(request);
+    }
+
+    @Test(expected = InvocationTargetException.class)
+    public void shouldNotPassOnInvalidSignature() throws Exception {
+        final String signature = "sha1=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3";
+
+        when(request.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
+        doReturn(PAYLOAD).when(processor).readRequestBody(request);
+
+        processor.shouldProvideValidSignature(request);
+    }
+
+    @Test(expected = InvocationTargetException.class)
+    public void shouldNotPassOnMalformedSignature() throws Exception {
+        final String signature = "49d5f5cf800a81f257324912969a2d325d13d3fc";
+
+        when(request.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
+        doReturn(PAYLOAD).when(processor).readRequestBody(request);
+
+        processor.shouldProvideValidSignature(request);
+    }
+
+    @Test
+    public void shouldPassWithValidSignature() throws Exception {
+        final String signature = "sha1=49d5f5cf800a81f257324912969a2d325d13d3fc";
+
+        when(request.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
+        doReturn(PAYLOAD).when(processor).readRequestBody(request);
+
+        processor.shouldProvideValidSignature(request);
     }
 }

@@ -1,7 +1,9 @@
 package org.jenkinsci.plugins.github.webhook;
 
 import com.cloudbees.jenkins.GitHubWebHook;
+import com.google.common.base.Charsets;
 import hudson.util.Secret;
+import org.apache.commons.io.IOUtils;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
@@ -13,6 +15,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.interceptor.Interceptor;
 import org.kohsuke.stapler.interceptor.InterceptorAnnotation;
+import org.slf4j.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
@@ -34,9 +37,9 @@ import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static org.apache.commons.codec.binary.Base64.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
-import static org.jenkinsci.plugins.github.util.RequestHelper.readRequestBody;
 import static org.kohsuke.stapler.HttpResponses.error;
 import static org.kohsuke.stapler.HttpResponses.errorWithoutStack;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * InterceptorAnnotation annotation to use on WebMethod signature.
@@ -50,6 +53,8 @@ import static org.kohsuke.stapler.HttpResponses.errorWithoutStack;
 @InterceptorAnnotation(RequirePostWithGHHookPayload.Processor.class)
 public @interface RequirePostWithGHHookPayload {
     class Processor extends Interceptor {
+
+        private static final Logger LOGGER = getLogger(Processor.class);
 
         /**
          * Header key being used for the payload signatures.
@@ -137,8 +142,29 @@ public @interface RequirePostWithGHHookPayload {
             final String computedSignature = CryptoUtil.computeSHA1Signature(payload, secret);
 
             if (secret != null) {
-                isTrue(computedSignature != null && computedSignature.equals(signature),
-                        String.format("Should provide valid signature, computed signature was: %s", computedSignature));
+                isTrue(
+                        signature != null,
+                        "Signature must be specified in the header " + SIGNATURE_HEADER
+                );
+
+                isTrue(
+                        computedSignature != null,
+                        "Missing payload"
+                );
+
+                isTrue(
+                        computedSignature.equals(signature),
+                        String.format("Signatures did not match, computed signature was: %s", computedSignature)
+                );
+            }
+        }
+
+        protected String readRequestBody(final StaplerRequest req) {
+            try {
+                return IOUtils.toString(req.getInputStream(), Charsets.UTF_8);
+            } catch (IOException e) {
+                LOGGER.error(e.getMessage(), e);
+                return null;
             }
         }
 
