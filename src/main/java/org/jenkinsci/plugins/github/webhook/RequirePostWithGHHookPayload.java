@@ -3,11 +3,11 @@ package org.jenkinsci.plugins.github.webhook;
 import com.cloudbees.jenkins.GitHubWebHook;
 import com.google.common.base.Charsets;
 import hudson.util.Secret;
+import jenkins.model.Jenkins;
 import org.apache.commons.io.IOUtils;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
-import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
-import org.jenkinsci.plugins.github.extension.CryptoUtil;
+import org.jenkinsci.plugins.github.config.HookSecretConfig;
 import org.jenkinsci.plugins.github.util.FluentIterableWrapper;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.stapler.HttpResponses;
@@ -36,6 +36,9 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static org.apache.commons.codec.binary.Base64.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.jenkinsci.plugins.github.extension.CryptoUtil.INVALID_SIGNATURE;
+import static org.jenkinsci.plugins.github.extension.CryptoUtil.computeSHA1Signature;
+import static org.jenkinsci.plugins.github.extension.CryptoUtil.parseSHA1Value;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 import static org.kohsuke.stapler.HttpResponses.error;
 import static org.kohsuke.stapler.HttpResponses.errorWithoutStack;
@@ -136,14 +139,14 @@ public @interface RequirePostWithGHHookPayload {
          * @throws InvocationTargetException if any of preconditions is not satisfied
          */
         protected void shouldProvideValidSignature(StaplerRequest req) throws InvocationTargetException {
-            final String signature = CryptoUtil.parseSHA1Value(req.getHeader(SIGNATURE_HEADER));
-            final Secret secret = GitHubPlugin.configuration().getGloballySharedSecret();
+            final String signature = parseSHA1Value(req.getHeader(SIGNATURE_HEADER));
+            final Secret secret = Jenkins.getInstance().getDescriptorByType(HookSecretConfig.class).getHookSecret();
             final String payload = readRequestBody(req);
-            final String computedSignature = CryptoUtil.computeSHA1Signature(payload, secret);
+            final String computedSignature = computeSHA1Signature(payload, secret);
 
             if (secret != null) {
                 isTrue(
-                        signature != null,
+                        signature != null && !INVALID_SIGNATURE.equals(signature),
                         "Signature must be specified in the header " + SIGNATURE_HEADER
                 );
 

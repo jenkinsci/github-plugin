@@ -16,6 +16,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class CryptoUtil {
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
     private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
+    public static final String INVALID_SIGNATURE = "INVALID_SIGNATURE";
 
     private CryptoUtil() {
     }
@@ -24,12 +25,12 @@ public class CryptoUtil {
      * Computes a RFC 2104-compliant HMAC digest using SHA1 of a payload with a given key (secret).
      * @param payload Clear-text to create signature of.
      * @param secret Key to sign with.
-     * @return HMAC digest of payload using secret as key.
+     * @return HMAC digest of payload using secret as key. Will return INVALID_SIGNATURE if any args is null.
      */
     @Nullable
     public static String computeSHA1Signature(@Nullable final String payload, @Nullable final Secret secret) {
         if (payload == null || secret == null) {
-            return null;
+            return INVALID_SIGNATURE;
         }
 
         try {

@@ -8,8 +8,10 @@ import com.google.common.collect.Lists;
 import hudson.model.FreeStyleProject;
 import hudson.plugins.git.GitSCM;
 import hudson.util.Secret;
+import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
+import org.jenkinsci.plugins.github.config.HookSecretConfig;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -186,7 +188,7 @@ public class WebhookManagerTest {
 
     @Test
     public void shouldAddPushEventByDefault() throws IOException {
-        final Secret secret = GitHubPlugin.configuration().getGloballySharedSecret();
+        final Secret secret = Jenkins.getInstance().getDescriptorByType(HookSecretConfig.class).getHookSecret();
         FreeStyleProject project = jenkins.createFreeStyleProject();
         project.addTrigger(new GitHubPushTrigger());
         project.setScm(GIT_SCM);

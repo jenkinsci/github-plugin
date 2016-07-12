@@ -1,7 +1,7 @@
 package org.jenkinsci.plugins.github.webhook;
 
-import hudson.util.Secret;
-import org.jenkinsci.plugins.github.GitHubPlugin;
+import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.github.config.HookSecretConfig;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,8 +40,7 @@ public class RequirePostWithGHHookPayloadTest {
 
     @Before
     public void setSecret() {
-        final Secret secret = Secret.fromString(SECRET_CONTENT);
-        GitHubPlugin.configuration().setGloballySharedSecret(secret);
+        Jenkins.getInstance().getDescriptorByType(HookSecretConfig.class).storeSecret(SECRET_CONTENT);
     }
 
     @Test

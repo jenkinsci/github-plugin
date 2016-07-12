@@ -5,9 +5,10 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.Job;
 import hudson.util.Secret;
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.Validate;
-import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
+import org.jenkinsci.plugins.github.config.HookSecretConfig;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
@@ -87,7 +88,7 @@ public class WebhookManager {
                 .filter(isApplicableFor(project))
                 .transformAndConcat(extractEvents()).toList();
 
-        final Secret secret = GitHubPlugin.configuration().getGloballySharedSecret();
+        final Secret secret = Jenkins.getInstance().getDescriptorByType(HookSecretConfig.class).getHookSecret();
 
         return new Runnable() {
             public void run() {

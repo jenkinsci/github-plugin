@@ -8,7 +8,6 @@ import hudson.XmlFile;
 import hudson.model.Descriptor;
 import hudson.model.Job;
 import hudson.util.FormValidation;
-import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
@@ -65,8 +64,6 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     private transient boolean overrideHookUrl;
 
-    private Secret globallySharedSecret;
-
     /**
      * Used to get current instance identity.
      * It compared with same value when testing hook url availability in {@link #doCheckHookUrl(String)}
@@ -122,22 +119,6 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     public boolean isOverrideHookURL() {
         return hookUrl != null;
-    }
-
-    /**
-     * Gets shared secret that is used on all projects for JSON body verification.
-     * @return Shared secret, null or empty if not set.
-     */
-    public Secret getGloballySharedSecret() {
-        return globallySharedSecret;
-    }
-
-    /**
-     * Sets the globally shared secret.
-     * @param globallySharedSecret The shared secret.
-     */
-    public void setGloballySharedSecret(Secret globallySharedSecret) {
-        this.globallySharedSecret = globallySharedSecret;
     }
 
     /**
