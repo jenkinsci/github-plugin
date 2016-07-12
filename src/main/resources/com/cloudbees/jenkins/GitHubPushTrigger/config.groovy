@@ -2,12 +2,6 @@ package com.cloudbees.jenkins.GitHubPushTrigger
 
 import com.cloudbees.jenkins.GitHubPushTrigger
 
-def f = namespace(lib.FormTagLib);
-
-f.entry(field: "sharedSecret", title: "Shared secret", help: descriptor.getHelpFile('sharedSecret')) {
-    f.password()
-}
-
 tr {
     td(colspan: 4) {
         div(id: 'gh-hooks-warn')

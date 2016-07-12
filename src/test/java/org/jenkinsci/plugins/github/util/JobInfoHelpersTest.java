@@ -26,7 +26,7 @@ public class JobInfoHelpersTest {
     @Test
     public void shouldMatchForProjectWithTrigger() throws Exception {
         FreeStyleProject prj = jenkins.createFreeStyleProject();
-        prj.addTrigger(new GitHubPushTrigger(null));
+        prj.addTrigger(new GitHubPushTrigger());
 
         assertThat("with trigger", withTrigger(GitHubPushTrigger.class).apply(prj), is(true));
     }
@@ -34,7 +34,7 @@ public class JobInfoHelpersTest {
     @Test
     public void shouldSeeProjectWithTriggerIsAliveForCleaner() throws Exception {
         FreeStyleProject prj = jenkins.createFreeStyleProject();
-        prj.addTrigger(new GitHubPushTrigger(null));
+        prj.addTrigger(new GitHubPushTrigger());
 
         assertThat("with trigger", isAlive().apply(prj), is(true));
     }
@@ -65,7 +65,7 @@ public class JobInfoHelpersTest {
 
     @Test
     public void shouldGetTriggerFromAbstractProject() throws Exception {
-        GitHubPushTrigger trigger = new GitHubPushTrigger(null);
+        GitHubPushTrigger trigger = new GitHubPushTrigger();
 
         FreeStyleProject prj = jenkins.createFreeStyleProject();
         prj.addTrigger(trigger);
@@ -75,7 +75,7 @@ public class JobInfoHelpersTest {
 
     @Test
     public void shouldGetTriggerFromWorkflow() throws Exception {
-        GitHubPushTrigger trigger = new GitHubPushTrigger(null);
+        GitHubPushTrigger trigger = new GitHubPushTrigger();
         WorkflowJob job = jenkins.getInstance().createProject(WorkflowJob.class, "Test Workflow");
         job.addTrigger(trigger);
 

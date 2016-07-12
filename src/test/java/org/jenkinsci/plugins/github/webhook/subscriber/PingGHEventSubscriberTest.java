@@ -28,14 +28,14 @@ public class PingGHEventSubscriberTest {
 
     @Test
     public void shouldParsePingPayload() throws Exception {
-        injectedPingSubscr().onEvent(GHEvent.PING, classpath("payloads/ping.json"), null);
+        injectedPingSubscr().onEvent(GHEvent.PING, classpath("payloads/ping.json"));
     }
 
     @Issue("JENKINS-30626")
     @Test
     @WithoutJenkins
     public void shouldParseOrgPingPayload() throws Exception {
-        new PingGHEventSubscriber().onEvent(GHEvent.PING, classpath("payloads/orgping.json"), null);
+        new PingGHEventSubscriber().onEvent(GHEvent.PING, classpath("payloads/orgping.json"));
     }
     
     private PingGHEventSubscriber injectedPingSubscr() {

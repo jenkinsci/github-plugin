@@ -9,9 +9,6 @@ import javax.annotation.Nullable;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
-
 /**
  * Utility class for dealing with signatures of incoming requests.
  * @see <a href=https://developer.github.com/webhooks/#payloads>API documentation</a>
@@ -19,27 +16,8 @@ import java.security.SecureRandom;
 public class CryptoUtil {
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
     private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
-    private static final SecureRandom RANDOM = new SecureRandom();
 
     private CryptoUtil() {
-    }
-
-    /**
-     * Selects the appropriate secret to be used. Project-specific secrets override globally configured secrets.
-     * If not secret is configured, return null.
-     * @param globalSecret Globally used secret among all hooks.
-     * @param projectSecret Secret specific to one hook.
-     * @return Secret to use. Null if no secrets are configured.
-     */
-    @Nullable
-    public static Secret selectSecret(@Nullable Secret globalSecret, @Nullable Secret projectSecret) {
-        if (projectSecret != null) {
-            return projectSecret;
-        } else if (globalSecret != null) {
-            return globalSecret;
-        } else {
-            return null;
-        }
     }
 
     /**
@@ -79,13 +57,5 @@ public class CryptoUtil {
         } else {
             return null;
         }
-    }
-
-    /**
-     * Generates a random secret being used as shared secret between the Jenkins CI and GitHub.
-     * @return A 60 character long random string.
-     */
-    public static Secret generateSecret() {
-        return Secret.fromString(new BigInteger(130, RANDOM).toString(60));
     }
 }

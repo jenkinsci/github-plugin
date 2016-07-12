@@ -1,8 +1,11 @@
 package org.jenkinsci.plugins.github.webhook;
 
 import com.cloudbees.jenkins.GitHubWebHook;
+import hudson.util.Secret;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
+import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
+import org.jenkinsci.plugins.github.extension.CryptoUtil;
 import org.jenkinsci.plugins.github.util.FluentIterableWrapper;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.stapler.HttpResponses;
@@ -31,6 +34,7 @@ import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static org.apache.commons.codec.binary.Base64.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
+import static org.jenkinsci.plugins.github.util.RequestHelper.readRequestBody;
 import static org.kohsuke.stapler.HttpResponses.error;
 import static org.kohsuke.stapler.HttpResponses.errorWithoutStack;
 
@@ -47,6 +51,12 @@ import static org.kohsuke.stapler.HttpResponses.errorWithoutStack;
 public @interface RequirePostWithGHHookPayload {
     class Processor extends Interceptor {
 
+        /**
+         * Header key being used for the payload signatures.
+         * @see <a href=https://developer.github.com/webhooks/>Developer manual</a>
+         */
+        public static final String SIGNATURE_HEADER = "X-Hub-Signature";
+
         @Override
         public Object invoke(StaplerRequest req, StaplerResponse rsp, Object instance, Object[] arguments)
                 throws IllegalAccessException, InvocationTargetException {
@@ -54,6 +64,7 @@ public @interface RequirePostWithGHHookPayload {
             shouldBePostMethod(req);
             returnsInstanceIdentityIfLocalUrlTest(req);
             shouldContainParseablePayload(arguments);
+            shouldProvideValidSignature(req);
 
             return target.invoke(req, rsp, instance, arguments);
         }
@@ -98,9 +109,8 @@ public @interface RequirePostWithGHHookPayload {
          * @throws InvocationTargetException if any of preconditions is not satisfied
          */
         protected void shouldContainParseablePayload(Object[] arguments) throws InvocationTargetException {
-            isTrue(arguments.length == 3,
-                    "GHHook root action should take <(GHEvent) event>, <(String) payload>, and <(String) "
-                            + "signature> only");
+            isTrue(arguments.length == 2,
+                    "GHHook root action should take <(GHEvent) event> and <(String) payload> only");
 
             FluentIterableWrapper<Object> from = from(newArrayList(arguments));
 
@@ -112,10 +122,24 @@ public @interface RequirePostWithGHHookPayload {
                     isNotBlank((String) from.firstMatch(instanceOf(String.class)).or("")),
                     "Hook should contain payload"
             );
-            isTrue(
-                    arguments[2] == null || ((String) arguments[2]).matches("^sha1=[a-f0-9]{40}$"),
-                    "SHA1 signature must be on the format sha1=<sha1 checksum in hex>"
-            );
+        }
+
+        /**
+         * Checks that an incoming request has a valid signature, if there is specified a signature in the config.
+         *
+         * @param req Incoming request.
+         * @throws InvocationTargetException if any of preconditions is not satisfied
+         */
+        protected void shouldProvideValidSignature(StaplerRequest req) throws InvocationTargetException {
+            final String signature = CryptoUtil.parseSHA1Value(req.getHeader(SIGNATURE_HEADER));
+            final Secret secret = GitHubPlugin.configuration().getGloballySharedSecret();
+            final String payload = readRequestBody(req);
+            final String computedSignature = CryptoUtil.computeSHA1Signature(payload, secret);
+
+            if (secret != null) {
+                isTrue(computedSignature != null && computedSignature.equals(signature),
+                        String.format("Should provide valid signature, computed signature was: %s", computedSignature));
+            }
         }
 
         /**

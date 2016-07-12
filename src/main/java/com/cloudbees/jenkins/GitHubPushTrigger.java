@@ -20,7 +20,6 @@ import java.util.concurrent.ThreadFactory;
 
 import hudson.util.FormValidation;
 import hudson.util.NamingThreadFactory;
-import hudson.util.Secret;
 import hudson.util.SequentialExecutionQueue;
 import hudson.util.StreamTaskListener;
 import jenkins.model.Jenkins;
@@ -31,7 +30,6 @@ import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
-import org.jenkinsci.plugins.github.extension.CryptoUtil;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.migration.Migrator;
 import org.kohsuke.stapler.AncestorInPath;
@@ -63,18 +61,8 @@ import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJo
  */
 public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigger {
 
-    private Secret sharedSecret;
-
     @DataBoundConstructor
-    public GitHubPushTrigger(Secret sharedSecret) {
-        this.sharedSecret = sharedSecret;
-    }
-
-    /**
-     * @return Project specific shared secret for JSON request verification.
-     */
-    public Secret getSharedSecret() {
-        return sharedSecret;
+    public GitHubPushTrigger() {
     }
 
     /**
@@ -165,10 +153,6 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     public void start(Job<?, ?> project, boolean newInstance) {
         super.start(project, newInstance);
         if (newInstance && GitHubPlugin.configuration().isManageHooks()) {
-            if (sharedSecret == null) {
-                sharedSecret = CryptoUtil.generateSecret();
-            }
-
             registerHooks();
         }
     }

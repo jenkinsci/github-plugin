@@ -5,7 +5,6 @@ import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.triggers.Trigger;
-import hudson.util.Secret;
 import jenkins.model.ParameterizedJobMixIn;
 
 import java.util.Collection;
@@ -24,11 +23,6 @@ public interface GitHubTrigger {
 
     // TODO: document me
     void onPost(String triggeredByUser);
-
-    /**
-     * @return The shared secret specific for a job/trigger.
-     */
-    Secret getSharedSecret();
 
     /**
      * Obtains the list of the repositories that this trigger is looking at.

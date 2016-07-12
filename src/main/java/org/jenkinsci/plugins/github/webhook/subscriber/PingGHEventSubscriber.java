@@ -56,10 +56,9 @@ public class PingGHEventSubscriber extends GHEventsSubscriber {
      *
      * @param event   only PING event
      * @param payload payload of gh-event. Never blank
-     * @param signature request signature, not used on PING events
      */
     @Override
-    protected void onEvent(GHEvent event, String payload, String signature) {
+    protected void onEvent(GHEvent event, String payload) {
         JSONObject parsedPayload = fromObject(payload);
         JSONObject repository = parsedPayload.optJSONObject("repository");
         if (repository != null) {

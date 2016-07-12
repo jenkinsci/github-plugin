@@ -1,8 +1,6 @@
 package org.jenkinsci.plugins.github.webhook;
 
-import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
-import com.cloudbees.jenkins.GitHubTrigger;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.Job;
@@ -10,7 +8,6 @@ import hudson.util.Secret;
 import org.apache.commons.lang.Validate;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
-import org.jenkinsci.plugins.github.extension.CryptoUtil;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
@@ -39,7 +36,6 @@ import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToMa
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.extractEvents;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
-import static org.jenkinsci.plugins.github.util.JobInfoHelpers.triggerFrom;
 
 /**
  * Class to incapsulate manipulation with webhooks on GH
@@ -91,16 +87,7 @@ public class WebhookManager {
                 .filter(isApplicableFor(project))
                 .transformAndConcat(extractEvents()).toList();
 
-        final GitHubTrigger trigger = triggerFrom(project, GitHubPushTrigger.class);
-
-        final Secret globalSecret = GitHubPlugin.configuration().getGloballySharedSecret();
-
-        Secret projectSecret = null;
-        if (trigger != null) {
-            projectSecret = trigger.getSharedSecret();
-        }
-
-        final Secret secret = CryptoUtil.selectSecret(globalSecret, projectSecret);
+        final Secret secret = GitHubPlugin.configuration().getGloballySharedSecret();
 
         return new Runnable() {
             public void run() {
@@ -156,10 +143,22 @@ public class WebhookManager {
     }
 
     /**
+     * Updates hooks with replacing old ones with merged new ones
+     *
+     * @param events calculated events list to be registered in hook
+     *
+     * @return function to register hooks for given events
+     */
+    protected Function<GitHubRepositoryName, GHHook> createHookSubscribedTo(final List<GHEvent> events) {
+        return createHookSubscribedTo(events, null);
+    }
+
+    /**
      * Main logic of {@link #registerFor(Job)}.
      * Updates hooks with replacing old ones with merged new ones
      *
      * @param events calculated events list to be registered in hook
+     * @param secret shared secret to use between GitHub and Jenkins, null if not used
      *
      * @return function to register hooks for given events
      */
@@ -302,6 +301,17 @@ public class WebhookManager {
     /**
      * @param url    jenkins endpoint url
      * @param events list of GH events jenkins interested in
+     *
+     * @return converter to create GH hook for given url with given events
+     */
+    protected Function<GHRepository, GHHook> createWebhook(final URL url, final Set<GHEvent> events) {
+        return createWebhook(url, events, null);
+    }
+
+    /**
+     * @param url    jenkins endpoint url
+     * @param events list of GH events jenkins interested in
+     * @param secret the shared secret between GH and jenkins. null if not being used.
      *
      * @return converter to create GH hook for given url with given events
      */

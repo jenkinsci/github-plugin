@@ -8,10 +8,8 @@ import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.jenkinsci.plugins.github.extension.CryptoUtil.selectSecret;
 import static org.junit.Assert.*;
 
 /**
@@ -38,34 +36,6 @@ public class CryptoUtilTest {
     }
 
     @Test
-    public void shouldUseProjectSecretOverGlobalSecret() throws Exception {
-        final Secret selected = selectSecret(globalSecret, projectSecret);
-
-        assertThat("secret is project", selected, equalTo(projectSecret));
-    }
-
-    @Test
-    public void shouldUseProjectSecretWhenGlobalSecretIsNotPresent() throws Exception {
-        final Secret selected = selectSecret(null, projectSecret);
-
-        assertThat("secret is project", selected, equalTo(projectSecret));
-    }
-
-    @Test
-    public void shouldUseGlobalSecretWhenProjectSecretIsNotPresent() throws Exception {
-        final Secret selected = selectSecret(globalSecret, null);
-
-        assertThat("secret is global", selected, equalTo(globalSecret));
-    }
-
-    @Test
-    public void shouldReturnNullWhenNoSecretsArePresent() throws Exception {
-        final Secret selected = selectSecret(null, null);
-
-        assertThat("secret is null", selected, nullValue());
-    }
-
-    @Test
     public void shouldComputeSHA1Signature() throws Exception {
         final String signature = CryptoUtil.computeSHA1Signature(PAYLOAD, secret);
 
@@ -82,19 +52,5 @@ public class CryptoUtilTest {
     public void shouldReturnNullWithNoSignature() throws Exception {
         final String parsedSignature = CryptoUtil.parseSHA1Value(null);
         assertThat("signature is null", parsedSignature, nullValue());
-    }
-
-    @Test
-    public void shouldReturnSecret() throws Exception {
-        final Secret secret = CryptoUtil.generateSecret();
-        assertThat("secret is not null", secret, notNullValue());
-    }
-
-    @Test
-    public void shouldReturnUniqueSecret() throws Exception {
-        final Secret firstSecret = CryptoUtil.generateSecret();
-        final Secret secondSecret = CryptoUtil.generateSecret();
-
-        assertNotSame("secrets are different", secondSecret.getPlainText(), firstSecret.getPlainText());
     }
 }

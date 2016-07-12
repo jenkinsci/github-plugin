@@ -186,9 +186,9 @@ public class WebhookManagerTest {
 
     @Test
     public void shouldAddPushEventByDefault() throws IOException {
-        final Secret secret = Secret.fromString(SECRET_VALUE);
+        final Secret secret = GitHubPlugin.configuration().getGloballySharedSecret();
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        project.addTrigger(new GitHubPushTrigger(secret));
+        project.addTrigger(new GitHubPushTrigger());
         project.setScm(GIT_SCM);
 
         manager.registerFor(project).run();
