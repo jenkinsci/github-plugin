@@ -5,6 +5,7 @@ import com.cloudbees.jenkins.GitHubRepositoryName;
 import hudson.model.FreeStyleProject;
 import hudson.plugins.git.GitSCM;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
+import org.jenkinsci.plugins.github.test.HookSecretHelper;
 import org.jenkinsci.plugins.github.webhook.WebhookManager;
 import org.jenkinsci.plugins.github.webhook.WebhookManagerTest;
 import org.jenkinsci.plugins.github.webhook.subscriber.PingGHEventSubscriber;

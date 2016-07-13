@@ -7,7 +7,6 @@ import jenkins.model.Jenkins;
 import org.apache.commons.io.IOUtils;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
-import org.jenkinsci.plugins.github.config.HookSecretConfig;
 import org.jenkinsci.plugins.github.util.FluentIterableWrapper;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.stapler.HttpResponses;
@@ -140,7 +139,8 @@ public @interface RequirePostWithGHHookPayload {
          */
         protected void shouldProvideValidSignature(StaplerRequest req) throws InvocationTargetException {
             final String signature = parseSHA1Value(req.getHeader(SIGNATURE_HEADER));
-            final Secret secret = Jenkins.getInstance().getDescriptorByType(HookSecretConfig.class).getHookSecret();
+            final Secret secret = Jenkins.getInstance()
+                    .getDescriptorByType(GitHubPluginConfig.class).getHookSecretConfig().getHookSecret();
             final String payload = readRequestBody(req);
             final String computedSignature = computeSHA1Signature(payload, secret);
 

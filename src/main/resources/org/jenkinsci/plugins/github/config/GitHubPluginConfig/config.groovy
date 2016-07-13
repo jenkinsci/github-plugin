@@ -36,10 +36,10 @@ f.section(title: descriptor.displayName) {
             }
         }
 
-        f.entry(title: _("Shared secret"), help: descriptor.getHelpFile('sharedSecret'), field: "globallySharedSecret") {
-            f.password()
-        }
-        
+        f.property(
+                field: "hookSecretConfig"
+        )
+
         f.entry(title: _("Additional actions"), help: descriptor.getHelpFile('additional')) {
             f.hetero_list(items: [],
                     addCaption: _("Manage additional GitHub actions"),

@@ -1,7 +1,14 @@
 package org.jenkinsci.plugins.github.webhook;
 
+import com.cloudbees.plugins.credentials.Credentials;
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.SystemCredentialsProvider;
+import com.cloudbees.plugins.credentials.domains.Domain;
+import hudson.security.ACL;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.config.HookSecretConfig;
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,8 +20,11 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.UUID;
 
+import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecret;
 import static org.mockito.Mockito.*;
 
 /**
@@ -40,7 +50,7 @@ public class RequirePostWithGHHookPayloadTest {
 
     @Before
     public void setSecret() {
-        Jenkins.getInstance().getDescriptorByType(HookSecretConfig.class).storeSecret(SECRET_CONTENT);
+        storeSecret(SECRET_CONTENT);
     }
 
     @Test

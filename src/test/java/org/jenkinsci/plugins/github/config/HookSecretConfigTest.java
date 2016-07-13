@@ -1,11 +1,13 @@
 package org.jenkinsci.plugins.github.config;
 
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.github.test.HookSecretHelper;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecret;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -15,6 +17,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class HookSecretConfigTest {
 
+    private static final String SECRET_INIT = "test";
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();
 
@@ -22,24 +25,22 @@ public class HookSecretConfigTest {
 
     @Before
     public void setup() {
-        hookSecretConfig = Jenkins.getInstance().getDescriptorByType(HookSecretConfig.class);
+        storeSecret(SECRET_INIT);
+        hookSecretConfig = Jenkins.getInstance().getDescriptorByType(GitHubPluginConfig.class).getHookSecretConfig();
     }
 
     @Test
     public void shouldStoreNewSecrets() {
-        final String secret = "test";
-        hookSecretConfig.storeSecret(secret);
+        storeSecret(SECRET_INIT);
 
         assertNotNull("Secret is persistent", hookSecretConfig.getHookSecret());
-        assertTrue("Secret correctly stored", secret.equals(hookSecretConfig.getHookSecret().getPlainText()));
+        assertTrue("Secret correctly stored", SECRET_INIT.equals(hookSecretConfig.getHookSecret().getPlainText()));
     }
 
     @Test
     public void shouldOverwriteExistingSecrets() {
-        final String secret = "test";
         final String newSecret = "test2";
-        hookSecretConfig.storeSecret(secret);
-        hookSecretConfig.storeSecret(newSecret);
+        storeSecret(newSecret);
 
         assertNotNull("Secret is persistent", hookSecretConfig.getHookSecret());
         assertTrue("Secret correctly stored", newSecret.equals(hookSecretConfig.getHookSecret().getPlainText()));

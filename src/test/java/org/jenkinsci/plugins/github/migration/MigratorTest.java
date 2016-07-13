@@ -7,6 +7,7 @@ import hudson.model.FreeStyleProject;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
+import org.jenkinsci.plugins.github.test.HookSecretHelper;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;

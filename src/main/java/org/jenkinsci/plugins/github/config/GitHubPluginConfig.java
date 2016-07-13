@@ -61,6 +61,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     private List<GitHubServerConfig> configs = new ArrayList<GitHubServerConfig>();
     private URL hookUrl;
+    private HookSecretConfig hookSecretConfig = new HookSecretConfig(null);
 
     private transient boolean overrideHookUrl;
 
@@ -243,5 +244,13 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         if (!state) {
             throw new GHPluginConfigException(message);
         }
+    }
+
+    public HookSecretConfig getHookSecretConfig() {
+        return hookSecretConfig;
+    }
+
+    public void setHookSecretConfig(HookSecretConfig hookSecretConfig) {
+        this.hookSecretConfig = hookSecretConfig;
     }
 }
