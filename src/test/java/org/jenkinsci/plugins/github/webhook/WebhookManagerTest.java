@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import hudson.model.FreeStyleProject;
 import hudson.plugins.git.GitSCM;
-import hudson.util.Secret;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.junit.Rule;
@@ -145,8 +144,6 @@ public class WebhookManagerTest {
 
     @Test
     public void shouldMergeEventsOnRegisterNewAndDeleteOldOnes() throws IOException {
-        final Secret secret = Secret.fromString(SECRET_VALUE);
-
         doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
         Predicate<GHHook> del = spy(Predicate.class);
@@ -156,23 +153,22 @@ public class WebhookManagerTest {
         GHHook prhook = hook(HOOK_ENDPOINT, PULL_REQUEST);
         when(repo.getHooks()).thenReturn(newArrayList(hook, prhook));
 
-        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH)), secret).apply(nonactive);
+        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
         verify(del, times(2)).apply(any(GHHook.class));
-        verify(manager).createWebhook(HOOK_ENDPOINT, EnumSet.copyOf(newArrayList(CREATE, PULL_REQUEST, PUSH)), secret);
+        verify(manager).createWebhook(HOOK_ENDPOINT, EnumSet.copyOf(newArrayList(CREATE, PULL_REQUEST, PUSH)));
     }
 
     @Test
     public void shouldNotReplaceAlreadyRegisteredHook() throws IOException {
-        final Secret secret = Secret.fromString(SECRET_VALUE);
         doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
 
         GHHook hook = hook(HOOK_ENDPOINT, PUSH);
         when(repo.getHooks()).thenReturn(newArrayList(hook));
 
-        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH)), secret).apply(nonactive);
+        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
         verify(manager, never()).deleteWebhook();
-        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class), any(Secret.class));
+        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class));
     }
 
     @Test
@@ -181,7 +177,7 @@ public class WebhookManagerTest {
         project.setScm(GIT_SCM);
 
         manager.registerFor(project).run();
-        verify(manager, never()).createHookSubscribedTo(anyListOf(GHEvent.class), any(Secret.class));
+        verify(manager, never()).createHookSubscribedTo(anyListOf(GHEvent.class));
     }
 
     @Test
@@ -191,7 +187,7 @@ public class WebhookManagerTest {
         project.setScm(GIT_SCM);
 
         manager.registerFor(project).run();
-        verify(manager).createHookSubscribedTo(newArrayList(PUSH), null);
+        verify(manager).createHookSubscribedTo(newArrayList(PUSH));
     }
 
     @Test
@@ -201,7 +197,7 @@ public class WebhookManagerTest {
 
         assertThat("empty events list not allowed to be registered",
                 forHookUrl(HOOK_ENDPOINT)
-                        .createHookSubscribedTo(Collections.<GHEvent>emptyList(), null).apply(active), nullValue());
+                        .createHookSubscribedTo(Collections.<GHEvent>emptyList()).apply(active), nullValue());
     }
 
     @Test
@@ -210,7 +206,7 @@ public class WebhookManagerTest {
         conf.setManageHooks(false);
         GitHubPlugin.configuration().getConfigs().add(conf);
 
-        assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH), null)
+        assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH))
                 .apply(new GitHubRepositoryName("github.com", "name", "repo")), nullValue());
     }
 
@@ -221,7 +217,7 @@ public class WebhookManagerTest {
         conf.setManageHooks(false);
         GitHubPlugin.configuration().getConfigs().add(conf);
 
-        assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH), null)
+        assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH))
                 .apply(new GitHubRepositoryName("github.com", "name", "repo")), nullValue());
     }
 

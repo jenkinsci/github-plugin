@@ -88,9 +88,6 @@ public class WebhookManager {
                 .filter(isApplicableFor(project))
                 .transformAndConcat(extractEvents()).toList();
 
-        final Secret secret = Jenkins.getInstance()
-                .getDescriptorByType(GitHubPluginConfig.class).getHookSecretConfig().getHookSecret();
-
         return new Runnable() {
             public void run() {
                 if (events.isEmpty()) {
@@ -103,7 +100,7 @@ public class WebhookManager {
                         project.getFullName(), names, events);
 
                 from(names)
-                        .transform(createHookSubscribedTo(events, secret))
+                        .transform(createHookSubscribedTo(events))
                         .filter(notNull())
                         .filter(log("Created hook")).toList();
             }
@@ -145,6 +142,7 @@ public class WebhookManager {
     }
 
     /**
+     * Main logic of {@link #registerFor(Job)}.
      * Updates hooks with replacing old ones with merged new ones
      *
      * @param events calculated events list to be registered in hook
@@ -152,20 +150,6 @@ public class WebhookManager {
      * @return function to register hooks for given events
      */
     protected Function<GitHubRepositoryName, GHHook> createHookSubscribedTo(final List<GHEvent> events) {
-        return createHookSubscribedTo(events, null);
-    }
-
-    /**
-     * Main logic of {@link #registerFor(Job)}.
-     * Updates hooks with replacing old ones with merged new ones
-     *
-     * @param events calculated events list to be registered in hook
-     * @param secret shared secret to use between GitHub and Jenkins, null if not used
-     *
-     * @return function to register hooks for given events
-     */
-    protected Function<GitHubRepositoryName, GHHook> createHookSubscribedTo(final List<GHEvent> events,
-                                                                            final Secret secret) {
         return new NullSafeFunction<GitHubRepositoryName, GHHook>() {
             @Override
             protected GHHook applyNullSafe(@Nonnull GitHubRepositoryName name) {
@@ -195,7 +179,7 @@ public class WebhookManager {
                             .filter(deleteWebhook())
                             .filter(log("Replaced hook")).toList();
 
-                    return createWebhook(endpoint, merged, secret).apply(repo);
+                    return createWebhook(endpoint, merged).apply(repo);
                 } catch (Throwable t) {
                     LOGGER.warn("Failed to add GitHub webhook for {}", name, t);
                     GitHubHookRegisterProblemMonitor.get().registerProblem(name, t);
@@ -307,24 +291,15 @@ public class WebhookManager {
      * @return converter to create GH hook for given url with given events
      */
     protected Function<GHRepository, GHHook> createWebhook(final URL url, final Set<GHEvent> events) {
-        return createWebhook(url, events, null);
-    }
-
-    /**
-     * @param url    jenkins endpoint url
-     * @param events list of GH events jenkins interested in
-     * @param secret the shared secret between GH and jenkins. null if not being used.
-     *
-     * @return converter to create GH hook for given url with given events
-     */
-    protected Function<GHRepository, GHHook> createWebhook(final URL url, final Set<GHEvent> events,
-                                                           final Secret secret) {
         return new NullSafeFunction<GHRepository, GHHook>() {
             protected GHHook applyNullSafe(@Nonnull GHRepository repo) {
                 try {
                     final HashMap<String, String> config = new HashMap<>();
                     config.put("url", url.toExternalForm());
                     config.put("content_type", "json");
+
+                    final Secret secret = Jenkins.getInstance()
+                            .getDescriptorByType(GitHubPluginConfig.class).getHookSecretConfig().getHookSecret();
 
                     if (secret != null) {
                         config.put("secret", secret.getPlainText());

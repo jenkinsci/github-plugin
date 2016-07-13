@@ -25,7 +25,6 @@ import hudson.util.StreamTaskListener;
 import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
-import net.sf.json.JSONObject;
 import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
@@ -34,7 +33,6 @@ import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.migration.Migrator;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.StaplerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -240,8 +238,6 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
         private transient List<Credential> credentials;
 
-        private String sharedSecret;
-
         @Inject
         private transient GitHubHookRegisterProblemMonitor monitor;
 
@@ -331,13 +327,6 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         }
 
         /**
-         * @return Project specific shared secret for JSON request verification.
-         */
-        public String getSharedSecret() {
-            return sharedSecret;
-        }
-
-        /**
          * Used to cleanup after migration
          */
         public void clearDeprecatedHookUrl() {
@@ -405,12 +394,6 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
             }
 
             return FormValidation.ok();
-        }
-
-        @Override
-        public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-            sharedSecret = json.getString("sharedSecret");
-            return super.configure(req, json);
         }
     }
 
