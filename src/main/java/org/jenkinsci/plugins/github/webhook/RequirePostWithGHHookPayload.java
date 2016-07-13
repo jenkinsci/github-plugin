@@ -155,7 +155,7 @@ public @interface RequirePostWithGHHookPayload {
 
                 isTrue(
                         computedSignature.equals(signature),
-                        String.format("Signatures did not match, computed signature was: %s, secret: %s, payload: %s", computedSignature, secret.getPlainText(), payload)
+                        String.format("Signatures did not match, computed signature was: %s", computedSignature)
                 );
             }
         }
