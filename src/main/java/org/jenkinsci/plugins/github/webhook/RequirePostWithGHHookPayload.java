@@ -1,10 +1,8 @@
 package org.jenkinsci.plugins.github.webhook;
 
 import com.cloudbees.jenkins.GitHubWebHook;
-import com.google.common.base.Charsets;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
-import org.apache.commons.io.IOUtils;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.util.FluentIterableWrapper;

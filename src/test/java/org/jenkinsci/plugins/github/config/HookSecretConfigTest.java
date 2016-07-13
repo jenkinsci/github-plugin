@@ -1,7 +1,6 @@
 package org.jenkinsci.plugins.github.config;
 
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.github.test.HookSecretHelper;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
