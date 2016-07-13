@@ -79,7 +79,7 @@ public class WebhookManager {
      * @param project to find for which repos we should create hooks
      *
      * @return runnable to create hooks on run
-     * @see #createHookSubscribedTo(List, Secret)
+     * @see #createHookSubscribedTo(List)
      */
     public Runnable registerFor(final Job<?, ?> project) {
         final Collection<GitHubRepositoryName> names = parseAssociatedNames(project);
