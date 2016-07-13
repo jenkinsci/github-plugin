@@ -1,14 +1,5 @@
 package org.jenkinsci.plugins.github.webhook;
 
-import com.cloudbees.plugins.credentials.Credentials;
-import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.SystemCredentialsProvider;
-import com.cloudbees.plugins.credentials.domains.Domain;
-import hudson.security.ACL;
-import hudson.util.Secret;
-import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.github.config.HookSecretConfig;
-import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,10 +11,10 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.UUID;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecret;
 import static org.mockito.Mockito.*;
 
@@ -41,9 +32,6 @@ public class RequirePostWithGHHookPayloadTest {
 
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();
-
-    @Mock
-    private StaplerRequest request;
 
     @Spy
     private RequirePostWithGHHookPayload.Processor processor;
@@ -105,38 +93,60 @@ public class RequirePostWithGHHookPayloadTest {
 
     @Test(expected = InvocationTargetException.class)
     public void shouldNotPassOnAbsentSignature() throws Exception {
-        doReturn(PAYLOAD).when(processor).readRequestBody(request);
+        doReturn(PAYLOAD).when(processor).obtainRequestBody(req, null);
 
-        processor.shouldProvideValidSignature(request);
+        processor.shouldProvideValidSignature(req, null);
     }
 
     @Test(expected = InvocationTargetException.class)
     public void shouldNotPassOnInvalidSignature() throws Exception {
         final String signature = "sha1=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3";
 
-        when(request.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
-        doReturn(PAYLOAD).when(processor).readRequestBody(request);
+        when(req.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
+        doReturn(PAYLOAD).when(processor).obtainRequestBody(req, null);
 
-        processor.shouldProvideValidSignature(request);
+        processor.shouldProvideValidSignature(req, null);
     }
 
     @Test(expected = InvocationTargetException.class)
     public void shouldNotPassOnMalformedSignature() throws Exception {
         final String signature = "49d5f5cf800a81f257324912969a2d325d13d3fc";
 
-        when(request.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
-        doReturn(PAYLOAD).when(processor).readRequestBody(request);
+        when(req.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
+        doReturn(PAYLOAD).when(processor).obtainRequestBody(req, null);
 
-        processor.shouldProvideValidSignature(request);
+        processor.shouldProvideValidSignature(req, null);
     }
 
     @Test
     public void shouldPassWithValidSignature() throws Exception {
         final String signature = "sha1=49d5f5cf800a81f257324912969a2d325d13d3fc";
 
-        when(request.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
-        doReturn(PAYLOAD).when(processor).readRequestBody(request);
+        when(req.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
+        doReturn(PAYLOAD).when(processor).obtainRequestBody(req, null);
 
-        processor.shouldProvideValidSignature(request);
+        processor.shouldProvideValidSignature(req, null);
+    }
+
+    @Test
+    public void shouldReturnValidPayloadOnApplicationJson() {
+        final String payload = "test";
+
+        doReturn(GHEventPayload.PayloadHandler.APPLICATION_JSON).when(req).getContentType();
+
+        final String body = processor.obtainRequestBody(req, new Object[]{null, payload});
+
+        assertThat("valid returned body", body, equalTo(payload));
+    }
+
+    @Test
+    public void shouldReturnValidPayloadOnFormUrlEncoded() {
+        final String payload = "test";
+
+        doReturn(GHEventPayload.PayloadHandler.FORM_URLENCODED).when(req).getContentType();
+
+        final String body = processor.obtainRequestBody(req, new Object[]{null, payload});
+
+        assertThat("valid returned body", body, equalTo("payload=" + payload));
     }
 }

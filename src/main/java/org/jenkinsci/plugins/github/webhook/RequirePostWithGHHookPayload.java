@@ -19,9 +19,11 @@ import org.slf4j.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URLEncoder;
 import java.security.interfaces.RSAPublicKey;
 
 import static com.cloudbees.jenkins.GitHubWebHook.X_INSTANCE_IDENTITY;
@@ -55,9 +57,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @InterceptorAnnotation(RequirePostWithGHHookPayload.Processor.class)
 public @interface RequirePostWithGHHookPayload {
     class Processor extends Interceptor {
-
         private static final Logger LOGGER = getLogger(Processor.class);
-
         /**
          * Header key being used for the payload signatures.
          * @see <a href=https://developer.github.com/webhooks/>Developer manual</a>
@@ -71,7 +71,7 @@ public @interface RequirePostWithGHHookPayload {
             shouldBePostMethod(req);
             returnsInstanceIdentityIfLocalUrlTest(req);
             shouldContainParseablePayload(arguments);
-            shouldProvideValidSignature(req);
+            shouldProvideValidSignature(req, arguments);
 
             return target.invoke(req, rsp, instance, arguments);
         }
@@ -137,11 +137,11 @@ public @interface RequirePostWithGHHookPayload {
          * @param req Incoming request.
          * @throws InvocationTargetException if any of preconditions is not satisfied
          */
-        protected void shouldProvideValidSignature(StaplerRequest req) throws InvocationTargetException {
+        protected void shouldProvideValidSignature(StaplerRequest req, Object[] args) throws InvocationTargetException {
             final String signature = parseSHA1Value(req.getHeader(SIGNATURE_HEADER));
             final Secret secret = Jenkins.getInstance()
                     .getDescriptorByType(GitHubPluginConfig.class).getHookSecretConfig().getHookSecret();
-            final String payload = readRequestBody(req);
+            final String payload = obtainRequestBody(req, args);
             final String computedSignature = computeSHA1Signature(payload, secret);
 
             if (secret != null) {
@@ -157,18 +157,27 @@ public @interface RequirePostWithGHHookPayload {
 
                 isTrue(
                         computedSignature.equals(signature),
-                        String.format("Signatures did not match, computed signature was: %s", computedSignature)
+                        String.format("Signatures did not match, computed signature was: %s, secret: %s, payload: %s", computedSignature, secret.getPlainText(), payload)
                 );
             }
         }
 
-        protected String readRequestBody(final StaplerRequest req) {
-            try {
-                return IOUtils.toString(req.getInputStream(), Charsets.UTF_8);
-            } catch (IOException e) {
-                LOGGER.error(e.getMessage(), e);
-                return null;
+        protected String obtainRequestBody(StaplerRequest req, Object[] args) {
+            final String parsedPayload = (String) args[1];
+
+            if (req.getContentType().equals(GHEventPayload.PayloadHandler.APPLICATION_JSON)) {
+                return parsedPayload;
+            } else if (req.getContentType().equals(GHEventPayload.PayloadHandler.FORM_URLENCODED)) {
+                try {
+                    return String.format("payload=%s", URLEncoder.encode(parsedPayload, "UTF-8"));
+                } catch (UnsupportedEncodingException e) {
+                    LOGGER.error(e.getMessage(), e);
+                }
+            } else {
+                LOGGER.error("Unknown content type {}", req.getContentType());
             }
+
+            return null;
         }
 
         /**
