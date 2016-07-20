@@ -16,6 +16,8 @@ import javax.crypto.spec.SecretKeySpec;
 public class CryptoUtil {
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
     private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
+    private static final String SHA1_PREFIX = "sha1=";
+    private static final String DEFAULT_CHARSET = "utf-8";
     public static final String INVALID_SIGNATURE = "INVALID_SIGNATURE";
 
     private CryptoUtil() {
@@ -34,10 +36,13 @@ public class CryptoUtil {
         }
 
         try {
-            final SecretKeySpec keySpec = new SecretKeySpec(secret.getPlainText().getBytes(), HMAC_SHA1_ALGORITHM);
+            final SecretKeySpec keySpec = new SecretKeySpec(
+                    secret.getPlainText().getBytes(DEFAULT_CHARSET),
+                    HMAC_SHA1_ALGORITHM
+            );
             final Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
             mac.init(keySpec);
-            final byte[] rawHMACBytes = mac.doFinal(payload.getBytes("UTF-8"));
+            final byte[] rawHMACBytes = mac.doFinal(payload.getBytes(DEFAULT_CHARSET));
 
             return Hex.encodeHexString(rawHMACBytes);
         } catch (Exception e) {
@@ -53,8 +58,8 @@ public class CryptoUtil {
      */
     @Nullable
     public static String parseSHA1Value(@Nullable final String digest) {
-        if (digest != null && digest.startsWith("sha1=")) {
-            return digest.substring(5);
+        if (digest != null && digest.startsWith(SHA1_PREFIX)) {
+            return digest.substring(SHA1_PREFIX.length());
         } else {
             return null;
         }
