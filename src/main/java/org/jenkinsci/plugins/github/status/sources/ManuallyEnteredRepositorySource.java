@@ -38,7 +38,7 @@ public class ManuallyEnteredRepositorySource extends GitHubReposSource {
                 if (name != null) {
                     return name.resolve();
                 } else {
-                    listener.getLogger().println("Unable to match " + url + " with a GitHub repository.");
+                    listener.getLogger().printf("Unable to match %s with a GitHub repository.%n", url);
                     return Collections.emptyList();
                 }
             }
