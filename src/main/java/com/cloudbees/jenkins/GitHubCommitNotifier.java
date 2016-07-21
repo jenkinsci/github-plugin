@@ -108,6 +108,7 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
         return Result.fromString(trimToEmpty(resultOnFailure));
     }
 
+    @Override
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
     }
@@ -153,10 +154,12 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
+        @Override
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             return true;
         }
 
+        @Override
         public String getDisplayName() {
             return GitHubCommitNotifier_DisplayName();
         }
