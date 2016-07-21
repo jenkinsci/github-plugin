@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.github.status.sources;
 
 import com.cloudbees.jenkins.GitHubRepositoryName;
+import com.google.common.annotations.VisibleForTesting;
 import hudson.Extension;
 import hudson.model.Descriptor;
 import hudson.model.Run;
@@ -28,13 +29,18 @@ public class ManuallyEnteredRepositorySource extends GitHubReposSource {
         return url;
     }
 
+    @VisibleForTesting
+    GitHubRepositoryName createName(String url) {
+        return GitHubRepositoryName.create(url);
+    }
+
     @Override
     public List<GHRepository> repos(@Nonnull Run<?, ?> run, @Nonnull final TaskListener listener) {
         List<String> urls = Collections.singletonList(url);
         return from(urls).transformAndConcat(new NullSafeFunction<String, Iterable<GHRepository>>() {
             @Override
             protected Iterable<GHRepository> applyNullSafe(@Nonnull String url) {
-                GitHubRepositoryName name = GitHubRepositoryName.create(url);
+                GitHubRepositoryName name = createName(url);
                 if (name != null) {
                     return name.resolve();
                 } else {
