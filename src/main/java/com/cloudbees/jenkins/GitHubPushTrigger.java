@@ -14,12 +14,14 @@ import hudson.model.Project;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+
 import hudson.util.FormValidation;
 import hudson.util.NamingThreadFactory;
 import hudson.util.SequentialExecutionQueue;
 import hudson.util.StreamTaskListener;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;

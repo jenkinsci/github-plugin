@@ -57,6 +57,7 @@ public class WebhookManagerTest {
     public static final GitSCM GIT_SCM = new GitSCM("ssh://git@github.com/dummy/dummy.git");
     public static final URL HOOK_ENDPOINT = endpoint("http://hook.endpoint/");
     public static final URL ANOTHER_HOOK_ENDPOINT = endpoint("http://another.url/");
+    private static final String SECRET_VALUE = "secret";
 
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
@@ -72,7 +73,6 @@ public class WebhookManagerTest {
 
     @Mock
     private GHRepository repo;
-
 
     @Test
     public void shouldDoNothingOnNoAdminRights() throws Exception {
