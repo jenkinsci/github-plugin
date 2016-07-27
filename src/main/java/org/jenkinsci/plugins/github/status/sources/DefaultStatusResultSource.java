@@ -52,7 +52,7 @@ public class DefaultStatusResultSource extends GitHubStatusResultSource {
                         GHCommitState.ERROR, Messages.CommitNotifier_Failed(run.getDisplayName(), duration)),
 
                 betterThanOrEqualTo(ABORTED,
-                        GHCommitState.ABORTED, Messages.CommitNotifier_Aborted(run.getDisplayName(), duration)),
+                        GHCommitState.ERROR, Messages.CommitNotifier_Aborted(run.getDisplayName(), duration)),
 
                 onAnyResult(GHCommitState.PENDING, Messages.CommitNotifier_Pending(run.getDisplayName()))
         )).get(run, listener);
