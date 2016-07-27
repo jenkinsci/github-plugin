@@ -16,6 +16,7 @@ import java.io.IOException;
 import static hudson.model.Result.FAILURE;
 import static hudson.model.Result.SUCCESS;
 import static hudson.model.Result.UNSTABLE;
+import static hudson.model.Result.ABORTED;
 import static java.util.Arrays.asList;
 import static org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult.onAnyResult;
 import static org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult.betterThanOrEqualTo;
@@ -49,6 +50,9 @@ public class DefaultStatusResultSource extends GitHubStatusResultSource {
 
                 betterThanOrEqualTo(FAILURE,
                         GHCommitState.ERROR, Messages.CommitNotifier_Failed(run.getDisplayName(), duration)),
+
+                betterThanOrEqualTo(ABORTED,
+                        GHCommitState.ABORTED, Messages.CommitNotifier_Aborted(run.getDisplayName(), duration)),
 
                 onAnyResult(GHCommitState.PENDING, Messages.CommitNotifier_Pending(run.getDisplayName()))
         )).get(run, listener);
