@@ -41,6 +41,7 @@ public class DefaultStatusResultSourceTest {
                 {Result.SUCCESS, GHCommitState.SUCCESS},
                 {Result.UNSTABLE, GHCommitState.FAILURE},
                 {Result.FAILURE, GHCommitState.ERROR},
+                {Result.ABORTED, GHCommitState.ERROR},
                 {null, GHCommitState.PENDING},
         };
     }
