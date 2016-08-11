@@ -5,10 +5,9 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.Job;
 import hudson.util.Secret;
-import jenkins.model.Jenkins;
 import org.apache.commons.lang.Validate;
+import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
-import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
@@ -180,9 +179,9 @@ public class WebhookManager {
                             .filter(log("Replaced hook")).toList();
 
                     return createWebhook(endpoint, merged).apply(repo);
-                } catch (Throwable t) {
-                    LOGGER.warn("Failed to add GitHub webhook for {}", name, t);
-                    GitHubHookRegisterProblemMonitor.get().registerProblem(name, t);
+                } catch (Exception e) {
+                    LOGGER.warn("Failed to add GitHub webhook for {}", name, e);
+                    GitHubHookRegisterProblemMonitor.get().registerProblem(name, e);
                 }
                 return null;
             }
@@ -298,8 +297,7 @@ public class WebhookManager {
                     config.put("url", url.toExternalForm());
                     config.put("content_type", "json");
 
-                    final Secret secret = Jenkins.getInstance()
-                            .getDescriptorByType(GitHubPluginConfig.class).getHookSecretConfig().getHookSecret();
+                    final Secret secret = GitHubPlugin.configuration().getHookSecretConfig().getHookSecret();
 
                     if (secret != null) {
                         config.put("secret", secret.getPlainText());

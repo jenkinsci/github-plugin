@@ -4,6 +4,7 @@ import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import hudson.model.FreeStyleProject;
 import hudson.plugins.git.GitSCM;
@@ -26,20 +27,26 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Map;
 
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.asList;
 import static com.google.common.collect.Lists.newArrayList;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
+import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecretIn;
 import static org.jenkinsci.plugins.github.webhook.WebhookManager.forHookUrl;
 import static org.junit.Assert.assertThat;
 import static org.kohsuke.github.GHEvent.CREATE;
 import static org.kohsuke.github.GHEvent.PULL_REQUEST;
 import static org.kohsuke.github.GHEvent.PUSH;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.anySetOf;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -219,6 +226,23 @@ public class WebhookManagerTest {
 
         assertThat(forHookUrl(HOOK_ENDPOINT).createHookSubscribedTo(Lists.newArrayList(PUSH))
                 .apply(new GitHubRepositoryName("github.com", "name", "repo")), nullValue());
+    }
+
+    @Test
+    public void shouldSendSecretIfDefined() throws Exception {
+        String secretText = "secret_text";
+
+        storeSecretIn(GitHubPlugin.configuration(), secretText);
+
+        manager.createWebhook(HOOK_ENDPOINT, ImmutableSet.of(PUSH)).apply(repo);
+
+        verify(repo).createHook(
+                anyString(),
+                (Map<String, String>) argThat(hasEntry("secret", secretText)),
+                anySetOf(GHEvent.class),
+                anyBoolean()
+        );
+
     }
 
     private GHHook hook(URL endpoint, GHEvent event, GHEvent... events) {

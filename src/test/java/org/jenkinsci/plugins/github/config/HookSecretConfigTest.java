@@ -1,6 +1,6 @@
 package org.jenkinsci.plugins.github.config;
 
-import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 public class HookSecretConfigTest {
 
     private static final String SECRET_INIT = "test";
+
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();
 
@@ -25,7 +26,7 @@ public class HookSecretConfigTest {
     @Before
     public void setup() {
         storeSecret(SECRET_INIT);
-        hookSecretConfig = Jenkins.getInstance().getDescriptorByType(GitHubPluginConfig.class).getHookSecretConfig();
+        hookSecretConfig = GitHubPlugin.configuration().getHookSecretConfig();
     }
 
     @Test
