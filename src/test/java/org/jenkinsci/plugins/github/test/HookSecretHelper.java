@@ -25,9 +25,11 @@ public class HookSecretHelper {
 
     /**
      * Stores the secret and sets it as the current hook secret.
+     * 
+     * @param config where to save
      * @param secretText The secret/key.
      */
-    public static void storeSecret(final String secretText) {
+    public static void storeSecretIn(GitHubPluginConfig config, final String secretText) {
         final StringCredentialsImpl credentials = new StringCredentialsImpl(
                 CredentialsScope.GLOBAL,
                 UUID.randomUUID().toString(),
@@ -49,8 +51,15 @@ public class HookSecretHelper {
                 }
             }
         });
-
-        Jenkins.getInstance().getDescriptorByType(GitHubPluginConfig.class)
-                .getHookSecretConfig().setCredentialsId(credentials.getId());
+        
+        config.getHookSecretConfig().setCredentialsId(credentials.getId());
+    }
+    
+    /**
+     * Stores the secret and sets it as the current hook secret.
+     * @param secretText The secret/key.
+     */
+    public static void storeSecret(final String secretText) {
+        storeSecretIn(Jenkins.getInstance().getDescriptorByType(GitHubPluginConfig.class), secretText);
     }
 }

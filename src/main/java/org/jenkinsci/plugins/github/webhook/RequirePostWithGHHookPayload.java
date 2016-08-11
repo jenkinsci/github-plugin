@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.github.webhook;
 
 import com.cloudbees.jenkins.GitHubWebHook;
+import com.google.common.base.Optional;
 import hudson.util.Secret;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.jenkinsci.plugins.github.GitHubPlugin;
@@ -22,6 +23,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPublicKey;
 
 import static com.cloudbees.jenkins.GitHubWebHook.X_INSTANCE_IDENTITY;
@@ -35,9 +37,7 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static org.apache.commons.codec.binary.Base64.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.jenkinsci.plugins.github.extension.CryptoUtil.INVALID_SIGNATURE;
-import static org.jenkinsci.plugins.github.extension.CryptoUtil.computeSHA1Signature;
-import static org.jenkinsci.plugins.github.extension.CryptoUtil.parseSHA1Value;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 import static org.kohsuke.stapler.HttpResponses.error;
 import static org.kohsuke.stapler.HttpResponses.errorWithoutStack;
@@ -62,6 +62,7 @@ public @interface RequirePostWithGHHookPayload {
          * @see <a href=https://developer.github.com/webhooks/>Developer manual</a>
          */
         public static final String SIGNATURE_HEADER = "X-Hub-Signature";
+        private static final String SHA1_PREFIX = "sha1=";
 
         @Override
         public Object invoke(StaplerRequest req, StaplerResponse rsp, Object instance, Object[] arguments)
@@ -138,45 +139,44 @@ public @interface RequirePostWithGHHookPayload {
          * @throws InvocationTargetException if any of preconditions is not satisfied
          */
         protected void shouldProvideValidSignature(StaplerRequest req, Object[] args) throws InvocationTargetException {
-            final String signature = parseSHA1Value(req.getHeader(SIGNATURE_HEADER));
-            final Secret secret = GitHubPlugin.configuration().getHookSecretConfig().getHookSecret();
-            final String payload = obtainRequestBody(req, args);
-            final String computedSignature = computeSHA1Signature(payload, secret);
+            Optional<String> signHeader = Optional.fromNullable(req.getHeader(SIGNATURE_HEADER));
+            Secret secret = GitHubPlugin.configuration().getHookSecretConfig().getHookSecret();
 
-            if (secret != null) {
+            if (signHeader.isPresent()) {
+                String digest = substringAfter(signHeader.get(), SHA1_PREFIX);
+                LOGGER.trace("Trying to verify sign from header {}", signHeader.get());
                 isTrue(
-                        signature != null && !INVALID_SIGNATURE.equals(signature),
-                        "Signature must be specified in the header " + SIGNATURE_HEADER
-                );
-
-                isTrue(
-                        computedSignature != null,
-                        "Missing payload"
-                );
-
-                isTrue(
-                        computedSignature.equals(signature),
-                        String.format("Signatures did not match, computed signature was: %s", computedSignature)
+                        GHWebhookSignature.webhookSignature(payloadFrom(req, args), secret).matches(digest),
+                        String.format("Provided signature [%s] did not match to calculated", digest)
                 );
             }
         }
 
-        protected String obtainRequestBody(StaplerRequest req, Object[] args) {
+        /**
+         * Extracts parsed payload from args and prepare it to calculating hash
+         * (if json - pass as is, if form - url-encode it with prefix)
+         *
+         * @return ready-to-hash payload
+         */
+        protected String payloadFrom(StaplerRequest req, Object[] args) {
             final String parsedPayload = (String) args[1];
 
             if (req.getContentType().equals(GHEventPayload.PayloadHandler.APPLICATION_JSON)) {
                 return parsedPayload;
             } else if (req.getContentType().equals(GHEventPayload.PayloadHandler.FORM_URLENCODED)) {
                 try {
-                    return String.format("payload=%s", URLEncoder.encode(parsedPayload, "UTF-8"));
+                    return String.format("payload=%s", URLEncoder.encode(
+                            parsedPayload,
+                            StandardCharsets.UTF_8.toString())
+                    );
                 } catch (UnsupportedEncodingException e) {
                     LOGGER.error(e.getMessage(), e);
                 }
             } else {
                 LOGGER.error("Unknown content type {}", req.getContentType());
-            }
 
-            return null;
+            }
+            return "";
         }
 
         /**
