@@ -18,8 +18,6 @@ import hudson.util.FormValidation;
 import hudson.util.NamingThreadFactory;
 import hudson.util.SequentialExecutionQueue;
 import hudson.util.StreamTaskListener;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
@@ -46,6 +44,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJobMixIn;
@@ -121,7 +121,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                     }
                     if (asParameterizedJobMixIn(job).scheduleBuild(cause)) {
                         LOGGER.info("SCM changes detected in " + job.getFullName()
-                                  + ". Triggering #" + job.getNextBuildNumber());
+                                + ". Triggering #" + job.getNextBuildNumber());
                     } else {
                         LOGGER.info("SCM changes detected in " + job.getFullName() + ". Job is already in the queue");
                     }
