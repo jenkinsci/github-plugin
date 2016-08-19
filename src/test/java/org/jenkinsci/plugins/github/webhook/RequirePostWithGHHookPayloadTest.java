@@ -1,9 +1,12 @@
 package org.jenkinsci.plugins.github.webhook;
 
+import org.jenkinsci.plugins.github.GitHubPlugin;
+import org.jenkinsci.plugins.github.config.HookSecretConfig;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.stapler.StaplerRequest;
@@ -125,6 +128,17 @@ public class RequirePostWithGHHookPayloadTest {
 
         when(req.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
         doReturn(PAYLOAD).when(processor).payloadFrom(req, null);
+
+        processor.shouldProvideValidSignature(req, null);
+    }
+
+    @Test
+    @Issue("JENKINS-37481")
+    public void shouldIgnoreSignHeaderOnNotDefinedSignInConfig() throws Exception {
+        GitHubPlugin.configuration().setHookSecretConfig(new HookSecretConfig(null));
+        final String signature = "sha1=49d5f5cf800a81f257324912969a2d325d13d3fc";
+
+        when(req.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
 
         processor.shouldProvideValidSignature(req, null);
     }

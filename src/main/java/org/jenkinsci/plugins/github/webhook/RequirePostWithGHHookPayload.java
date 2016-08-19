@@ -142,7 +142,7 @@ public @interface RequirePostWithGHHookPayload {
             Optional<String> signHeader = Optional.fromNullable(req.getHeader(SIGNATURE_HEADER));
             Secret secret = GitHubPlugin.configuration().getHookSecretConfig().getHookSecret();
 
-            if (signHeader.isPresent()) {
+            if (signHeader.isPresent() && Optional.fromNullable(secret).isPresent()) {
                 String digest = substringAfter(signHeader.get(), SHA1_PREFIX);
                 LOGGER.trace("Trying to verify sign from header {}", signHeader.get());
                 isTrue(
