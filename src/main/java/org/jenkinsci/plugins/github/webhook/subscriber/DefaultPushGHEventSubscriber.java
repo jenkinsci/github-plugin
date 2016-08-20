@@ -24,7 +24,8 @@ import static org.jenkinsci.plugins.github.util.JobInfoHelpers.withTrigger;
 import static org.kohsuke.github.GHEvent.PUSH;
 
 /**
- * By default this plugin interested in push events only when job uses {@link GitHubPushTrigger}
+ * By default this plugin interested in push events only when job uses
+ * {@link GitHubPushTrigger}
  *
  * @author lanwen (Merkushev Kirill)
  * @since 1.12.0
@@ -57,7 +58,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
     /**
      * Calls {@link GitHubPushTrigger} in all projects to handle this hook
      *
-     * @param event   only PUSH event
+     * @param event only PUSH event
      * @param payload payload of gh-event. Never blank
      */
     @Override
@@ -67,32 +68,21 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
         final String pusherName = json.getJSONObject("pusher").getString("name");
 
         LOGGER.info("Received POST for: {}, pusher: {}", repoUrl, pusherName);
-        final GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl);
+        final GitHubRepositoryName changedRepository = GitHubRepositoryName
+                .create(repoUrl);
 
         if (changedRepository != null) {
             // run in high privilege to see all the projects anonymous users don't see.
-            // this is safe because when we actually schedule a build, it's a build that can
+            // this is safe because when we actually schedule a build, it's a build that
+            // can
             // happen at some random time anyway.
             ACL.impersonate(ACL.SYSTEM, new Runnable() {
                 @Override
                 public void run() {
                     for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
-                        GitHubTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
-                        if (trigger != null) {
-                            LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
-                            if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
-                                LOGGER.info("Poked {}", job.getFullDisplayName());
-                                if (pusherName.equalsIgnoreCase(GitHubPlugin.configuration().getBannedCommitter())) {
-                                    LOGGER.info("Skipped {} because user is banned: {}.", job.getFullDisplayName()
-                                                                                         , pusherName);
-                                } else {
-                                    trigger.onPost(pusherName);
-                                }
-                            } else {
-                                LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
-                                        job.getFullDisplayName());
-                            }
-                        }
+                        final GitHubTrigger trigger = triggerFrom(job,
+                                GitHubPushTrigger.class);
+                        triggerJob(job, trigger, pusherName, changedRepository);
                     }
                 }
             });
@@ -101,9 +91,30 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                     .getExtensionList(GitHubWebHook.Listener.class)) {
                 listener.onPushRepositoryChanged(pusherName, changedRepository);
             }
-
         } else {
-            LOGGER.warn("Malformed repo url {}", repoUrl);
+            LOGGER.warn("Malformed repo url: {}", repoUrl);
+        }
+    }
+
+    static void triggerJob(Job<?, ?> job, GitHubTrigger trigger, String pusherName,
+            GitHubRepositoryName changedRepository) {
+        if (trigger != null) {
+            LOGGER.debug("Considering to poke: {}", job.getFullDisplayName());
+            if (GitHubRepositoryNameContributor.parseAssociatedNames(job)
+                    .contains(changedRepository)) {
+                LOGGER.info("Poked: {}", job.getFullDisplayName());
+                if (pusherName.equalsIgnoreCase(
+                        GitHubPlugin.configuration().getBannedCommitter())) {
+                    LOGGER.info("Job: {} skipped because user: {} is banned.",
+                            job.getFullDisplayName(), pusherName);
+                } else {
+                    trigger.onPost(pusherName);
+                }
+            } else {
+                LOGGER.debug(
+                        "Job: {} skipped because it doesn't have a matching repository.",
+                        job.getFullDisplayName());
+            }
         }
     }
 }
