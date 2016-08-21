@@ -4,7 +4,9 @@ import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.Job;
+import hudson.util.Secret;
 import org.apache.commons.lang.Validate;
+import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
@@ -20,6 +22,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -176,9 +179,9 @@ public class WebhookManager {
                             .filter(log("Replaced hook")).toList();
 
                     return createWebhook(endpoint, merged).apply(repo);
-                } catch (Throwable t) {
-                    LOGGER.warn("Failed to add GitHub webhook for {}", name, t);
-                    GitHubHookRegisterProblemMonitor.get().registerProblem(name, t);
+                } catch (Exception e) {
+                    LOGGER.warn("Failed to add GitHub webhook for {}", name, e);
+                    GitHubHookRegisterProblemMonitor.get().registerProblem(name, e);
                 }
                 return null;
             }
@@ -290,7 +293,17 @@ public class WebhookManager {
         return new NullSafeFunction<GHRepository, GHHook>() {
             protected GHHook applyNullSafe(@Nonnull GHRepository repo) {
                 try {
-                    return repo.createWebHook(url, events);
+                    final HashMap<String, String> config = new HashMap<>();
+                    config.put("url", url.toExternalForm());
+                    config.put("content_type", "json");
+
+                    final Secret secret = GitHubPlugin.configuration().getHookSecretConfig().getHookSecret();
+
+                    if (secret != null) {
+                        config.put("secret", secret.getPlainText());
+                    }
+
+                    return repo.createHook("web", config, events, true);
                 } catch (IOException e) {
                     throw new GHException("Failed to create hook", e);
                 }

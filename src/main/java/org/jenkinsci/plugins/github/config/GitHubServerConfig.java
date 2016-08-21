@@ -3,7 +3,9 @@ package org.jenkinsci.plugins.github.config;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.base.Supplier;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
@@ -15,10 +17,10 @@ import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.internal.GitHubLoginFunction;
+import org.jenkinsci.plugins.github.util.FluentIterableWrapper;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
-import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -32,14 +34,16 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
+import java.util.List;
 
-import static com.cloudbees.plugins.credentials.CredentialsMatchers.firstOrDefault;
+import static com.cloudbees.plugins.credentials.CredentialsMatchers.filter;
 import static com.cloudbees.plugins.credentials.CredentialsMatchers.withId;
 import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials;
 import static com.cloudbees.plugins.credentials.domains.URIRequirementBuilder.fromUri;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 /**
  * This object represents configuration of each credentials-github pair.
@@ -192,8 +196,8 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     }
 
     /**
-     * Tries to find {@link StringCredentials} by id and returns token from it.
-     * Returns {@link #UNKNOWN_TOKEN} if no any creds found with this id.
+     * Extracts token from secret found by {@link #secretFor(String)}
+     * Returns {@link #UNKNOWN_TOKEN} if no any creds secret found with this id.
      *
      * @param credentialsId id to find creds
      *
@@ -201,12 +205,37 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      */
     @Nonnull
     public static String tokenFor(String credentialsId) {
-        StringCredentialsImpl unkn = new StringCredentialsImpl(null, null, null, Secret.fromString(UNKNOWN_TOKEN));
-        return firstOrDefault(
+        return secretFor(credentialsId).or(new Supplier<Secret>() {
+            @Override
+            public Secret get() {
+                return Secret.fromString(UNKNOWN_TOKEN);
+            }
+        }).getPlainText();
+    }
+
+    /**
+     * Tries to find {@link StringCredentials} by id and returns secret from it.
+     *
+     * @param credentialsId id to find creds
+     *
+     * @return secret from creds or empty optional
+     */
+    @Nonnull
+    public static Optional<Secret> secretFor(String credentialsId) {
+        List<StringCredentials> creds = filter(
                 lookupCredentials(StringCredentials.class,
                         Jenkins.getInstance(), ACL.SYSTEM,
                         Collections.<DomainRequirement>emptyList()),
-                withId(credentialsId), unkn).getSecret().getPlainText();
+                withId(trimToEmpty(credentialsId))
+        );
+
+        return FluentIterableWrapper.from(creds)
+                .transform(new NullSafeFunction<StringCredentials, Secret>() {
+                    @Override
+                    protected Secret applyNullSafe(@Nonnull StringCredentials input) {
+                        return input.getSecret();
+                    }
+                }).first();
     }
 
     /**

@@ -39,6 +39,8 @@ public @interface GHEventPayload {
     class PayloadHandler extends AnnotationHandler<GHEventPayload> {
         private static final Logger LOGGER = getLogger(PayloadHandler.class);
 
+        public static final String APPLICATION_JSON = "application/json";
+        public static final String FORM_URLENCODED = "application/x-www-form-urlencoded";
         /**
          * Registered handlers of specified content-types
          *
@@ -46,8 +48,8 @@ public @interface GHEventPayload {
          */
         private static final Map<String, Function<StaplerRequest, String>> PAYLOAD_PROCESS =
                 ImmutableMap.<String, Function<StaplerRequest, String>>builder()
-                        .put("application/json", fromApplicationJson())
-                        .put("application/x-www-form-urlencoded", fromForm())
+                        .put(APPLICATION_JSON, fromApplicationJson())
+                        .put(FORM_URLENCODED, fromForm())
                         .build();
 
         /**

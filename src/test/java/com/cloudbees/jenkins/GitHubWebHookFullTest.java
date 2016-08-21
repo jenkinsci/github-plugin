@@ -6,6 +6,7 @@ import com.jayway.restassured.builder.RequestSpecBuilder;
 import com.jayway.restassured.response.Header;
 import com.jayway.restassured.specification.RequestSpecification;
 import org.apache.commons.io.IOUtils;
+import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.webhook.GHEventHeader;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -14,6 +15,7 @@ import org.junit.rules.ExternalResource;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.kohsuke.github.GHEvent;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 
@@ -27,6 +29,8 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.commons.lang3.ClassUtils.PACKAGE_SEPARATOR;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecretIn;
+import static org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER;
 
 /**
  * @author lanwen (Merkushev Kirill)
@@ -41,9 +45,20 @@ public class GitHubWebHookFullTest {
     public static final String NOT_NULL_VALUE = "nonnull";
 
     private RequestSpecification spec;
+    
+    @Inject
+    private GitHubPluginConfig config;
 
     @ClassRule
     public static JenkinsRule jenkins = new JenkinsRule();
+
+    @Rule
+    public ExternalResource inject = new ExternalResource() {
+        @Override
+        protected void before() throws Throwable {
+            jenkins.getInstance().getInjector().injectMembers(GitHubWebHookFullTest.this);
+        }
+    };
 
     @Rule
     public ExternalResource setup = new ExternalResource() {
@@ -66,6 +81,22 @@ public class GitHubWebHookFullTest {
                 .header(eventHeader(GHEvent.PUSH))
                 .header(JSON_CONTENT_TYPE)
                 .content(classpath("payloads/push.json"))
+                .log().all()
+                .expect().log().all().statusCode(SC_OK).post();
+    }
+
+
+    @Test
+    public void shouldParseJsonWebHookFromGHWithSignHeader() throws Exception {
+        String hash = "355e155fc3d10c4e5f2c6086a01281d2e947d932";
+        String secret = "123";
+        
+        storeSecretIn(config, secret);
+        given().spec(spec)
+                .header(eventHeader(GHEvent.PUSH))
+                .header(JSON_CONTENT_TYPE)
+                .header(SIGNATURE_HEADER, format("sha1=%s", hash))
+                .content(classpath(String.format("payloads/ping_hash_%s_secret_%s.json", hash, secret)))
                 .log().all()
                 .expect().log().all().statusCode(SC_OK).post();
     }
