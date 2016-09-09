@@ -1,7 +1,7 @@
 Jenkins Github Plugin
 ===================== 
 
-[![Coverage](https://img.shields.io/sonar/http/sonar.lanwen.ru/com.coravy.hudson.plugins.github:github/coverage.svg?style=flat)](http://sonar.lanwen.ru/dashboard/index?id=com.coravy.hudson.plugins.github:github)
+[![codecov](https://codecov.io/gh/jenkinsci/github-plugin/branch/master/graph/badge.svg)](https://codecov.io/gh/jenkinsci/github-plugin)
 [![License](https://img.shields.io/github/license/jenkinsci/github-plugin.svg)](LICENSE)
 [![wiki](https://img.shields.io/badge/GitHub%20Plugin-WIKI-blue.svg?style=flat)](http://wiki.jenkins-ci.org/display/JENKINS/Github+Plugin)
 
