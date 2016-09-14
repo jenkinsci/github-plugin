@@ -10,6 +10,8 @@ import org.jenkinsci.plugins.github.extension.status.GitHubReposSource;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -25,6 +27,8 @@ import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
  */
 public class AnyDefinedRepositorySource extends GitHubReposSource {
 
+    private static final Logger LOG = LoggerFactory.getLogger(AnyDefinedRepositorySource.class);
+
     @DataBoundConstructor
     public AnyDefinedRepositorySource() {
     }
@@ -36,6 +40,9 @@ public class AnyDefinedRepositorySource extends GitHubReposSource {
     public List<GHRepository> repos(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
         final Collection<GitHubRepositoryName> names = GitHubRepositoryNameContributor
                 .parseAssociatedNames(run.getParent());
+
+        LOG.trace("repositories source=repo-name-contributor value={}", names);
+
         return from(names).transformAndConcat(new NullSafeFunction<GitHubRepositoryName, Iterable<GHRepository>>() {
             @Override
             protected Iterable<GHRepository> applyNullSafe(@Nonnull GitHubRepositoryName name) {

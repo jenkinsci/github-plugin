@@ -128,6 +128,11 @@ public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildSte
             String message = result.getMsg();
             GHCommitState state = result.getState();
 
+            listener.getLogger().printf(
+                    "[GitHub Commit Status Setter] Going to set status %s on repos %s (sha:%7.7s) with context:%s%n",
+                    state, repos, sha, contextName
+            );
+
             for (GHRepository repo : repos) {
                 listener.getLogger().println(
                         GitHubCommitNotifier_SettingCommitStatus(repo.getHtmlUrl() + "/commit/" + sha)
