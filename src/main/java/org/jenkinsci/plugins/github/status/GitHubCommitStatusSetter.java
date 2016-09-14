@@ -143,6 +143,15 @@ public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildSte
             String message = result.getMsg();
             GHCommitState state = result.getState();
 
+            listener.getLogger().printf(
+                    "[%s] %s on repos %s (sha:%7.7s) with context:%s%n",
+                    getDescriptor().getDisplayName(),
+                    state,
+                    repos,
+                    sha,
+                    contextName
+            );
+
             for (GHRepository repo : repos) {
                 listener.getLogger().println(
                         GitHubCommitNotifier_SettingCommitStatus(repo.getHtmlUrl() + "/commit/" + sha)
@@ -178,7 +187,7 @@ public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildSte
 
         @Override
         public String getDisplayName() {
-            return "Set status for GitHub commit [universal]";
+            return "Set GitHub commit status (universal)";
         }
 
     }
