@@ -1,16 +1,19 @@
 package org.jenkinsci.plugins.github;
 
 import hudson.Plugin;
+import hudson.init.Initializer;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.migration.Migrator;
 
 import javax.annotation.Nonnull;
 
+import static hudson.init.InitMilestone.PLUGINS_PREPARED;
+import static hudson.init.InitMilestone.PLUGINS_STARTED;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Main entry point for this plugin
- *
+ * <p>
  * Launches migration from old config versions
  * Contains helper method to get global plugin configuration - {@link #configuration()}
  *
@@ -21,21 +24,17 @@ public class GitHubPlugin extends Plugin {
      * Launched before plugin starts
      * Adds alias for {@link GitHubPlugin} to simplify resulting xml
      */
-    public static void init() {
+    @Initializer(before = PLUGINS_STARTED)
+    public static void addXStreamAliases() {
         Migrator.enableCompatibilityAliases();
         Migrator.enableAliases();
-    }
-
-    @Override
-    public void start() throws Exception {
-        init();
     }
 
     /**
      * Launches migration after plugin already initialized
      */
-    @Override
-    public void postInitialize() throws Exception {
+    @Initializer(after = PLUGINS_PREPARED)
+    public static void runMigrator() throws Exception {
         new Migrator().migrate();
     }
 
