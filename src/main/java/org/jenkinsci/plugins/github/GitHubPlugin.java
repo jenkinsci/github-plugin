@@ -24,7 +24,7 @@ public class GitHubPlugin extends Plugin {
      * Launched before plugin starts
      * Adds alias for {@link GitHubPlugin} to simplify resulting xml
      */
-    @Initializer(before = PLUGINS_STARTED)
+//    @Initializer(before = PLUGINS_STARTED)
     public static void addXStreamAliases() {
         Migrator.enableCompatibilityAliases();
         Migrator.enableAliases();
@@ -33,9 +33,19 @@ public class GitHubPlugin extends Plugin {
     /**
      * Launches migration after plugin already initialized
      */
-    @Initializer(after = PLUGINS_PREPARED)
+//    @Initializer(after = PLUGINS_PREPARED)
     public static void runMigrator() throws Exception {
         new Migrator().migrate();
+    }
+
+    /**
+     * We need ensure that migrator will run after xstream aliases will be added.
+     * Unclear how reactor will sort single methods, so bundle in one step.
+     */
+    @Initializer(after = PLUGINS_PREPARED, before = PLUGINS_STARTED)
+    public static void initializers() throws Exception {
+        addXStreamAliases();
+        runMigrator();
     }
 
     /**
