@@ -48,4 +48,13 @@ public class ManuallyEnteredSourcesTest {
         String context = new ManuallyEnteredShaSource("").get(run, listener);
         assertThat(context, equalTo(EXPANDED));
     }
+
+    @Test
+    public void shouldExpandBackref() throws Exception {
+        when(run.getEnvironment(listener)).thenReturn(env);
+        when(env.expand(Matchers.anyString())).thenReturn(EXPANDED);
+
+        String context = new ManuallyEnteredBackrefSource("").get(run, listener);
+        assertThat(context, equalTo(EXPANDED));
+    }
 }

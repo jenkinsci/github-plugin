@@ -14,6 +14,7 @@ f.section(title: _('Where:')) {
 f.section(title: _('What:')) {
     f.dropdownDescriptorSelector(title: _('Commit context: '), field: 'contextSource')
     f.dropdownDescriptorSelector(title: _('Status result: '), field: 'statusResultSource')
+    f.dropdownDescriptorSelector(title: _('Status backref: '), field: 'statusBackrefSource')
 }
 
 f.advanced {

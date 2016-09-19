@@ -14,11 +14,13 @@ import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.plugins.github.common.CombineErrorHandler;
 import org.jenkinsci.plugins.github.extension.status.GitHubCommitShaSource;
 import org.jenkinsci.plugins.github.extension.status.GitHubReposSource;
+import org.jenkinsci.plugins.github.extension.status.GitHubStatusBackrefSource;
 import org.jenkinsci.plugins.github.extension.status.GitHubStatusContextSource;
 import org.jenkinsci.plugins.github.extension.status.GitHubStatusResultSource;
 import org.jenkinsci.plugins.github.extension.status.StatusErrorHandler;
 import org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource;
 import org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource;
+import org.jenkinsci.plugins.github.status.sources.BuildRefBackrefSource;
 import org.jenkinsci.plugins.github.status.sources.DefaultCommitContextSource;
 import org.jenkinsci.plugins.github.status.sources.DefaultStatusResultSource;
 import org.kohsuke.github.GHCommitState;
@@ -44,6 +46,7 @@ public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildSte
     private GitHubReposSource reposSource = new AnyDefinedRepositorySource();
     private GitHubStatusContextSource contextSource = new DefaultCommitContextSource();
     private GitHubStatusResultSource statusResultSource = new DefaultStatusResultSource();
+    private GitHubStatusBackrefSource statusBackrefSource = new BuildRefBackrefSource();
     private List<StatusErrorHandler> errorHandlers = new ArrayList<>();
 
     @DataBoundConstructor
@@ -68,6 +71,11 @@ public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildSte
     @DataBoundSetter
     public void setStatusResultSource(GitHubStatusResultSource statusResultSource) {
         this.statusResultSource = statusResultSource;
+    }
+
+    @DataBoundSetter
+    public void setStatusBackrefSource(GitHubStatusBackrefSource statusBackrefSource) {
+        this.statusBackrefSource = statusBackrefSource;
     }
 
     @DataBoundSetter
@@ -104,6 +112,13 @@ public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildSte
     }
 
     /**
+     * @return backref provider
+     */
+    public GitHubStatusBackrefSource getStatusBackrefSource() {
+        return statusBackrefSource;
+    }
+
+    /**
      * @return error handlers
      */
     public List<StatusErrorHandler> getErrorHandlers() {
@@ -121,7 +136,7 @@ public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildSte
             List<GHRepository> repos = getReposSource().repos(run, listener);
             String contextName = getContextSource().context(run, listener);
 
-            String backref = run.getAbsoluteUrl();
+            String backref = getStatusBackrefSource().get(run, listener);
 
             GitHubStatusResultSource.StatusResult result = getStatusResultSource().get(run, listener);
 
@@ -144,6 +159,13 @@ public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildSte
     @Override
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
+    }
+
+    public Object readResolve() {
+        if (getStatusBackrefSource() == null) {
+            setStatusBackrefSource(new BuildRefBackrefSource());
+        }
+        return this;
     }
 
 
