@@ -22,18 +22,21 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 public class GitHubPlugin extends Plugin {
     /**
      * Launched before plugin starts
-     * Adds alias for {@link GitHubPlugin} to simplify resulting xml
+     * Adds alias for {@link GitHubPlugin} to simplify resulting xml.
+     * Expected milestone: @Initializer(before = PLUGINS_STARTED)
+     * * @see #initializers()
      */
-//    @Initializer(before = PLUGINS_STARTED)
     public static void addXStreamAliases() {
         Migrator.enableCompatibilityAliases();
         Migrator.enableAliases();
     }
 
     /**
-     * Launches migration after plugin already initialized
+     * Launches migration after plugin already initialized.
+     * Expected milestone: @Initializer(after = PLUGINS_PREPARED)
+     *
+     * @see #initializers()
      */
-//    @Initializer(after = PLUGINS_PREPARED)
     public static void runMigrator() throws Exception {
         new Migrator().migrate();
     }
