@@ -1,6 +1,6 @@
 package org.jenkinsci.plugins.github.internal;
 
-import com.squareup.okhttp.Cache;
+import okhttp3.Cache;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -43,7 +43,9 @@ public class GitHubClientCacheOpsTest {
         Cache cache2 = toCacheDir().apply(config);
 
         assertThat("same config should get same cache",
-                cache1.getDirectory().getAbsolutePath(), equalTo(cache2.getDirectory().getAbsolutePath()));
+                cache1.directory().getAbsolutePath(),
+                equalTo(cache2.directory().getAbsolutePath())
+        );
     }
 
     @Test
@@ -57,7 +59,7 @@ public class GitHubClientCacheOpsTest {
         Cache cache2 = toCacheDir().apply(config2);
 
         assertThat("with changed url",
-                cache1.getDirectory().getAbsolutePath(), not(cache2.getDirectory().getAbsolutePath()));
+                cache1.directory().getAbsolutePath(), not(cache2.directory().getAbsolutePath()));
     }
 
     @Test
@@ -69,7 +71,7 @@ public class GitHubClientCacheOpsTest {
         Cache cache2 = toCacheDir().apply(config2);
 
         assertThat("with changed creds",
-                cache1.getDirectory().getAbsolutePath(), not(cache2.getDirectory().getAbsolutePath()));
+                cache1.directory().getAbsolutePath(), not(cache2.directory().getAbsolutePath()));
     }
 
     @Test
