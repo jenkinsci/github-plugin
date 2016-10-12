@@ -128,6 +128,12 @@
         </dependency>
 
         <!--TEST DEPS-->
+        <dependency> <!-- from org.eclipse.jetty:jetty-server:9.2.15.v20160210 -->
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
