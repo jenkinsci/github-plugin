@@ -23,8 +23,6 @@ public class GitHubPlugin extends Plugin {
     /**
      * Launched before plugin starts
      * Adds alias for {@link GitHubPlugin} to simplify resulting xml.
-     * Expected milestone: @Initializer(before = PLUGINS_STARTED)
-     * * @see #initializers()
      */
     public static void addXStreamAliases() {
         Migrator.enableCompatibilityAliases();
@@ -35,10 +33,15 @@ public class GitHubPlugin extends Plugin {
      * Launches migration after plugin already initialized.
      * Expected milestone: @Initializer(after = PLUGINS_PREPARED)
      *
-     * @see #initializers()
+     * @see #migrator()
      */
     public static void runMigrator() throws Exception {
         new Migrator().migrate();
+    }
+
+    @Override
+    public void start() throws Exception {
+        addXStreamAliases();
     }
 
     /**
@@ -46,8 +49,7 @@ public class GitHubPlugin extends Plugin {
      * Unclear how reactor will sort single methods, so bundle in one step.
      */
     @Initializer(after = PLUGINS_PREPARED, before = PLUGINS_STARTED)
-    public static void initializers() throws Exception {
-        addXStreamAliases();
+    public static void migrator() throws Exception {
         runMigrator();
     }
 
