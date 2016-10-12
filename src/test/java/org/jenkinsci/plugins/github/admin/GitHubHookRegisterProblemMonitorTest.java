@@ -3,17 +3,18 @@ package org.jenkinsci.plugins.github.admin;
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import hudson.model.FreeStyleProject;
+import hudson.model.ManagementLink;
 import hudson.plugins.git.GitSCM;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.webhook.WebhookManager;
 import org.jenkinsci.plugins.github.webhook.WebhookManagerTest;
 import org.jenkinsci.plugins.github.webhook.subscriber.PingGHEventSubscriber;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.jvnet.hudson.test.recipes.LocalData;
 import org.kohsuke.github.GHEvent;
 
 import javax.inject.Inject;
@@ -23,8 +24,6 @@ import java.util.Collections;
 import static com.cloudbees.jenkins.GitHubRepositoryName.create;
 import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -50,12 +49,26 @@ public class GitHubHookRegisterProblemMonitorTest {
     @Inject
     private PingGHEventSubscriber pingSubscr;
 
-    @Rule
-    public JenkinsRule jRule = new JenkinsRule();
+    @ClassRule
+    public static JenkinsRule jRule = new JenkinsRule();
 
     @Before
     public void setUp() throws Exception {
         jRule.getInstance().getInjector().injectMembers(this);
+    }
+
+    @After
+    public void clean() throws Exception {
+        clean(monitor);
+    }
+
+    private static void clean(GitHubHookRegisterProblemMonitor monitor) {
+        for (GitHubRepositoryName name : monitor.getIgnored()) {
+            monitor.doDisignore(name);
+        }
+        for (GitHubRepositoryName name : monitor.getProblems().keySet()) {
+            monitor.resolveProblem(name);
+        }
     }
 
     @Test
@@ -136,12 +149,6 @@ public class GitHubHookRegisterProblemMonitorTest {
     }
 
     @Test
-    @LocalData
-    public void shouldLoadIgnoredList() throws Exception {
-        assertThat("loaded", monitor.getIgnored(), hasItem(equalTo(REPO)));
-    }
-
-    @Test
     public void shouldReportAboutHookProblemOnRegister() throws IOException {
         FreeStyleProject job = jRule.createFreeStyleProject();
         job.addTrigger(new GitHubPushTrigger());
@@ -191,6 +198,9 @@ public class GitHubHookRegisterProblemMonitorTest {
 
     @Test
     public void shouldNotShowManagementLinkIfNoAny() throws Exception {
-        assertThat("link on no any", link.getIconFileName(), nullValue());
+        assertThat("link on no any",
+                ManagementLink.all().get(
+                        GitHubHookRegisterProblemMonitor.GitHubHookRegisterProblemManagementLink.class
+                ).getIconFileName(), nullValue());
     }
 }
