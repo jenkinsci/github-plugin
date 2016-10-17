@@ -31,10 +31,9 @@ public class GitHubPlugin extends Plugin {
 
     /**
      * Launches migration after plugin already initialized.
-     * Expected milestone: @Initializer(after = PLUGINS_PREPARED)
-     *
-     * @see #migrator()
+     * We need ensure that migrator will run after xstream aliases will be added.
      */
+    @Initializer(after = PLUGINS_PREPARED, before = PLUGINS_STARTED)
     public static void runMigrator() throws Exception {
         new Migrator().migrate();
     }
@@ -42,15 +41,6 @@ public class GitHubPlugin extends Plugin {
     @Override
     public void start() throws Exception {
         addXStreamAliases();
-    }
-
-    /**
-     * We need ensure that migrator will run after xstream aliases will be added.
-     * Unclear how reactor will sort single methods, so bundle in one step.
-     */
-    @Initializer(after = PLUGINS_PREPARED, before = PLUGINS_STARTED)
-    public static void migrator() throws Exception {
-        runMigrator();
     }
 
     /**
