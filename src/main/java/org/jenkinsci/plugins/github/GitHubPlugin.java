@@ -1,14 +1,13 @@
 package org.jenkinsci.plugins.github;
 
 import hudson.Plugin;
+import hudson.init.InitMilestone;
 import hudson.init.Initializer;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.migration.Migrator;
 
 import javax.annotation.Nonnull;
 
-import static hudson.init.InitMilestone.PLUGINS_PREPARED;
-import static hudson.init.InitMilestone.PLUGINS_STARTED;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
@@ -30,10 +29,12 @@ public class GitHubPlugin extends Plugin {
     }
 
     /**
-     * Launches migration after plugin already initialized.
+     * Launches migration after all extensions have been augmented as we need to ensure that the credentials plugin
+     * has been initialized.
      * We need ensure that migrator will run after xstream aliases will be added.
+     * @see <a href="https://issues.jenkins-ci.org/browse/JENKINS-36446>JENKINS-36446</a>
      */
-    @Initializer(after = PLUGINS_PREPARED, before = PLUGINS_STARTED)
+    @Initializer(after = InitMilestone.EXTENSIONS_AUGMENTED, before = InitMilestone.JOB_LOADED)
     public static void runMigrator() throws Exception {
         new Migrator().migrate();
     }
