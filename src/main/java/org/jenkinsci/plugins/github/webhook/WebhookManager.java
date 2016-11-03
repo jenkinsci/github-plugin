@@ -54,7 +54,7 @@ public class WebhookManager {
      *
      * @param endpoint url which will be created as hook on GH
      */
-    private WebhookManager(URL endpoint) {
+    protected WebhookManager(URL endpoint) {
         this.endpoint = endpoint;
     }
 
@@ -195,7 +195,7 @@ public class WebhookManager {
      *
      * @return always true predicate
      */
-    private Predicate<GHHook> log(final String format) {
+    protected Predicate<GHHook> log(final String format) {
         return new NullSafePredicate<GHHook>() {
             @Override
             protected boolean applyNullSafe(@Nonnull GHHook input) {
