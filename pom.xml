@@ -53,6 +53,7 @@
         <findbugs-maven-plugin.version>3.0.2</findbugs-maven-plugin.version>
         <concurrency>1</concurrency>
         <java.level>7</java.level>
+        <hpi-plugin.version>1.120</hpi-plugin.version>
     </properties>
 
     <repositories>
