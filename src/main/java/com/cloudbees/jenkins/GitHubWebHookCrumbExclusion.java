@@ -16,11 +16,15 @@ public class GitHubWebHookCrumbExclusion extends CrumbExclusion {
     public boolean process(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
             throws IOException, ServletException {
         String pathInfo = req.getPathInfo();
-        if (pathInfo != null && pathInfo.equals(getExclusionPath())) {
-            chain.doFilter(req, resp);
-            return true;
+        if (pathInfo == null || pathInfo.equals("")) {
+            return false;
         }
-        return false;
+        pathInfo = !pathInfo.endsWith("/") ? pathInfo + '/' : pathInfo;
+        if (!pathInfo.equals(getExclusionPath())) {
+            return false;
+        }
+        chain.doFilter(req, resp);
+        return true;
     }
 
     public String getExclusionPath() {
