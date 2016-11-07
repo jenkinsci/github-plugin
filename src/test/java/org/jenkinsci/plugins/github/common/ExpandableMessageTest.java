@@ -4,7 +4,10 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.FreeStyleProject;
+import hudson.model.ParameterDefinition;
 import hudson.model.ParametersAction;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.StringParameterDefinition;
 import hudson.model.StringParameterValue;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,6 +46,9 @@ public class ExpandableMessageTest {
         ));
 
         FreeStyleProject job = jRule.createFreeStyleProject();
+        ParameterDefinition paramDef = new StringParameterDefinition(CUSTOM_BUILD_PARAM, "", "");
+        ParametersDefinitionProperty paramsDef = new ParametersDefinitionProperty(paramDef);
+        job.addProperty(paramsDef);
         job.getBuildersList().add(expander);
 
         job.scheduleBuild2(0, new ParametersAction(new StringParameterValue(CUSTOM_BUILD_PARAM, CUSTOM_PARAM_VAL)))
