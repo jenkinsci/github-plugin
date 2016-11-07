@@ -12,7 +12,7 @@ f.entry(title: _("GitHub API URL"), field: "apiUrl",
 
 f.radioBlock(checked: true, name: "creds", value: "plugin", title: "From credentials") {
     f.entry(title: _("Credentials"), field: "credentialsId") {
-        c.select()
+        c.select(context: app, includeUser: true, expressionAllowed: false)
     }
 
     f.block() {
