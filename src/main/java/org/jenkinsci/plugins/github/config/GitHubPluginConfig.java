@@ -6,7 +6,7 @@ import com.google.common.base.Predicates;
 import hudson.Extension;
 import hudson.XmlFile;
 import hudson.model.Descriptor;
-import hudson.model.Job;
+import hudson.model.Item;
 import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
@@ -181,10 +181,10 @@ public class GitHubPluginConfig extends GlobalConfiguration {
             return FormValidation.warning("Works only when Jenkins manages hooks (one ore more creds specified)");
         }
 
-        List<Job> registered = GitHubWebHook.get().reRegisterAllHooks();
+        List<Item> registered = GitHubWebHook.get().reRegisterAllHooks();
 
-        LOGGER.info("Called registerHooks() for {} jobs", registered.size());
-        return FormValidation.ok("Called re-register hooks for %s jobs", registered.size());
+        LOGGER.info("Called registerHooks() for {} items", registered.size());
+        return FormValidation.ok("Called re-register hooks for %s items", registered.size());
     }
 
     @SuppressWarnings("unused")

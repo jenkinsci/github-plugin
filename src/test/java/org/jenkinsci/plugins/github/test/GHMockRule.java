@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.github.test;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import hudson.model.Item;
 import hudson.model.Job;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.junit.rules.TestRule;
@@ -157,7 +158,7 @@ public class GHMockRule implements TestRule {
      */
     public static class FixedGHRepoNameTestContributor extends GitHubRepositoryNameContributor {
         @Override
-        public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
+        public void parseAssociatedNames(Item job, Collection<GitHubRepositoryName> result) {
             result.add(GHMockRule.REPO);
         }
     }

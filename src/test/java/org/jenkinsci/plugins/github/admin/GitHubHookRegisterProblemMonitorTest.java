@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.github.admin;
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import hudson.model.FreeStyleProject;
+import hudson.model.Item;
 import hudson.plugins.git.GitSCM;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.webhook.WebhookManager;
@@ -148,7 +149,7 @@ public class GitHubHookRegisterProblemMonitorTest {
         job.setScm(REPO_GIT_SCM);
 
         WebhookManager.forHookUrl(WebhookManagerTest.HOOK_ENDPOINT)
-                .registerFor(job).run();
+                .registerFor((Item) job).run();
 
         assertThat("should reg problem", monitor.isProblemWith(REPO), is(true));
     }

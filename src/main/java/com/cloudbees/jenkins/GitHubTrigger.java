@@ -3,7 +3,7 @@ package com.cloudbees.jenkins;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractProject;
-import hudson.model.Job;
+import hudson.model.Item;
 import hudson.triggers.Trigger;
 import jenkins.model.ParameterizedJobMixIn;
 
@@ -46,9 +46,9 @@ public interface GitHubTrigger {
     @Extension
     class GitHubRepositoryNameContributorImpl extends GitHubRepositoryNameContributor {
         @Override
-        public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
-            if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
-                ParameterizedJobMixIn.ParameterizedJob p = (ParameterizedJobMixIn.ParameterizedJob) job;
+        public void parseAssociatedNames(Item item, Collection<GitHubRepositoryName> result) {
+            if (item instanceof ParameterizedJobMixIn.ParameterizedJob) {
+                ParameterizedJobMixIn.ParameterizedJob p = (ParameterizedJobMixIn.ParameterizedJob) item;
                 // TODO use standard method in 1.621+
                 for (GitHubTrigger ght : Util.filter(p.getTriggers().values(), GitHubTrigger.class)) {
                     result.addAll(ght.getGitHubRepositories());

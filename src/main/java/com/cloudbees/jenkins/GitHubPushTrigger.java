@@ -377,8 +377,8 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
          * @since TODO
          */
         @SuppressWarnings("unused")
-        public FormValidation doCheckHookRegistered(@AncestorInPath Job<?, ?> job) {
-            Preconditions.checkNotNull(job, "Job can't be null if wants to check hook in monitor");
+        public FormValidation doCheckHookRegistered(@AncestorInPath Item job) {
+            Preconditions.checkNotNull(job, "Item can't be null if wants to check hook in monitor");
 
             Collection<GitHubRepositoryName> repos = GitHubRepositoryNameContributor.parseAssociatedNames(job);
 

@@ -2,7 +2,7 @@ package org.jenkinsci.plugins.github.webhook.subscriber;
 
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import hudson.Extension;
-import hudson.model.Job;
+import hudson.model.Item;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
@@ -32,14 +32,14 @@ public class PingGHEventSubscriber extends GHEventsSubscriber {
     private transient GitHubHookRegisterProblemMonitor monitor;
 
     /**
-     * This subscriber is not applicable to any job
+     * This subscriber is not applicable to any item
      *
      * @param project ignored
      *
      * @return always false
      */
     @Override
-    protected boolean isApplicable(Job<?, ?> project) {
+    protected boolean isApplicable(Item project) {
         return false;
     }
 

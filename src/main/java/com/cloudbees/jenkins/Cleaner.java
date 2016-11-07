@@ -1,7 +1,7 @@
 package com.cloudbees.jenkins;
 
 import hudson.Extension;
-import hudson.model.Job;
+import hudson.model.Item;
 import hudson.model.PeriodicWork;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.GitHubPlugin;
@@ -28,7 +28,7 @@ import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isAlive;
 public class Cleaner extends PeriodicWork {
     /**
      * Queue contains repo names prepared to cleanup.
-     * After configure method on job, trigger calls {@link #onStop(Job)}
+     * After configure method on job, trigger calls {@link #onStop(Item)}
      * which converts to repo names with help of contributors.
      *
      * This queue is thread-safe, so any thread can write or
@@ -38,9 +38,10 @@ public class Cleaner extends PeriodicWork {
 
     /**
      * Called when a {@link GitHubPushTrigger} is about to be removed.
+     * @deprecated use {@link #onStop(Item)}
      */
-    /* package */ void onStop(Job<?, ?> job) {
-        cleanQueue.addAll(GitHubRepositoryNameContributor.parseAssociatedNames(job));
+    /* package */ void onStop(Item item) {
+        cleanQueue.addAll(GitHubRepositoryNameContributor.parseAssociatedNames(item));
     }
 
     @Override
@@ -61,8 +62,8 @@ public class Cleaner extends PeriodicWork {
 
         URL url = GitHubPlugin.configuration().getHookUrl();
 
-        List<Job> jobs = Jenkins.getInstance().getAllItems(Job.class);
-        List<GitHubRepositoryName> aliveRepos = from(jobs)
+        List<Item> items = Jenkins.getInstance().getAllItems(Item.class);
+        List<GitHubRepositoryName> aliveRepos = from(items)
                 .filter(isAlive())  // live repos
                 .transformAndConcat(associatedNames()).toList();
 

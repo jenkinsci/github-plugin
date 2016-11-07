@@ -7,6 +7,7 @@ import hudson.ExtensionPoint;
 import hudson.Util;
 import hudson.model.AbstractProject;
 import hudson.model.EnvironmentContributor;
+import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.TaskListener;
 import hudson.plugins.git.GitSCM;
@@ -36,41 +37,54 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
      * Looks at the definition of {@link AbstractProject} and list up the related github repositories,
      * then puts them into the collection.
      *
-     * @deprecated Use {@link #parseAssociatedNames(Job, Collection)}
+     * @deprecated Use {@link #parseAssociatedNames(Item, Collection)}
      */
     @Deprecated
     public void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result) {
-        parseAssociatedNames((Job) job, result);
+        parseAssociatedNames((Item) job, result);
     }
 
     /**
      * Looks at the definition of {@link Job} and list up the related github repositories,
      * then puts them into the collection.
+     * @deprecated Use {@link #parseAssociatedNames(Item, Collection)}
      */
+    @Deprecated
     public /*abstract*/ void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
-        if (overriddenMethodHasDeprecatedSignature(job)) {
-            parseAssociatedNames((AbstractProject) job, result);
-        } else {
-            throw new AbstractMethodError("you must override the new overload of parseAssociatedNames");
-        }
+        parseAssociatedNames((Item) job, result);
     }
 
     /**
-     * To select backward compatible method with old extensions
-     * with overridden {@link #parseAssociatedNames(AbstractProject, Collection)}
-     *
-     * @param job - parameter to check for old class
-     *
-     * @return true if overridden deprecated method
+     * Looks at the definition of {@link Item} and list up the related github repositories,
+     * then puts them into the collection.
      */
-    private boolean overriddenMethodHasDeprecatedSignature(Job<?, ?> job) {
-        return Util.isOverridden(
+    @SuppressWarnings("deprecation")
+    public /*abstract*/ void parseAssociatedNames(Item item, Collection<GitHubRepositoryName> result) {
+        if (Util.isOverridden(
+                GitHubRepositoryNameContributor.class,
+                getClass(),
+                "parseAssociatedNames",
+                Job.class,
+                Collection.class
+        )) {
+            // if this impl is legacy, it cannot contribute to non-jobs, so not an error
+            if (item instanceof Job) {
+                parseAssociatedNames((Job<?, ?>) item, result);
+            }
+        } else  if (Util.isOverridden(
                 GitHubRepositoryNameContributor.class,
                 getClass(),
                 "parseAssociatedNames",
                 AbstractProject.class,
                 Collection.class
-        ) && job instanceof AbstractProject;
+        )) {
+            // if this impl is legacy, it cannot contribute to non-projects, so not an error
+            if (item instanceof AbstractProject) {
+                parseAssociatedNames((AbstractProject<?, ?>) item, result);
+            }
+        } else {
+            throw new AbstractMethodError("you must override the new overload of parseAssociatedNames");
+        }
     }
 
     public static ExtensionList<GitHubRepositoryNameContributor> all() {
@@ -82,13 +96,21 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
      */
     @Deprecated
     public static Collection<GitHubRepositoryName> parseAssociatedNames(AbstractProject<?, ?> job) {
-        return parseAssociatedNames((Job) job);
+        return parseAssociatedNames((Item) job);
     }
 
+    /**
+     * @deprecated Use {@link #parseAssociatedNames(Item)}
+     */
+    @Deprecated
     public static Collection<GitHubRepositoryName> parseAssociatedNames(Job<?, ?> job) {
+        return parseAssociatedNames((Item) job);
+    }
+
+    public static Collection<GitHubRepositoryName> parseAssociatedNames(Item item) {
         Set<GitHubRepositoryName> names = new HashSet<GitHubRepositoryName>();
         for (GitHubRepositoryNameContributor c : all()) {
-            c.parseAssociatedNames(job, names);
+            c.parseAssociatedNames(item, names);
         }
         return names;
     }
@@ -99,9 +121,9 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
     @Extension
     public static class FromSCM extends GitHubRepositoryNameContributor {
         @Override
-        public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
+        public void parseAssociatedNames(Item job, Collection<GitHubRepositoryName> result) {
             SCMTriggerItem item = SCMTriggerItems.asSCMTriggerItem(job);
-            EnvVars envVars = buildEnv(job);
+            EnvVars envVars = job instanceof Job ? buildEnv((Job) job) : new EnvVars();
             if (item != null) {
                 for (SCM scm : item.getSCMs()) {
                     addRepositories(scm, envVars, result);

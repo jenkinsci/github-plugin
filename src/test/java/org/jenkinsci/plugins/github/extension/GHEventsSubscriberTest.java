@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.extension;
 
+import hudson.model.Item;
 import hudson.model.Job;
 
 import org.junit.Test;
@@ -30,7 +31,7 @@ public class GHEventsSubscriberTest {
 
     public static class NullSubscriber extends GHEventsSubscriber {
         @Override
-        protected boolean isApplicable(Job<?, ?> project) {
+        protected boolean isApplicable(Item project) {
             return true;
         }
 

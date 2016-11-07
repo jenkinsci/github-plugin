@@ -3,6 +3,7 @@ package com.cloudbees.jenkins;
 import com.google.common.base.Function;
 import hudson.Extension;
 import hudson.ExtensionPoint;
+import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
@@ -70,9 +71,22 @@ public class GitHubWebHook implements UnprotectedRootAction {
      * {@code GitHubWebHook.get().registerHookFor(job);}
      *
      * @param job not null project to register hook for
+     * @deprecated use {@link #registerHookFor(Item)}
      */
+    @Deprecated
     public void registerHookFor(Job job) {
         reRegisterHookForJob().apply(job);
+    }
+
+    /**
+     * If any wants to auto-register hook, then should call this method
+     * Example code:
+     * {@code GitHubWebHook.get().registerHookFor(item);}
+     *
+     * @param item not null item to register hook for
+     */
+    public void registerHookFor(Item item) {
+        reRegisterHookForJob().apply(item);
     }
 
     /**
@@ -80,11 +94,12 @@ public class GitHubWebHook implements UnprotectedRootAction {
      *
      * @return list of jobs which jenkins tried to register hook
      */
-    public List<Job> reRegisterAllHooks() {
-        return from(getJenkinsInstance().getAllItems(Job.class))
+    public List<Item> reRegisterAllHooks() {
+        return from(getJenkinsInstance().getAllItems(Item.class))
                 .filter(isBuildable())
                 .filter(isAlive())
-                .transform(reRegisterHookForJob()).toList();
+                .transform(reRegisterHookForJob())
+                .toList();
     }
 
     /**
@@ -101,11 +116,11 @@ public class GitHubWebHook implements UnprotectedRootAction {
                 .transform(processEvent(event, payload)).toList();
     }
 
-    private Function<Job, Job> reRegisterHookForJob() {
-        return new Function<Job, Job>() {
+    private <T extends Item> Function<T, T> reRegisterHookForJob() {
+        return new Function<T, T>() {
             @Override
-            public Job apply(Job job) {
-                LOGGER.debug("Calling registerHooks() for {}", notNull(job, "Job can't be null").getFullName());
+            public T apply(T job) {
+                LOGGER.debug("Calling registerHooks() for {}", notNull(job, "Item can't be null").getFullName());
 
                 // We should handle wrong url of self defined hook url here in any case with try-catch :(
                 URL hookUrl;

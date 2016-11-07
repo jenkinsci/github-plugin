@@ -6,7 +6,7 @@ import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
 import com.cloudbees.jenkins.GitHubTrigger;
 import com.cloudbees.jenkins.GitHubWebHook;
 import hudson.Extension;
-import hudson.model.Job;
+import hudson.model.Item;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
@@ -41,7 +41,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      * @return true if project has {@link GitHubPushTrigger}
      */
     @Override
-    protected boolean isApplicable(Job<?, ?> project) {
+    protected boolean isApplicable(Item project) {
         return withTrigger(GitHubPushTrigger.class).apply(project);
     }
 
@@ -75,7 +75,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
             ACL.impersonate(ACL.SYSTEM, new Runnable() {
                 @Override
                 public void run() {
-                    for (Job<?, ?> job : Jenkins.getInstance().getAllItems(Job.class)) {
+                    for (Item job : Jenkins.getInstance().getAllItems(Item.class)) {
                         GitHubTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
                         if (trigger != null) {
                             LOGGER.debug("Considering to poke {}", job.getFullDisplayName());

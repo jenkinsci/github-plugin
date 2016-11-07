@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.github.util;
 
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import hudson.model.FreeStyleProject;
+import hudson.model.Item;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -70,7 +71,7 @@ public class JobInfoHelpersTest {
         FreeStyleProject prj = jenkins.createFreeStyleProject();
         prj.addTrigger(trigger);
 
-        assertThat("with trigger in free style job", triggerFrom(prj, GitHubPushTrigger.class), is(trigger));
+        assertThat("with trigger in free style job", triggerFrom((Item) prj, GitHubPushTrigger.class), is(trigger));
     }
 
     @Test
@@ -79,13 +80,13 @@ public class JobInfoHelpersTest {
         WorkflowJob job = jenkins.getInstance().createProject(WorkflowJob.class, "Test Workflow");
         job.addTrigger(trigger);
 
-        assertThat("with trigger in workflow", triggerFrom(job, GitHubPushTrigger.class), is(trigger));
+        assertThat("with trigger in workflow", triggerFrom((Item) job, GitHubPushTrigger.class), is(trigger));
     }
 
     @Test
     public void shouldNotGetTriggerWhenNoOne() throws Exception {
         FreeStyleProject prj = jenkins.createFreeStyleProject();
 
-        assertThat("without trigger in project", triggerFrom(prj, GitHubPushTrigger.class), nullValue());
+        assertThat("without trigger in project", triggerFrom((Item) prj, GitHubPushTrigger.class), nullValue());
     }
 }

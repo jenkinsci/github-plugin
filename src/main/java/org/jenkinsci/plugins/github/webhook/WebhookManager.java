@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.github.webhook;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import hudson.model.Item;
 import hudson.model.Job;
 import hudson.util.Secret;
 import org.apache.commons.lang.Validate;
@@ -79,24 +80,45 @@ public class WebhookManager {
      *
      * @return runnable to create hooks on run
      * @see #createHookSubscribedTo(List)
+     * @deprecated use {@link #registerFor(Item)}
      */
+    @Deprecated
     public Runnable registerFor(final Job<?, ?> project) {
-        final Collection<GitHubRepositoryName> names = parseAssociatedNames(project);
+        return registerFor((Item) project);
+    }
+
+    /**
+     * Creates runnable with ability to create hooks for given project
+     * For each GH repo name contributed by {@link com.cloudbees.jenkins.GitHubRepositoryNameContributor},
+     * this runnable creates hook (with clean old one).
+     *
+     * Hook events job interested in, contributes to full set instances of {@link GHEventsSubscriber}.
+     * New events will be merged with old ones from existent hook.
+     *
+     * By default only push event is registered
+     *
+     * @param item to find for which repos we should create hooks
+     *
+     * @return runnable to create hooks on run
+     * @see #createHookSubscribedTo(List)
+     */
+    public Runnable registerFor(final Item item) {
+        final Collection<GitHubRepositoryName> names = parseAssociatedNames(item);
 
         final List<GHEvent> events = from(GHEventsSubscriber.all())
-                .filter(isApplicableFor(project))
+                .filter(isApplicableFor(item))
                 .transformAndConcat(extractEvents()).toList();
 
         return new Runnable() {
             public void run() {
                 if (events.isEmpty()) {
                     LOGGER.debug("No any subscriber interested in {}, but hooks creation launched, skipping...",
-                            project.getFullName());
+                            item.getFullName());
                     return;
                 }
 
                 LOGGER.info("GitHub webhooks activated for job {} with {} (events: {})",
-                        project.getFullName(), names, events);
+                        item.getFullName(), names, events);
 
                 from(names)
                         .transform(createHookSubscribedTo(events))
@@ -141,7 +163,7 @@ public class WebhookManager {
     }
 
     /**
-     * Main logic of {@link #registerFor(Job)}.
+     * Main logic of {@link #registerFor(Item)}.
      * Updates hooks with replacing old ones with merged new ones
      *
      * @param events calculated events list to be registered in hook

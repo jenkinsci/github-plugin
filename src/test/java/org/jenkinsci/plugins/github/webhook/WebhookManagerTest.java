@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import hudson.model.FreeStyleProject;
+import hudson.model.Item;
 import hudson.plugins.git.GitSCM;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
@@ -183,7 +184,7 @@ public class WebhookManagerTest {
         FreeStyleProject project = jenkins.createFreeStyleProject();
         project.setScm(GIT_SCM);
 
-        manager.registerFor(project).run();
+        manager.registerFor((Item)project).run();
         verify(manager, never()).createHookSubscribedTo(anyListOf(GHEvent.class));
     }
 
@@ -193,7 +194,7 @@ public class WebhookManagerTest {
         project.addTrigger(new GitHubPushTrigger());
         project.setScm(GIT_SCM);
 
-        manager.registerFor(project).run();
+        manager.registerFor((Item)project).run();
         verify(manager).createHookSubscribedTo(newArrayList(PUSH));
     }
 
