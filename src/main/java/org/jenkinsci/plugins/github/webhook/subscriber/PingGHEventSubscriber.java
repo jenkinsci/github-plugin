@@ -3,18 +3,21 @@ package org.jenkinsci.plugins.github.webhook.subscriber;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import hudson.Extension;
 import hudson.model.Item;
-import net.sf.json.JSONObject;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Set;
+import javax.inject.Inject;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
+import org.kohsuke.github.GHEventPayload;
+import org.kohsuke.github.GHOrganization;
+import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GitHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.util.Set;
-
 import static com.google.common.collect.Sets.immutableEnumSet;
-import static net.sf.json.JSONObject.fromObject;
 import static org.kohsuke.github.GHEvent.PING;
 
 /**
@@ -35,7 +38,6 @@ public class PingGHEventSubscriber extends GHEventsSubscriber {
      * This subscriber is not applicable to any item
      *
      * @param project ignored
-     *
      * @return always false
      */
     @Override
@@ -59,18 +61,23 @@ public class PingGHEventSubscriber extends GHEventsSubscriber {
      */
     @Override
     protected void onEvent(GHEvent event, String payload) {
-        JSONObject parsedPayload = fromObject(payload);
-        JSONObject repository = parsedPayload.optJSONObject("repository");
-        if (repository != null) {
-            LOGGER.info("{} webhook received from repo <{}>!", event, repository.getString("html_url"));
-            monitor.resolveProblem(GitHubRepositoryName.create(repository.getString("html_url")));
-        } else {
-            JSONObject organization = parsedPayload.optJSONObject("organization");
-            if (organization != null) {
-                LOGGER.info("{} webhook received from org <{}>!", event, organization.getString("url"));
+        try {
+            GHEventPayload.Ping ping =
+                    GitHub.offline().parseEventPayload(new StringReader(payload), GHEventPayload.Ping.class);
+            GHRepository repository = ping.getRepository();
+            if (repository != null) {
+                LOGGER.info("{} webhook received from repo <{}>!", event, repository.getHtmlUrl());
+                monitor.resolveProblem(GitHubRepositoryName.create(repository.getHtmlUrl().toExternalForm()));
             } else {
-                LOGGER.warn("{} webhook received with unexpected payload", event);
+                GHOrganization organization = ping.getOrganization();
+                if (organization != null) {
+                    LOGGER.info("{} webhook received from org <{}>!", event, organization.getUrl());
+                } else {
+                    LOGGER.warn("{} webhook received with unexpected payload", event);
+                }
             }
+        } catch (IOException e) {
+            LOGGER.warn("Received malformed PingEvent: " + payload, e);
         }
     }
 }

@@ -93,7 +93,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>github-api</artifactId>
-            <version>1.69</version>
+            <version>1.80</version>
         </dependency>
 
         <dependency>
