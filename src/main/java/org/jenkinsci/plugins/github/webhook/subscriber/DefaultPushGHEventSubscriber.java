@@ -8,10 +8,14 @@ import com.cloudbees.jenkins.GitHubWebHook;
 import hudson.Extension;
 import hudson.model.Item;
 import hudson.security.ACL;
+import java.io.IOException;
+import java.io.StringReader;
+import java.net.URL;
 import jenkins.model.Jenkins;
-import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
+import org.kohsuke.github.GHEventPayload;
+import org.kohsuke.github.GitHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,43 +65,49 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      */
     @Override
     protected void onEvent(GHEvent event, String payload) {
-        JSONObject json = JSONObject.fromObject(payload);
-        String repoUrl = json.getJSONObject("repository").getString("url");
-        final String pusherName = json.getJSONObject("pusher").getString("name");
+        try {
+            GHEventPayload.Push push =
+                    GitHub.offline().parseEventPayload(new StringReader(payload), GHEventPayload.Push.class);
+            URL repoUrl = push.getRepository().getUrl();
+            final String pusherName = push.getPusher().getName();
+            LOGGER.info("Received PushEvent for {}", repoUrl);
+            final GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl.toExternalForm());
 
-        LOGGER.info("Received POST for {}", repoUrl);
-        final GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl);
-
-        if (changedRepository != null) {
-            // run in high privilege to see all the projects anonymous users don't see.
-            // this is safe because when we actually schedule a build, it's a build that can
-            // happen at some random time anyway.
-            ACL.impersonate(ACL.SYSTEM, new Runnable() {
-                @Override
-                public void run() {
-                    for (Item job : Jenkins.getInstance().getAllItems(Item.class)) {
-                        GitHubTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
-                        if (trigger != null) {
-                            LOGGER.debug("Considering to poke {}", job.getFullDisplayName());
-                            if (GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
-                                LOGGER.info("Poked {}", job.getFullDisplayName());
-                                trigger.onPost(pusherName);
-                            } else {
-                                LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
-                                        job.getFullDisplayName());
+            if (changedRepository != null) {
+                // run in high privilege to see all the projects anonymous users don't see.
+                // this is safe because when we actually schedule a build, it's a build that can
+                // happen at some random time anyway.
+                ACL.impersonate(ACL.SYSTEM, new Runnable() {
+                    @Override
+                    public void run() {
+                        for (Item job : Jenkins.getInstance().getAllItems(Item.class)) {
+                            GitHubTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
+                            if (trigger != null) {
+                                String fullDisplayName = job.getFullDisplayName();
+                                LOGGER.debug("Considering to poke {}", fullDisplayName);
+                                if (GitHubRepositoryNameContributor.parseAssociatedNames(job)
+                                        .contains(changedRepository)) {
+                                    LOGGER.info("Poked {}", fullDisplayName);
+                                    trigger.onPost(pusherName);
+                                } else {
+                                    LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
+                                            fullDisplayName);
+                                }
                             }
                         }
                     }
+                });
+
+                for (GitHubWebHook.Listener listener : Jenkins.getInstance()
+                        .getExtensionList(GitHubWebHook.Listener.class)) {
+                    listener.onPushRepositoryChanged(pusherName, changedRepository);
                 }
-            });
 
-            for (GitHubWebHook.Listener listener : Jenkins.getInstance()
-                    .getExtensionList(GitHubWebHook.Listener.class)) {
-                listener.onPushRepositoryChanged(pusherName, changedRepository);
+            } else {
+                LOGGER.warn("Malformed repo url {}", repoUrl);
             }
-
-        } else {
-            LOGGER.warn("Malformed repo url {}", repoUrl);
+        } catch (IOException e) {
+            LOGGER.warn("Received malformed PushEvent: " + payload, e);
         }
     }
 }
