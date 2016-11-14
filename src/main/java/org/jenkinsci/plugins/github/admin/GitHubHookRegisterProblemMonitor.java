@@ -40,7 +40,7 @@ import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
  * is visible if any problem or ignored repo is registered
  *
  * @author lanwen (Merkushev Kirill)
- * @since TODO
+ * @since 1.17.0
  */
 @Extension
 public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor implements Saveable {

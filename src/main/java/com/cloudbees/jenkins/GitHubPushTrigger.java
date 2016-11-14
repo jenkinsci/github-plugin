@@ -374,7 +374,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
          * @param job - to check against. Should be not null and have at least one repo defined
          *
          * @return warning or empty string
-         * @since TODO
+         * @since 1.17.0
          */
         @SuppressWarnings("unused")
         public FormValidation doCheckHookRegistered(@AncestorInPath Job<?, ?> job) {

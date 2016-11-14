@@ -16,7 +16,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * Utility class for dealing with signatures of incoming requests.
  *
  * @see <a href=https://developer.github.com/webhooks/#payloads>API documentation</a>
- * @since TODO
+ * @since 1.21.0
  */
 public class GHWebhookSignature {
 
