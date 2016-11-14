@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.config;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.google.common.base.Function;
@@ -282,16 +283,18 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
         }
 
         @SuppressWarnings("unused")
-        public ListBoxModel doFillCredentialsIdItems(@QueryParameter String apiUrl) {
+        public ListBoxModel doFillCredentialsIdItems(@QueryParameter String apiUrl,
+                                                     @QueryParameter String credentialsId) {
             if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
-                return new ListBoxModel();
+                return new StandardListBoxModel().includeCurrentValue(credentialsId);
             }
             return new StandardListBoxModel()
-                    .withEmptySelection()
-                    .withAll(lookupCredentials(
-                            StringCredentials.class,
+                    .includeEmptyValue()
+                    .includeMatchingAs(ACL.SYSTEM,
                             Jenkins.getInstance(),
-                            ACL.SYSTEM, fromUri(defaultIfBlank(apiUrl, GITHUB_URL)).build())
+                            StringCredentials.class,
+                            fromUri(defaultIfBlank(apiUrl, GITHUB_URL)).build(),
+                            CredentialsMatchers.always()
                     );
         }
 

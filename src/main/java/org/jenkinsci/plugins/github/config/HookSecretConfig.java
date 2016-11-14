@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.config;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import hudson.Extension;
@@ -14,8 +15,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
-
-import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials;
+import org.kohsuke.stapler.QueryParameter;
 
 /**
  * Manages storing/retrieval of the shared secret for the hook.
@@ -56,18 +56,19 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
         }
 
         @SuppressWarnings("unused")
-        public ListBoxModel doFillCredentialsIdItems() {
+        public ListBoxModel doFillCredentialsIdItems(@QueryParameter String credentialsId) {
             if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
-                return new ListBoxModel();
+                return new StandardListBoxModel().includeCurrentValue(credentialsId);
             }
 
             return new StandardListBoxModel()
-                    .withEmptySelection()
-                    .withAll(lookupCredentials(
-                            StringCredentials.class,
-                            Jenkins.getInstance(),
+                    .includeEmptyValue()
+                    .includeMatchingAs(
                             ACL.SYSTEM,
-                            Collections.<DomainRequirement>emptyList())
+                            Jenkins.getInstance(),
+                            StringCredentials.class,
+                            Collections.<DomainRequirement>emptyList(),
+                            CredentialsMatchers.always()
                     );
         }
     }

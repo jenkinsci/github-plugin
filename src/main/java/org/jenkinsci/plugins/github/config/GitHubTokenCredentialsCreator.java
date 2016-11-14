@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.config;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.SystemCredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
@@ -89,16 +90,25 @@ public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredent
     }
 
     @SuppressWarnings("unused")
-    public ListBoxModel doFillCredentialsIdItems(@QueryParameter String apiUrl) {
+    public ListBoxModel doFillCredentialsIdItems(@QueryParameter String apiUrl, @QueryParameter String credentialsId) {
         if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
-            return new ListBoxModel();
+            return new StandardUsernameListBoxModel().includeCurrentValue(credentialsId);
         }
         return new StandardUsernameListBoxModel()
-                .withEmptySelection()
-                .withAll(lookupCredentials(
-                                StandardUsernamePasswordCredentials.class,
-                                Jenkins.getInstance(),
-                                ACL.SYSTEM, fromUri(defaultIfBlank(apiUrl, GITHUB_URL)).build())
+                .includeEmptyValue()
+                .includeMatchingAs(
+                        ACL.SYSTEM,
+                        Jenkins.getInstance(),
+                        StandardUsernamePasswordCredentials.class,
+                        fromUri(defaultIfBlank(apiUrl, GITHUB_URL)).build(),
+                        CredentialsMatchers.always()
+                )
+                .includeMatchingAs(
+                        Jenkins.getAuthentication(),
+                        Jenkins.getInstance(),
+                        StandardUsernamePasswordCredentials.class,
+                        fromUri(defaultIfBlank(apiUrl, GITHUB_URL)).build(),
+                        CredentialsMatchers.always()
                 );
     }
 
@@ -114,8 +124,18 @@ public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredent
         StandardUsernamePasswordCredentials creds = firstOrNull(lookupCredentials(
                         StandardUsernamePasswordCredentials.class,
                         Jenkins.getInstance(),
-                        ACL.SYSTEM, fromUri(defaultIfBlank(apiUrl, GITHUB_URL)).build()),
+                        ACL.SYSTEM,
+                fromUri(defaultIfBlank(apiUrl, GITHUB_URL)).build()),
                 withId(credentialsId));
+        if (creds == null) {
+            // perhaps they selected a personal credential for convertion
+            creds = firstOrNull(lookupCredentials(
+                    StandardUsernamePasswordCredentials.class,
+                    Jenkins.getInstance(),
+                    Jenkins.getAuthentication(),
+                    fromUri(defaultIfBlank(apiUrl, GITHUB_URL)).build()),
+                    withId(credentialsId));
+        }
 
         GHAuthorization token;
 

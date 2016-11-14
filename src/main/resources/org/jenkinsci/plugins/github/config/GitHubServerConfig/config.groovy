@@ -11,7 +11,7 @@ f.entry(title: _("API URL"), field: "apiUrl") {
 }
 
 f.entry(title: _("Credentials"), field: "credentialsId") {
-    c.select()
+    c.select(context:app, includeUser:false, expressionAllowed:false)
 }
 
 f.block() {
