@@ -2,6 +2,7 @@ language: java
 jdk: oraclejdk8
 before_install:
  - pip install --user codecov
+install: travis_wait mvn install
 after_success:
  - codecov
 cache:
