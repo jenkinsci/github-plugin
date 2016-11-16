@@ -22,7 +22,7 @@ public class GitHubWebHookCrumbExclusion extends CrumbExclusion {
             return false;
         }
         // Github will not follow redirects https://github.com/isaacs/github/issues/574
-        pathInfo = !pathInfo.endsWith("/") ? pathInfo + '/' : pathInfo;
+        pathInfo = pathInfo.endsWith("/") ?  pathInfo : pathInfo + '/';
         if (!pathInfo.equals(getExclusionPath())) {
             return false;
         }
