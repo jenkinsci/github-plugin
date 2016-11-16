@@ -7,4 +7,7 @@
     done
 )&
 
+set -ex
+set -o pipefail
+
 mvn package | grep -v '^Download'
