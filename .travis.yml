@@ -4,8 +4,9 @@ language: java
 jdk: oraclejdk8
 before_install:
  - pip install --user codecov
-script: ./travis-script.sh
 install: true
+before_script: travis_wait 45 ./mvnw install -q -U -DskipTests=true -Dmaven.test.redirectTestOutputToFile=true
+script: ./mvnw install -q -nsu -Dmaven.test.redirectTestOutputToFile=true
 after_success:
  - codecov
 cache:
