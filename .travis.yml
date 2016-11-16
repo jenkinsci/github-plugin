@@ -4,7 +4,7 @@ language: java
 jdk: oraclejdk8
 before_install:
  - pip install --user codecov
-script: mvn package | grep -v Download
+script: travis-script.sh
 install: true
 after_success:
  - codecov
