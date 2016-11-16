@@ -10,4 +10,4 @@
 set -ex
 set -o pipefail
 
-mvn package | grep -v '^Download'
+mvn -U package | grep -v '^Download'
