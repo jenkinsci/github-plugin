@@ -7,4 +7,4 @@
     done
 )&
 
-mvn package | grep -v Download
+mvn package | grep -v '^Download'
