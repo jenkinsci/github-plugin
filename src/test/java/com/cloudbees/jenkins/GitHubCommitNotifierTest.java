@@ -6,6 +6,7 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.Build;
 import hudson.model.BuildListener;
+import hudson.model.Cause;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.plugins.git.GitSCM;
@@ -96,7 +97,7 @@ public class GitHubCommitNotifierTest {
         FreeStyleProject prj = jRule.createFreeStyleProject();
         prj.setScm(new GitSCM("http://non.existent.git.repo.nowhere/repo.git"));
         prj.getPublishersList().add(new GitHubCommitNotifier());
-        Build b = prj.scheduleBuild2(0).get();
+        Build b = prj.scheduleBuild2(0, new Cause.UserIdCause(), new BuildData()).get();
         jRule.assertBuildStatus(Result.FAILURE, b);
         jRule.assertLogContains(BuildDataHelper_NoLastRevisionError(), b);
     }
