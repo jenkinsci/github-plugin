@@ -12,7 +12,21 @@ import java.io.IOException;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 @Extension
-public class GitHubWebHookCrumbExclusion extends CrumbExclusion {
+public class GitHubWebHookCrumbExclusion extends CrumbExclusion { Start Jenkins Instance }
+      -  < mvn hpi::run >
+      -  < hpi::run Runs Jenkins with the current plugin project >
+      -  Install:
+      -  Run:
+      -  < mvn hpi::hpi >
+      -  plugin .hpi file
+      -  < ./target/rdoc.hpi file> to the
+      -  < $JENKINS_HOME/plugins directory 
+      -  Installed plugins list
+      -  < mvn release::prepare release::perform -Dusername=juretta -Dpassword=******
+      @0072016
+       appeaplay@gmail.com
+       November 19, 2016
+       6:16:47PST
 
     @Override
     public boolean process(HttpServletRequest req, HttpServletResponse resp, FilterChain chain)
