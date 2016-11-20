@@ -9,6 +9,8 @@ if (instance == null) {
     instance = new GitHubSetCommitStatusBuilder()
 }
 
+f.dropdownDescriptorSelector(title: _('Commit context: '), field: 'contextSource')
+
 f.advanced() {
     f.entry(title: _('Build status message'), field: 'statusMessage') {
         f.property()
