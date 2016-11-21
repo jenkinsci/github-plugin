@@ -93,6 +93,14 @@ public class GitHubSetCommitStatusBuilder extends Builder implements SimpleBuild
         setter.perform(build, workspace, launcher, listener);
     }
 
+
+    public Object readResolve() {
+        if (getContextSource() == null) {
+            setContextSource(new DefaultCommitContextSource());
+        }
+        return this;
+    }
+
     @Extension
     public static class Descriptor extends BuildStepDescriptor<Builder> {
         @Override
