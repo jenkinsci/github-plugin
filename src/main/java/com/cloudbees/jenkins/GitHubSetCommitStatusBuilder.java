@@ -11,6 +11,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.plugins.github.common.ExpandableMessage;
+import org.jenkinsci.plugins.github.extension.status.GitHubStatusContextSource;
 import org.jenkinsci.plugins.github.extension.status.StatusErrorHandler;
 import org.jenkinsci.plugins.github.extension.status.misc.ConditionalResult;
 import org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter;
@@ -35,6 +36,7 @@ public class GitHubSetCommitStatusBuilder extends Builder implements SimpleBuild
     private static final ExpandableMessage DEFAULT_MESSAGE = new ExpandableMessage("");
 
     private ExpandableMessage statusMessage = DEFAULT_MESSAGE;
+    private GitHubStatusContextSource contextSource = new DefaultCommitContextSource();
 
     @DataBoundConstructor
     public GitHubSetCommitStatusBuilder() {
@@ -48,11 +50,27 @@ public class GitHubSetCommitStatusBuilder extends Builder implements SimpleBuild
     }
 
     /**
+     * @return Context provider
+     * @since FIXME
+     */
+    public GitHubStatusContextSource getContextSource() {
+        return contextSource;
+    }
+
+    /**
      * @since 1.14.1
      */
     @DataBoundSetter
     public void setStatusMessage(ExpandableMessage statusMessage) {
         this.statusMessage = statusMessage;
+    }
+
+    /**
+     * @since FIXME
+     */
+    @DataBoundSetter
+    public void setContextSource(GitHubStatusContextSource contextSource) {
+        this.contextSource = contextSource;
     }
 
     @Override
@@ -64,7 +82,7 @@ public class GitHubSetCommitStatusBuilder extends Builder implements SimpleBuild
         GitHubCommitStatusSetter setter = new GitHubCommitStatusSetter();
         setter.setReposSource(new AnyDefinedRepositorySource());
         setter.setCommitShaSource(new BuildDataRevisionShaSource());
-        setter.setContextSource(new DefaultCommitContextSource());
+        setter.setContextSource(contextSource);
         setter.setErrorHandlers(Collections.<StatusErrorHandler>singletonList(new ShallowAnyErrorHandler()));
 
         setter.setStatusResultSource(new ConditionalStatusResultSource(
@@ -77,6 +95,14 @@ public class GitHubSetCommitStatusBuilder extends Builder implements SimpleBuild
                 )));
 
         setter.perform(build, workspace, launcher, listener);
+    }
+
+
+    public Object readResolve() {
+        if (getContextSource() == null) {
+            setContextSource(new DefaultCommitContextSource());
+        }
+        return this;
     }
 
     @Extension
