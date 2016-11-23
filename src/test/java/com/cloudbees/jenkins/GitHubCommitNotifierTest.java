@@ -12,6 +12,7 @@ import hudson.model.Result;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.Revision;
 import hudson.plugins.git.util.BuildData;
+import hudson.util.VersionNumber;
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.test.GHMockRule;
@@ -97,7 +98,12 @@ public class GitHubCommitNotifierTest {
         FreeStyleProject prj = jRule.createFreeStyleProject();
         prj.setScm(new GitSCM("http://non.existent.git.repo.nowhere/repo.git"));
         prj.getPublishersList().add(new GitHubCommitNotifier());
-        Build b = prj.scheduleBuild2(0, new Cause.UserIdCause(), new BuildData()).get();
+        Build b = null;
+        if (jRule.getPluginManager().getPlugin("git").getVersionNumber().isNewerThan(new VersionNumber("2.4.0"))) {
+            b = prj.scheduleBuild2(0, new Cause.UserIdCause(), new BuildData()).get();
+        } else {
+            b = prj.scheduleBuild2(0).get();
+        }
         jRule.assertBuildStatus(Result.FAILURE, b);
         jRule.assertLogContains(BuildDataHelper_NoLastRevisionError(), b);
     }
