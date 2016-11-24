@@ -98,8 +98,7 @@ public class GitHubCommitNotifierTest {
         FreeStyleProject prj = jRule.createFreeStyleProject();
         prj.setScm(new GitSCM("http://non.existent.git.repo.nowhere/repo.git"));
         prj.getPublishersList().add(new GitHubCommitNotifier());
-        Build b = null;
-        b = safelyGenerateBuild(prj);
+        Build b = safelyGenerateBuild(prj);
         jRule.assertBuildStatus(Result.FAILURE, b);
         jRule.assertLogContains(BuildDataHelper_NoLastRevisionError(), b);
     }
