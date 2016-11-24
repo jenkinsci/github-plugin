@@ -46,9 +46,8 @@ public class ExpandableMessageTest {
         ));
 
         FreeStyleProject job = jRule.createFreeStyleProject();
-        ParameterDefinition paramDef = new StringParameterDefinition(CUSTOM_BUILD_PARAM, "", "");
-        ParametersDefinitionProperty paramsDef = new ParametersDefinitionProperty(paramDef);
-        job.addProperty(paramsDef);
+        // Needed due to SECURITY-170
+        handleSecurity170(job);
         job.getBuildersList().add(expander);
 
         job.scheduleBuild2(0, new ParametersAction(new StringParameterValue(CUSTOM_BUILD_PARAM, CUSTOM_PARAM_VAL)))
@@ -58,12 +57,22 @@ public class ExpandableMessageTest {
                 startsWith(format(MSG_FORMAT, job.getFullName(), CUSTOM_PARAM_VAL, job.getFullName())));
     }
 
+
     public static String asVar(String name) {
         return format("${%s}", name);
     }
 
     public static String asTokenVar(String name) {
         return format(DEFAULT_TOKEN_TEMPLATE, name);
+    }
+
+    private static void handleSecurity170(FreeStyleProject job) throws IOException {
+        ParametersActionHelper parametersActionHelper = new ParametersActionHelper();
+        if (parametersActionHelper.getAbletoInspect() && parametersActionHelper.getHasSafeParameterConfig()) {
+            ParameterDefinition paramDef = new StringParameterDefinition(CUSTOM_BUILD_PARAM, "", "");
+            ParametersDefinitionProperty paramsDef = new ParametersDefinitionProperty(paramDef);
+            job.addProperty(paramsDef);
+        }
     }
 
     private static class MessageExpander extends TestBuilder {
