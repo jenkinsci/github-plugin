@@ -98,6 +98,7 @@ public class GitHubCommitNotifierTest {
         FreeStyleProject prj = jRule.createFreeStyleProject();
         prj.setScm(new GitSCM("http://non.existent.git.repo.nowhere/repo.git"));
         prj.getPublishersList().add(new GitHubCommitNotifier());
+        //Git plugin 2.4.1 + does not include BuildData if checkout fails, so we add it if needed
         Build b = safelyGenerateBuild(prj);
         jRule.assertBuildStatus(Result.FAILURE, b);
         jRule.assertLogContains(BuildDataHelper_NoLastRevisionError(), b);
@@ -142,7 +143,6 @@ public class GitHubCommitNotifierTest {
     }
 
     private Build safelyGenerateBuild(FreeStyleProject prj) throws InterruptedException, java.util.concurrent.ExecutionException {
-        //Git plugin 2.4.1 + does not include BuildData if checkout fails, so we add it if needed
         Build b;
         if (jRule.getPluginManager().getPlugin("git").getVersionNumber().isNewerThan(new VersionNumber("2.4.0"))) {
             b = prj.scheduleBuild2(0, new Cause.UserIdCause(), new BuildData()).get();

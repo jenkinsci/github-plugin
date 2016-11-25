@@ -46,7 +46,10 @@ public class ExpandableMessageTest {
         ));
 
         FreeStyleProject job = jRule.createFreeStyleProject();
-        // Needed due to SECURITY-170
+        //Due to SECURITY-170 (jenkins versions 1.651.2+ and 2.3+) only build parameters that have been
+        //explicitly defined in a job's configuration will be available by default at build time. So if
+        //the test is running on such environment the appropriate parameter definitions must be added to
+        // the job
         handleSecurity170(job);
         job.getBuildersList().add(expander);
 
