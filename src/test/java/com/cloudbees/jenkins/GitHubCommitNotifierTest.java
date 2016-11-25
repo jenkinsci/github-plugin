@@ -6,11 +6,13 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.Build;
 import hudson.model.BuildListener;
+import hudson.model.Cause;
 import hudson.model.FreeStyleProject;
 import hudson.model.Result;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.Revision;
 import hudson.plugins.git.util.BuildData;
+import hudson.util.VersionNumber;
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.test.GHMockRule;
@@ -96,7 +98,8 @@ public class GitHubCommitNotifierTest {
         FreeStyleProject prj = jRule.createFreeStyleProject();
         prj.setScm(new GitSCM("http://non.existent.git.repo.nowhere/repo.git"));
         prj.getPublishersList().add(new GitHubCommitNotifier());
-        Build b = prj.scheduleBuild2(0).get();
+        //Git plugin 2.4.1 + does not include BuildData if checkout fails, so we add it if needed
+        Build b = safelyGenerateBuild(prj);
         jRule.assertBuildStatus(Result.FAILURE, b);
         jRule.assertLogContains(BuildDataHelper_NoLastRevisionError(), b);
     }
@@ -137,6 +140,16 @@ public class GitHubCommitNotifierTest {
         prj.scheduleBuild2(0).get();
 
         github.service().verify(1, postRequestedFor(urlPathMatching(".*/" + SOME_SHA)));
+    }
+
+    private Build safelyGenerateBuild(FreeStyleProject prj) throws InterruptedException, java.util.concurrent.ExecutionException {
+        Build b;
+        if (jRule.getPluginManager().getPlugin("git").getVersionNumber().isNewerThan(new VersionNumber("2.4.0"))) {
+            b = prj.scheduleBuild2(0, new Cause.UserIdCause(), new BuildData()).get();
+        } else {
+            b = prj.scheduleBuild2(0).get();
+        }
+        return b;
     }
 
     @TestExtension
