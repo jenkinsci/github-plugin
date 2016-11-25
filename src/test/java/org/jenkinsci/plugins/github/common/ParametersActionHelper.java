@@ -16,6 +16,8 @@ public class ParametersActionHelper {
 
     private boolean hasSafeParameterConfig = false;
     private boolean abletoInspect = true;
+    private static final String UNDEFINED_PARAMETERS_FIELD_NAME = "KEEP_UNDEFINED_PARAMETERS_SYSTEM_PROPERTY_NAME";
+    private static final String SAFE_PARAMETERS_FIELD_NAME = "SAFE_PARAMETERS_SYSTEM_PROPERTY_NAME";
 
     public ParametersActionHelper() {
         try {
@@ -50,8 +52,8 @@ public class ParametersActionHelper {
 
     private boolean isSafeParamsField(Field field) {
         String fieldName = field.getName();
-        return fieldName.equals("KEEP_UNDEFINED_PARAMETERS_SYSTEM_PROPERTY_NAME")
-                                                 || fieldName.equals("SAFE_PARAMETERS_SYSTEM_PROPERTY_NAME");
+        return UNDEFINED_PARAMETERS_FIELD_NAME.equals(fieldName)
+                                                 || SAFE_PARAMETERS_FIELD_NAME.equals(fieldName);
     }
 
 
