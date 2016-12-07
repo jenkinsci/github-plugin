@@ -57,6 +57,9 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
     /**
      * Looks at the definition of {@link Item} and list up the related github repositories,
      * then puts them into the collection.
+     * @param item the item.
+     * @param result the collection to add repository names to
+     * @since FIXME
      */
     @SuppressWarnings("deprecation")
     public /*abstract*/ void parseAssociatedNames(Item item, Collection<GitHubRepositoryName> result) {

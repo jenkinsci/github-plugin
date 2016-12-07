@@ -27,6 +27,8 @@ import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.migration.Migrator;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.slf4j.Logger;
@@ -377,6 +379,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
          * @since TODO
          */
         @SuppressWarnings("unused")
+        @Restricted(NoExternalUse.class) // invoked from Stapler
         public FormValidation doCheckHookRegistered(@AncestorInPath Item job) {
             Preconditions.checkNotNull(job, "Item can't be null if wants to check hook in monitor");
 

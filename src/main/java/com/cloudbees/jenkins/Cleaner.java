@@ -40,6 +40,7 @@ public class Cleaner extends PeriodicWork {
      * Called when a {@link GitHubPushTrigger} is about to be removed.
      * @deprecated use {@link #onStop(Item)}
      */
+    @Deprecated
     /* package */ void onStop(Item item) {
         cleanQueue.addAll(GitHubRepositoryNameContributor.parseAssociatedNames(item));
     }

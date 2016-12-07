@@ -8,6 +8,7 @@ import hudson.model.Item;
 import hudson.model.Job;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import javax.annotation.CheckForNull;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
@@ -35,6 +36,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  */
 public abstract class GHEventsSubscriber implements ExtensionPoint {
     private static final Logger LOGGER = LoggerFactory.getLogger(GHEventsSubscriber.class);
+    @CheckForNull
     private transient Boolean hasIsApplicableItem;
 
     /**
