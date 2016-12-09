@@ -103,6 +103,7 @@ public final class JobInfoHelpers {
      * @param <T>    type of trigger
      *
      * @return Trigger instance with required class or null
+     * @since FIXME
      * TODO use standard method in 1.621+
      */
     @CheckForNull

@@ -124,11 +124,11 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
     @Extension
     public static class FromSCM extends GitHubRepositoryNameContributor {
         @Override
-        public void parseAssociatedNames(Item job, Collection<GitHubRepositoryName> result) {
-            SCMTriggerItem item = SCMTriggerItems.asSCMTriggerItem(job);
-            EnvVars envVars = job instanceof Job ? buildEnv((Job) job) : new EnvVars();
-            if (item != null) {
-                for (SCM scm : item.getSCMs()) {
+        public void parseAssociatedNames(Item item, Collection<GitHubRepositoryName> result) {
+            SCMTriggerItem triggerItem = SCMTriggerItems.asSCMTriggerItem(item);
+            EnvVars envVars = item instanceof Job ? buildEnv((Job) item) : new EnvVars();
+            if (triggerItem != null) {
+                for (SCM scm : triggerItem.getSCMs()) {
                     addRepositories(scm, envVars, result);
                 }
             }

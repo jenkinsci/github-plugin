@@ -370,20 +370,20 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         }
 
         /**
-         * Checks that repo defined in this job is not in administrative monitor as failed to be registered.
+         * Checks that repo defined in this item is not in administrative monitor as failed to be registered.
          * If that so, shows warning with some instructions
          *
-         * @param job - to check against. Should be not null and have at least one repo defined
+         * @param item - to check against. Should be not null and have at least one repo defined
          *
          * @return warning or empty string
          * @since TODO
          */
         @SuppressWarnings("unused")
         @Restricted(NoExternalUse.class) // invoked from Stapler
-        public FormValidation doCheckHookRegistered(@AncestorInPath Item job) {
-            Preconditions.checkNotNull(job, "Item can't be null if wants to check hook in monitor");
+        public FormValidation doCheckHookRegistered(@AncestorInPath Item item) {
+            Preconditions.checkNotNull(item, "Item can't be null if wants to check hook in monitor");
 
-            Collection<GitHubRepositoryName> repos = GitHubRepositoryNameContributor.parseAssociatedNames(job);
+            Collection<GitHubRepositoryName> repos = GitHubRepositoryNameContributor.parseAssociatedNames(item);
 
             for (GitHubRepositoryName repo : repos) {
                 if (monitor.isProblemWith(repo)) {
