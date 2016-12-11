@@ -51,7 +51,7 @@ public class GitHubSetCommitStatusBuilder extends Builder implements SimpleBuild
 
     /**
      * @return Context provider
-     * @since FIXME
+     * @since 1.24.0
      */
     public GitHubStatusContextSource getContextSource() {
         return contextSource;
@@ -66,7 +66,7 @@ public class GitHubSetCommitStatusBuilder extends Builder implements SimpleBuild
     }
 
     /**
-     * @since FIXME
+     * @since 1.24.0
      */
     @DataBoundSetter
     public void setContextSource(GitHubStatusContextSource contextSource) {

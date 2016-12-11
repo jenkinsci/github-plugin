@@ -101,7 +101,7 @@ public class WebhookManager {
      *
      * @return runnable to create hooks on run
      * @see #createHookSubscribedTo(List)
-     * @since FIXME
+     * @since 1.25.0
      */
     public Runnable registerFor(final Item item) {
         final Collection<GitHubRepositoryName> names = parseAssociatedNames(item);
