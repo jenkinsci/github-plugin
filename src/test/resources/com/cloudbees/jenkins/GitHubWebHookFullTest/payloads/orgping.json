@@ -1,0 +1,52 @@
+{
+  "zen": "Mind your words, they are important.",
+  "hook_id": 5926787,
+  "hook": {
+    "url": "https://api.github.com/orgs/cloudbeers/hooks/5926787",
+    "ping_url": "https://api.github.com/orgs/cloudbeers/hooks/5926787/pings",
+    "id": 5926787,
+    "name": "web",
+    "active": true,
+    "events": [
+      "*"
+    ],
+    "config": {
+      "url": "https://jenkins.ci.cloudbees.com/github-webhook/",
+      "content_type": "json",
+      "insecure_ssl": "0",
+      "secret": ""
+    },
+    "updated_at": "2015-09-24T10:13:54Z",
+    "created_at": "2015-09-24T10:13:54Z"
+  },
+  "organization": {
+    "login": "cloudbeers",
+    "id": 4181899,
+    "url": "https://api.github.com/orgs/cloudbeers",
+    "repos_url": "https://api.github.com/orgs/cloudbeers/repos",
+    "events_url": "https://api.github.com/orgs/cloudbeers/events",
+    "members_url": "https://api.github.com/orgs/cloudbeers/members{/member}",
+    "public_members_url": "https://api.github.com/orgs/cloudbeers/public_members{/member}",
+    "avatar_url": "https://avatars.githubusercontent.com/u/4181899?v=3",
+    "description": null
+  },
+  "sender": {
+    "login": "jglick",
+    "id": 154109,
+    "avatar_url": "https://avatars.githubusercontent.com/u/154109?v=3",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/jglick",
+    "html_url": "https://github.com/jglick",
+    "followers_url": "https://api.github.com/users/jglick/followers",
+    "following_url": "https://api.github.com/users/jglick/following{/other_user}",
+    "gists_url": "https://api.github.com/users/jglick/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/jglick/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/jglick/subscriptions",
+    "organizations_url": "https://api.github.com/users/jglick/orgs",
+    "repos_url": "https://api.github.com/users/jglick/repos",
+    "events_url": "https://api.github.com/users/jglick/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/jglick/received_events",
+    "type": "User",
+    "site_admin": false
+  }
+}
