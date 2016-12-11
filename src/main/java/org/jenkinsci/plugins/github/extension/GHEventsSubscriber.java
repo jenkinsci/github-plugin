@@ -64,7 +64,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      * @param item to check
      *
      * @return {@code true} to provide events to register and subscribe for this item
-     * @since FIXME
+     * @since 1.25.0
      */
     protected abstract boolean isApplicable(@Nullable Item item);
 
@@ -166,7 +166,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      *
      * @return predicate to use in iterable filtering
      * @see #isApplicable
-     * @since FIXME
+     * @since 1.25.0
      */
     public static Predicate<GHEventsSubscriber> isApplicableFor(final Item item) {
         return new NullSafePredicate<GHEventsSubscriber>() {

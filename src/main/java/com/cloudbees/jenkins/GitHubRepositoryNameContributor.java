@@ -59,7 +59,7 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
      * then puts them into the collection.
      * @param item the item.
      * @param result the collection to add repository names to
-     * @since FIXME
+     * @since 1.25.0
      */
     @SuppressWarnings("deprecation")
     public /*abstract*/ void parseAssociatedNames(Item item, Collection<GitHubRepositoryName> result) {

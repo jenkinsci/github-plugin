@@ -84,7 +84,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
      * {@code GitHubWebHook.get().registerHookFor(item);}
      *
      * @param item not null item to register hook for
-     * @since FIXME
+     * @since 1.25.0
      */
     public void registerHookFor(Item item) {
         reRegisterHookForJob().apply(item);
