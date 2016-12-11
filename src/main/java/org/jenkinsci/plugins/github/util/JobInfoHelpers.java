@@ -5,6 +5,8 @@ import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import hudson.model.AbstractProject;
+import hudson.model.BuildableItem;
+import hudson.model.Item;
 import hudson.model.Job;
 import hudson.triggers.Trigger;
 import jenkins.model.ParameterizedJobMixIn;
@@ -33,10 +35,10 @@ public final class JobInfoHelpers {
      *
      * @return predicate with true on apply if job contains trigger of given class
      */
-    public static Predicate<Job> withTrigger(final Class<? extends Trigger> clazz) {
-        return new Predicate<Job>() {
-            public boolean apply(Job job) {
-                return triggerFrom(job, clazz) != null;
+    public static <ITEM extends Item> Predicate<ITEM> withTrigger(final Class<? extends Trigger> clazz) {
+        return new Predicate<ITEM>() {
+            public boolean apply(Item item) {
+                return triggerFrom(item, clazz) != null;
             }
         };
     }
@@ -44,12 +46,12 @@ public final class JobInfoHelpers {
     /**
      * Can be useful to ignore disabled jobs on reregistering hooks
      *
-     * @return predicate with true on apply if job is buildable
+     * @return predicate with true on apply if item is buildable
      */
-    public static Predicate<Job> isBuildable() {
-        return new Predicate<Job>() {
-            public boolean apply(Job job) {
-                return job != null && job.isBuildable();
+    public static <ITEM extends Item> Predicate<ITEM> isBuildable() {
+        return new Predicate<ITEM>() {
+            public boolean apply(ITEM item) {
+                return item instanceof Job ? ((Job<?, ?>) item).isBuildable() : item instanceof BuildableItem;
             }
         };
     }
@@ -57,25 +59,25 @@ public final class JobInfoHelpers {
     /**
      * @return function which helps to convert job to repo names associated with this job
      */
-    public static Function<Job, Collection<GitHubRepositoryName>> associatedNames() {
-        return new Function<Job, Collection<GitHubRepositoryName>>() {
-            public Collection<GitHubRepositoryName> apply(Job job) {
-                return GitHubRepositoryNameContributor.parseAssociatedNames(job);
+    public static <ITEM extends Item> Function<ITEM, Collection<GitHubRepositoryName>> associatedNames() {
+        return new Function<ITEM, Collection<GitHubRepositoryName>>() {
+            public Collection<GitHubRepositoryName> apply(ITEM item) {
+                return GitHubRepositoryNameContributor.parseAssociatedNames(item);
             }
         };
     }
 
     /**
-     * If any of event subscriber interested in hook for job, then return true
+     * If any of event subscriber interested in hook for item, then return true
      * By default, push hook subscriber is interested in job with gh-push-trigger
      *
-     * @return predicate with true if job alive and should have hook
+     * @return predicate with true if item alive and should have hook
      */
-    public static Predicate<Job> isAlive() {
-        return new Predicate<Job>() {
+    public static <ITEM extends Item> Predicate<ITEM> isAlive() {
+        return new Predicate<ITEM>() {
             @Override
-            public boolean apply(Job job) {
-                return !from(GHEventsSubscriber.all()).filter(isApplicableFor(job)).toList().isEmpty();
+            public boolean apply(ITEM item) {
+                return !from(GHEventsSubscriber.all()).filter(isApplicableFor(item)).toList().isEmpty();
             }
         };
     }
@@ -87,11 +89,27 @@ public final class JobInfoHelpers {
      *
      * @return Trigger instance with required class or null
      * TODO use standard method in 1.621+
+     * @deprecated use {@link #triggerFrom(Item, Class)}
      */
+    @Deprecated
     @CheckForNull
     public static <T extends Trigger> T triggerFrom(Job<?, ?> job, Class<T> tClass) {
-        if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
-            ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) job;
+        return triggerFrom((Item) job, tClass);
+    }
+
+    /**
+     * @param item    job to search trigger in
+     * @param tClass trigger with class which we want to receive from job
+     * @param <T>    type of trigger
+     *
+     * @return Trigger instance with required class or null
+     * @since FIXME
+     * TODO use standard method in 1.621+
+     */
+    @CheckForNull
+    public static <T extends Trigger> T triggerFrom(Item item, Class<T> tClass) {
+        if (item instanceof ParameterizedJobMixIn.ParameterizedJob) {
+            ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) item;
 
             for (Trigger candidate : pJob.getTriggers().values()) {
                 if (tClass.isInstance(candidate)) {

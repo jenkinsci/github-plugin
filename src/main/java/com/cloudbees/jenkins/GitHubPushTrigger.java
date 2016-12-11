@@ -27,6 +27,8 @@ import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.migration.Migrator;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.slf4j.Logger;
@@ -368,19 +370,20 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         }
 
         /**
-         * Checks that repo defined in this job is not in administrative monitor as failed to be registered.
+         * Checks that repo defined in this item is not in administrative monitor as failed to be registered.
          * If that so, shows warning with some instructions
          *
-         * @param job - to check against. Should be not null and have at least one repo defined
+         * @param item - to check against. Should be not null and have at least one repo defined
          *
          * @return warning or empty string
          * @since 1.17.0
          */
         @SuppressWarnings("unused")
-        public FormValidation doCheckHookRegistered(@AncestorInPath Job<?, ?> job) {
-            Preconditions.checkNotNull(job, "Job can't be null if wants to check hook in monitor");
+        @Restricted(NoExternalUse.class) // invoked from Stapler
+        public FormValidation doCheckHookRegistered(@AncestorInPath Item item) {
+            Preconditions.checkNotNull(item, "Item can't be null if wants to check hook in monitor");
 
-            Collection<GitHubRepositoryName> repos = GitHubRepositoryNameContributor.parseAssociatedNames(job);
+            Collection<GitHubRepositoryName> repos = GitHubRepositoryNameContributor.parseAssociatedNames(item);
 
             for (GitHubRepositoryName repo : repos) {
                 if (monitor.isProblemWith(repo)) {

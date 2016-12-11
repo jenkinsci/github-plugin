@@ -80,6 +80,16 @@ public abstract class FluentIterableWrapper<E> implements Iterable<E> {
     }
 
     /**
+     * Returns the elements from this fluent iterable that are instances of the supplied type. The
+     * resulting fluent iterable's iterator does not support {@code remove()}.
+     * @since FIXME
+     */
+    @CheckReturnValue
+    public final <F extends E> FluentIterableWrapper<F> filter(Class<F> clazz) {
+        return from(Iterables.filter(iterable, clazz));
+    }
+
+    /**
      * Returns a fluent iterable that applies {@code function} to each element of this
      * fluent iterable.
      *
