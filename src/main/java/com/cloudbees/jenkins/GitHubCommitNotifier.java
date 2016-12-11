@@ -1,145 +1,169 @@
 package com.cloudbees.jenkins;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Launcher;
-import hudson.Util;
-import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.model.Describable;
-import hudson.model.Descriptor;
 import hudson.model.Result;
-import hudson.plugins.git.GitSCM;
-import hudson.plugins.git.util.BuildData;
-import hudson.scm.SCM;
+import hudson.model.Run;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.transport.RemoteConfig;
-import org.eclipse.jgit.transport.URIish;
-import org.jvnet.localizer.Localizable;
-import org.kohsuke.github.GHCommitState;
-import org.kohsuke.github.GHPullRequest;
-import org.kohsuke.github.GHRepository;
-import org.kohsuke.github.GitHub;
-import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.io.IOException;
-
-import static hudson.model.Result.*;
-import hudson.plugins.git.Revision;
 import hudson.util.ListBoxModel;
+import jenkins.tasks.SimpleBuildStep;
+import org.jenkinsci.plugins.github.common.ExpandableMessage;
+import org.jenkinsci.plugins.github.extension.status.StatusErrorHandler;
+import org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter;
+import org.jenkinsci.plugins.github.status.err.ChangingBuildStatusErrorHandler;
+import org.jenkinsci.plugins.github.status.err.ShallowAnyErrorHandler;
+import org.jenkinsci.plugins.github.status.sources.AnyDefinedRepositorySource;
+import org.jenkinsci.plugins.github.status.sources.BuildDataRevisionShaSource;
+import org.jenkinsci.plugins.github.status.sources.ConditionalStatusResultSource;
+import org.jenkinsci.plugins.github.status.sources.DefaultCommitContextSource;
+import org.jenkinsci.plugins.github.status.sources.DefaultStatusResultSource;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
+import org.kohsuke.github.GHCommitState;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.Nonnull;
-import org.jenkinsci.plugins.github.util.BuildDataHelper;
+import java.io.IOException;
+import java.util.Collections;
+
+import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_DisplayName;
+import static com.google.common.base.Objects.firstNonNull;
+import static hudson.model.Result.FAILURE;
+import static hudson.model.Result.SUCCESS;
+import static hudson.model.Result.UNSTABLE;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult.onAnyResult;
+import static org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult.betterThanOrEqualTo;
 
 /**
  * Create commit status notifications on the commits based on the outcome of the build.
  *
  * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
- * @since TODO: define a version Result on failure is configurable.
  */
-public class GitHubCommitNotifier extends Notifier {
+public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
+    private static final ExpandableMessage DEFAULT_MESSAGE = new ExpandableMessage("");
+
+    private ExpandableMessage statusMessage = DEFAULT_MESSAGE;
 
     private final String resultOnFailure;
     private static final Result[] SUPPORTED_RESULTS = {FAILURE, UNSTABLE, SUCCESS};
-    
-    @DataBoundConstructor
-    public GitHubCommitNotifier(String resultOnFailure) {
-        this.resultOnFailure = resultOnFailure;
-    }
-    
-    @Deprecated
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitHubCommitNotifier.class);
+
+    @Restricted(NoExternalUse.class)
     public GitHubCommitNotifier() {
         this(getDefaultResultOnFailure().toString());
     }
 
-    public @Nonnull String getResultOnFailure() {
+    /**
+     * @since 1.10
+     */
+    @DataBoundConstructor
+    public GitHubCommitNotifier(String resultOnFailure) {
+        this.resultOnFailure = resultOnFailure;
+    }
+
+    /**
+     * @since 1.14.1
+     */
+    public ExpandableMessage getStatusMessage() {
+        return statusMessage;
+    }
+
+    /**
+     * @since 1.14.1
+     */
+    @DataBoundSetter
+    public void setStatusMessage(ExpandableMessage statusMessage) {
+        this.statusMessage = statusMessage;
+    }
+
+    /**
+     * @since 1.10
+     */
+    @Nonnull
+    public String getResultOnFailure() {
         return resultOnFailure != null ? resultOnFailure : getDefaultResultOnFailure().toString();
     }
-     
-    public static @Nonnull Result getDefaultResultOnFailure() {
-        return SUPPORTED_RESULTS[0];
+
+    @Nonnull
+    public static Result getDefaultResultOnFailure() {
+        return FAILURE;
     }
-    
-    /*package*/ @Nonnull Result getEffectiveResultOnFailure() {
-        if (resultOnFailure == null) {
-            return getDefaultResultOnFailure();
-        }
-        
-        for (Result result : SUPPORTED_RESULTS) {
-            if (result.toString().equals(resultOnFailure)) return result;
-        }
-        return getDefaultResultOnFailure();
+
+    @Nonnull
+    /*package*/ Result getEffectiveResultOnFailure() {
+        return Result.fromString(trimToEmpty(resultOnFailure));
     }
-    
+
+    @Override
     public BuildStepMonitor getRequiredMonitorService() {
         return BuildStepMonitor.NONE;
     }
 
     @Override
-    public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        try {
-            updateCommitStatus(build, listener);
-            return true;
-        } catch (IOException error) {
-            final Result buildResult = getEffectiveResultOnFailure();
-            if (buildResult.equals(Result.FAILURE)) {
-                throw error;
-            } else {
-                listener.error("[GitHub Commit Notifier] - " + error.getMessage());
-                if (buildResult.isWorseThan(build.getResult())) {
-                    listener.getLogger().println("[GitHub Commit Notifier] - Build result will be set to " + buildResult);
-                    build.setResult(buildResult);
-                }
-            }
+    public void perform(@NonNull Run<?, ?> build,
+                        @NonNull FilePath ws,
+                        @NonNull Launcher launcher,
+                        @NonNull TaskListener listener) throws InterruptedException, IOException {
+
+        GitHubCommitStatusSetter setter = new GitHubCommitStatusSetter();
+        setter.setReposSource(new AnyDefinedRepositorySource());
+        setter.setCommitShaSource(new BuildDataRevisionShaSource());
+        setter.setContextSource(new DefaultCommitContextSource());
+
+
+        String content = firstNonNull(statusMessage, DEFAULT_MESSAGE).getContent();
+
+        if (isNotBlank(content)) {
+            setter.setStatusResultSource(new ConditionalStatusResultSource(
+                    asList(
+                            betterThanOrEqualTo(SUCCESS, GHCommitState.SUCCESS, content),
+                            betterThanOrEqualTo(UNSTABLE, GHCommitState.FAILURE, content),
+                            betterThanOrEqualTo(FAILURE, GHCommitState.ERROR, content),
+                            onAnyResult(GHCommitState.PENDING, content)
+                    )));
+        } else {
+            setter.setStatusResultSource(new DefaultStatusResultSource());
         }
-        return true;
-    }
-        
-    private void updateCommitStatus(@Nonnull AbstractBuild<?, ?> build, @Nonnull BuildListener listener) throws InterruptedException, IOException {       
-        final String sha1 = ObjectId.toString(BuildDataHelper.getCommitSHA1(build));  
-        for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(build.getProject())) {
-            for (GHRepository repository : name.resolve()) {
-                GHCommitState state;
-                String msg;
 
-                // We do not use `build.getDurationString()` because it appends 'and counting' (build is still running)
-                final String duration = Util.getTimeSpanString(System.currentTimeMillis() - build.getTimeInMillis());
-
-                Result result = build.getResult();
-                if (result == null) { // Build is ongoing
-                    state = GHCommitState.PENDING;
-                    msg = Messages.CommitNotifier_Pending(build.getDisplayName());
-                } else if (result.isBetterOrEqualTo(SUCCESS)) {
-                    state = GHCommitState.SUCCESS;
-                    msg = Messages.CommitNotifier_Success(build.getDisplayName(), duration);
-                } else if (result.isBetterOrEqualTo(UNSTABLE)) {
-                    state = GHCommitState.FAILURE;
-                    msg = Messages.CommitNotifier_Unstable(build.getDisplayName(), duration);
-                } else {
-                    state = GHCommitState.ERROR;
-                    msg = Messages.CommitNotifier_Failed(build.getDisplayName(), duration);
-                }
-
-                listener.getLogger().println(Messages.GitHubCommitNotifier_SettingCommitStatus(repository.getUrl() + "/commit/" + sha1));
-                repository.createCommitStatus(sha1, state, build.getAbsoluteUrl(), msg);
-            }
+        if (getEffectiveResultOnFailure().equals(SUCCESS)) {
+            setter.setErrorHandlers(Collections.<StatusErrorHandler>singletonList(new ShallowAnyErrorHandler()));
+        } else if (resultOnFailure == null) {
+            setter.setErrorHandlers(null);
+        } else {
+            setter.setErrorHandlers(Collections.<StatusErrorHandler>singletonList(
+                    new ChangingBuildStatusErrorHandler(getEffectiveResultOnFailure().toString())));
         }
+
+        setter.perform(build, ws, launcher, listener);
     }
 
     @Extension
     public static class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
+        @Override
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             return true;
         }
 
+        @Override
         public String getDisplayName() {
-            return "Set build status on GitHub commit";
+            return GitHubCommitNotifier_DisplayName();
         }
-        
+
         public ListBoxModel doFillResultOnFailureItems() {
             ListBoxModel items = new ListBoxModel();
             for (Result result : SUPPORTED_RESULTS) {
@@ -148,5 +172,4 @@ public class GitHubCommitNotifier extends Notifier {
             return items;
         }
     }
-
 }

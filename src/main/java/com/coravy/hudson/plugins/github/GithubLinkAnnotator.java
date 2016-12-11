@@ -3,10 +3,12 @@ package com.coravy.hudson.plugins.github;
 import hudson.Extension;
 import hudson.MarkupText;
 import hudson.MarkupText.SubText;
-import hudson.model.AbstractBuild;
+import hudson.model.Run;
 import hudson.plugins.git.GitChangeSet;
 import hudson.scm.ChangeLogAnnotator;
 import hudson.scm.ChangeLogSet.Entry;
+
+import static java.lang.String.format;
 
 import java.util.regex.Pattern;
 
@@ -15,21 +17,20 @@ import java.util.regex.Pattern;
  * <p>
  * It's based on the TracLinkAnnotator.
  * <p>
- * 
- * @todo Change the annotator to use GithubUrl instead of the String url.
- *       Knowledge about the github url structure should be encapsulated in
- *       GithubUrl.
+ *
  * @author Stefan Saasen <stefan@coravy.com>
+ * @todo Change the annotator to use GithubUrl instead of the String url.
+ * Knowledge about the github url structure should be encapsulated in
+ * GithubUrl.
  */
 @Extension
 public class GithubLinkAnnotator extends ChangeLogAnnotator {
 
     @Override
-    public void annotate(AbstractBuild<?, ?> build, Entry change,
-            MarkupText text) {
-        final GithubProjectProperty p = build.getProject().getProperty(
+    public void annotate(Run<?, ?> build, Entry change, MarkupText text) {
+        final GithubProjectProperty p = build.getParent().getProperty(
                 GithubProjectProperty.class);
-        if (null == p || null == p.getProjectUrl()) {
+        if (null == p) {
             return;
         }
         annotate(p.getProjectUrl(), text, change);
@@ -40,10 +41,13 @@ public class GithubLinkAnnotator extends ChangeLogAnnotator {
         for (LinkMarkup markup : MARKUPS) {
             markup.process(text, base);
         }
-        
-        if(change instanceof GitChangeSet) {
-            GitChangeSet cs = (GitChangeSet)change;
-            text.wrapBy("", " (<a href='"+url.commitId(cs.getId())+"'>commit: "+cs.getId()+"</a>)");
+
+        if (change instanceof GitChangeSet) {
+            GitChangeSet cs = (GitChangeSet) change;
+            final String id = cs.getId();
+            text.wrapBy("", format(" (<a href='%s'>commit: %s</a>)",
+                                   url.commitId(id),
+                                   id.substring(0, Math.min(id.length(), 7))));
         }
     }
 
@@ -71,7 +75,7 @@ public class GithubLinkAnnotator extends ChangeLogAnnotator {
                 .compile("ANYWORD");
     }
 
-    private static final LinkMarkup[] MARKUPS = new LinkMarkup[] { new LinkMarkup(
+    private static final LinkMarkup[] MARKUPS = new LinkMarkup[]{new LinkMarkup(
             "(?:C|c)lose(?:s?)\\s(?<!\\:)(?:#)NUM", // "Closes #123"
-            "issues/$1/find") };
+            "issues/$1/find")};
 }
