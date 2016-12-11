@@ -3,7 +3,9 @@ package com.cloudbees.jenkins;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractProject;
+import hudson.model.Job;
 import hudson.triggers.Trigger;
+import jenkins.model.ParameterizedJobMixIn;
 
 import java.util.Collection;
 import java.util.Set;
@@ -17,10 +19,11 @@ import java.util.Set;
 public interface GitHubTrigger {
 
     @Deprecated
-    public void onPost();
+    void onPost();
 
     // TODO: document me
-    public void onPost(String triggeredByUser);
+    void onPost(String triggeredByUser);
+
     /**
      * Obtains the list of the repositories that this trigger is looking at.
      *
@@ -32,21 +35,24 @@ public interface GitHubTrigger {
      * Alternatively, if the implementation doesn't worry about the backward compatibility, it can
      * implement this method to return an empty collection, then just implement {@link GitHubRepositoryNameContributor}.
      *
-     * @deprecated
-     *      Call {@link GitHubRepositoryNameContributor#parseAssociatedNames(AbstractProject)} instead.
+     * @deprecated Call {@link GitHubRepositoryNameContributor#parseAssociatedNames(AbstractProject)} instead.
      */
-    public Set<GitHubRepositoryName> getGitHubRepositories();
+    Set<GitHubRepositoryName> getGitHubRepositories();
 
     /**
      * Contributes {@link GitHubRepositoryName} from {@link GitHubTrigger#getGitHubRepositories()}
      * for backward compatibility
      */
     @Extension
-    public static class GitHubRepositoryNameContributorImpl extends GitHubRepositoryNameContributor {
+    class GitHubRepositoryNameContributorImpl extends GitHubRepositoryNameContributor {
         @Override
-        public void parseAssociatedNames(AbstractProject<?, ?> job, Collection<GitHubRepositoryName> result) {
-            for (GitHubTrigger ght : Util.filter(job.getTriggers().values(),GitHubTrigger.class)) {
-                result.addAll(ght.getGitHubRepositories());
+        public void parseAssociatedNames(Job<?, ?> job, Collection<GitHubRepositoryName> result) {
+            if (job instanceof ParameterizedJobMixIn.ParameterizedJob) {
+                ParameterizedJobMixIn.ParameterizedJob p = (ParameterizedJobMixIn.ParameterizedJob) job;
+                // TODO use standard method in 1.621+
+                for (GitHubTrigger ght : Util.filter(p.getTriggers().values(), GitHubTrigger.class)) {
+                    result.addAll(ght.getGitHubRepositories());
+                }
             }
         }
     }

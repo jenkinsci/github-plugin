@@ -1,0 +1,26 @@
+.gh-page {
+  td, th {
+    padding: {
+      left: 25px;
+      top: 5px;
+      bottom: 5px;
+    }
+  }
+}
+
+.repo-table__header {
+  text-transform: uppercase;
+}
+
+.repo-line {
+
+  &__title {
+    font-weight: bold;
+  }
+
+  &__msg {
+    font-family: monospace;
+    word-break: break-all;
+  }
+
+}
