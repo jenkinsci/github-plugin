@@ -275,7 +275,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
         @Override
         public String getDisplayName() {
-            return "Build when a change is pushed to GitHub";
+            return "GitHub hook trigger for GITScm polling";
         }
 
         /**
