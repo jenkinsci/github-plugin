@@ -178,7 +178,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     @SuppressWarnings("unused")
     public FormValidation doReRegister() {
         if (!GitHubPlugin.configuration().isManageHooks()) {
-            return FormValidation.warning("Works only when Jenkins manages hooks (one ore more creds specified)");
+            return FormValidation.warning("Works only when Jenkins manages hooks (one or more creds specified)");
         }
 
         List<Item> registered = GitHubWebHook.get().reRegisterAllHooks();
