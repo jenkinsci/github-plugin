@@ -61,23 +61,24 @@ public class PingGHEventSubscriber extends GHEventsSubscriber {
      */
     @Override
     protected void onEvent(GHEvent event, String payload) {
+        GHEventPayload.Ping ping;
         try {
-            GHEventPayload.Ping ping =
-                    GitHub.offline().parseEventPayload(new StringReader(payload), GHEventPayload.Ping.class);
-            GHRepository repository = ping.getRepository();
-            if (repository != null) {
-                LOGGER.info("{} webhook received from repo <{}>!", event, repository.getHtmlUrl());
-                monitor.resolveProblem(GitHubRepositoryName.create(repository.getHtmlUrl().toExternalForm()));
-            } else {
-                GHOrganization organization = ping.getOrganization();
-                if (organization != null) {
-                    LOGGER.info("{} webhook received from org <{}>!", event, organization.getUrl());
-                } else {
-                    LOGGER.warn("{} webhook received with unexpected payload", event);
-                }
-            }
+            ping = GitHub.offline().parseEventPayload(new StringReader(payload), GHEventPayload.Ping.class);
         } catch (IOException e) {
             LOGGER.warn("Received malformed PingEvent: " + payload, e);
+            return;
+        }
+        GHRepository repository = ping.getRepository();
+        if (repository != null) {
+            LOGGER.info("{} webhook received from repo <{}>!", event, repository.getHtmlUrl());
+            monitor.resolveProblem(GitHubRepositoryName.create(repository.getHtmlUrl().toExternalForm()));
+        } else {
+            GHOrganization organization = ping.getOrganization();
+            if (organization != null) {
+                LOGGER.info("{} webhook received from org <{}>!", event, organization.getUrl());
+            } else {
+                LOGGER.warn("{} webhook received with unexpected payload", event);
+            }
         }
     }
 }
