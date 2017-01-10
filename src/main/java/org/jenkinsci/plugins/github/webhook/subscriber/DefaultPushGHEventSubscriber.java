@@ -65,49 +65,50 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      */
     @Override
     protected void onEvent(GHEvent event, String payload) {
+        GHEventPayload.Push push;
         try {
-            GHEventPayload.Push push =
-                    GitHub.offline().parseEventPayload(new StringReader(payload), GHEventPayload.Push.class);
-            URL repoUrl = push.getRepository().getUrl();
-            final String pusherName = push.getPusher().getName();
-            LOGGER.info("Received PushEvent for {}", repoUrl);
-            final GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl.toExternalForm());
+            push = GitHub.offline().parseEventPayload(new StringReader(payload), GHEventPayload.Push.class);
+        } catch (IOException e) {
+            LOGGER.warn("Received malformed PushEvent: " + payload, e);
+            return;
+        }
+        URL repoUrl = push.getRepository().getUrl();
+        final String pusherName = push.getPusher().getName();
+        LOGGER.info("Received PushEvent for {}", repoUrl);
+        final GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl.toExternalForm());
 
-            if (changedRepository != null) {
-                // run in high privilege to see all the projects anonymous users don't see.
-                // this is safe because when we actually schedule a build, it's a build that can
-                // happen at some random time anyway.
-                ACL.impersonate(ACL.SYSTEM, new Runnable() {
-                    @Override
-                    public void run() {
-                        for (Item job : Jenkins.getInstance().getAllItems(Item.class)) {
-                            GitHubTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
-                            if (trigger != null) {
-                                String fullDisplayName = job.getFullDisplayName();
-                                LOGGER.debug("Considering to poke {}", fullDisplayName);
-                                if (GitHubRepositoryNameContributor.parseAssociatedNames(job)
-                                        .contains(changedRepository)) {
-                                    LOGGER.info("Poked {}", fullDisplayName);
-                                    trigger.onPost(pusherName);
-                                } else {
-                                    LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
-                                            fullDisplayName);
-                                }
+        if (changedRepository != null) {
+            // run in high privilege to see all the projects anonymous users don't see.
+            // this is safe because when we actually schedule a build, it's a build that can
+            // happen at some random time anyway.
+            ACL.impersonate(ACL.SYSTEM, new Runnable() {
+                @Override
+                public void run() {
+                    for (Item job : Jenkins.getInstance().getAllItems(Item.class)) {
+                        GitHubTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
+                        if (trigger != null) {
+                            String fullDisplayName = job.getFullDisplayName();
+                            LOGGER.debug("Considering to poke {}", fullDisplayName);
+                            if (GitHubRepositoryNameContributor.parseAssociatedNames(job)
+                                    .contains(changedRepository)) {
+                                LOGGER.info("Poked {}", fullDisplayName);
+                                trigger.onPost(pusherName);
+                            } else {
+                                LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
+                                        fullDisplayName);
                             }
                         }
                     }
-                });
-
-                for (GitHubWebHook.Listener listener : Jenkins.getInstance()
-                        .getExtensionList(GitHubWebHook.Listener.class)) {
-                    listener.onPushRepositoryChanged(pusherName, changedRepository);
                 }
+            });
 
-            } else {
-                LOGGER.warn("Malformed repo url {}", repoUrl);
+            for (GitHubWebHook.Listener listener : Jenkins.getInstance()
+                    .getExtensionList(GitHubWebHook.Listener.class)) {
+                listener.onPushRepositoryChanged(pusherName, changedRepository);
             }
-        } catch (IOException e) {
-            LOGGER.warn("Received malformed PushEvent: " + payload, e);
+
+        } else {
+            LOGGER.warn("Malformed repo url {}", repoUrl);
         }
     }
 }
