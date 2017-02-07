@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.github.webhook.subscriber;
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
+import com.cloudbees.jenkins.GitHubTriggerEvent;
 import com.cloudbees.jenkins.GitHubWebHook;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -65,6 +66,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      */
     @Override
     protected void onEvent(final String origin, GHEvent event, String payload) {
+        final long timestamp = System.currentTimeMillis();
         GHEventPayload.Push push;
         try {
             push = GitHub.offline().parseEventPayload(new StringReader(payload), GHEventPayload.Push.class);
@@ -92,7 +94,12 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                             if (GitHubRepositoryNameContributor.parseAssociatedNames(job)
                                     .contains(changedRepository)) {
                                 LOGGER.info("Poked {}", fullDisplayName);
-                                trigger.onPost(origin, pusherName);
+                                trigger.onPost(GitHubTriggerEvent.create()
+                                        .withTimestamp(timestamp)
+                                        .withOrigin(origin)
+                                        .withTriggeredByUser(pusherName)
+                                        .build()
+                                );
                             } else {
                                 LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
                                         fullDisplayName);

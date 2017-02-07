@@ -11,5 +11,5 @@ import hudson.triggers.Trigger;
 public interface GitHubTrigger2 extends GitHubTrigger {
 
     // TODO: document me
-    void onPost(String origin, String triggeredByUser);
+    void onPost(GitHubTriggerEvent event);
 }

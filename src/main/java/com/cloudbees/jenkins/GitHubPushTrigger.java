@@ -70,21 +70,27 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
      */
     @Deprecated
     public void onPost() {
-        onPost("");
+        onPost(GitHubTriggerEvent.create()
+                .build()
+        );
     }
 
     /**
      * Called when a POST is made.
      */
     public void onPost(String triggeredByUser) {
-        onPost(SCMEvent.originOf(Stapler.getCurrentRequest()), triggeredByUser);
+        onPost(GitHubTriggerEvent.create()
+                .withOrigin(SCMEvent.originOf(Stapler.getCurrentRequest()))
+                .withTriggeredByUser(triggeredByUser)
+                .build()
+        );
     }
 
     /**
      * Called when a POST is made.
      */
-    public void onPost(final String origin, String triggeredByUser) {
-        final String pushBy = triggeredByUser;
+    public void onPost(final GitHubTriggerEvent event) {
+        final String pushBy = event.getTriggeredByUser();
         DescriptorImpl d = getDescriptor();
         d.checkThreadPoolSizeAndUpdateIfNecessary();
         d.queue.execute(new Runnable() {
@@ -96,8 +102,8 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         PrintStream logger = listener.getLogger();
                         long start = System.currentTimeMillis();
                         logger.println("Started on " + DateFormat.getDateTimeInstance().format(new Date()));
-                        if (origin != null) {
-                            logger.println("Started by event from " + origin);
+                        if (event.getOrigin() != null) {
+                            logger.format("Started by event from %s on %tc%n", event.getOrigin(), event.getTimestamp());
                         }
                         boolean result = SCMTriggerItems.asSCMTriggerItem(job).poll(listener).hasChanges();
                         logger.println("Done. Took " + Util.getTimeSpanString(System.currentTimeMillis() - start));
