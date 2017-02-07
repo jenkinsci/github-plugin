@@ -3,8 +3,6 @@ package org.jenkinsci.plugins.github.webhook.subscriber;
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
-import com.cloudbees.jenkins.GitHubTrigger;
-import com.cloudbees.jenkins.GitHubTrigger2;
 import com.cloudbees.jenkins.GitHubWebHook;
 import hudson.Extension;
 import hudson.ExtensionList;
