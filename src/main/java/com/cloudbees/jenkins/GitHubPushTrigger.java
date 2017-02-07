@@ -59,7 +59,7 @@ import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJo
  *
  * @author Kohsuke Kawaguchi
  */
-public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigger {
+public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigger2 {
 
     @DataBoundConstructor
     public GitHubPushTrigger() {
@@ -96,7 +96,9 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         PrintStream logger = listener.getLogger();
                         long start = System.currentTimeMillis();
                         logger.println("Started on " + DateFormat.getDateTimeInstance().format(new Date()));
-                        logger.println("Started by event from " + origin);
+                        if (origin != null) {
+                            logger.println("Started by event from " + origin);
+                        }
                         boolean result = SCMTriggerItems.asSCMTriggerItem(job).poll(listener).hasChanges();
                         logger.println("Done. Took " + Util.getTimeSpanString(System.currentTimeMillis() - start));
                         if (result) {
