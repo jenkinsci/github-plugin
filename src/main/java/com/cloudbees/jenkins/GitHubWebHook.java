@@ -9,6 +9,7 @@ import hudson.model.RootAction;
 import hudson.model.UnprotectedRootAction;
 import hudson.util.SequentialExecutionQueue;
 import jenkins.model.Jenkins;
+import jenkins.scm.api.SCMEvent;
 import org.apache.commons.lang3.Validate;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
@@ -16,7 +17,10 @@ import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.webhook.GHEventHeader;
 import org.jenkinsci.plugins.github.webhook.GHEventPayload;
 import org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.github.GHEvent;
+import org.kohsuke.stapler.Stapler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,7 +118,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
     public void doIndex(@Nonnull @GHEventHeader GHEvent event, @Nonnull @GHEventPayload String payload) {
         from(GHEventsSubscriber.all())
                 .filter(isInterestedIn(event))
-                .transform(processEvent(event, payload)).toList();
+                .transform(processEvent(SCMEvent.originOf(Stapler.getCurrentRequest()), event, payload)).toList();
     }
 
     private <T extends Item> Function<T, T> reRegisterHookForJob() {
@@ -153,7 +157,10 @@ public class GitHubWebHook implements UnprotectedRootAction {
      * Other plugins may be interested in listening for these updates.
      *
      * @since 1.8
+     * @deprecated we do not think this API is required any more, if we are wrong, please raise a JIRA
      */
+    @Deprecated
+    @Restricted(NoExternalUse.class)
     public abstract static class Listener implements ExtensionPoint {
 
         /**
