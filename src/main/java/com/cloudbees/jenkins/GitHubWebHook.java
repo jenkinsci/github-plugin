@@ -157,7 +157,8 @@ public class GitHubWebHook implements UnprotectedRootAction {
      * Other plugins may be interested in listening for these updates.
      *
      * @since 1.8
-     * @deprecated we do not think this API is required any more, if we are wrong, please raise a JIRA
+     * @deprecated working theory is that this API is not required any more with the {@link SCMEvent} based API,
+     * if wrong, please raise a JIRA
      */
     @Deprecated
     @Restricted(NoExternalUse.class)

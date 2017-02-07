@@ -4,6 +4,7 @@ import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
 import com.cloudbees.jenkins.GitHubTrigger;
+import com.cloudbees.jenkins.GitHubTrigger2;
 import com.cloudbees.jenkins.GitHubWebHook;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -86,7 +87,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                 @Override
                 public void run() {
                     for (Item job : Jenkins.getInstance().getAllItems(Item.class)) {
-                        GitHubTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
+                        GitHubPushTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
                         if (trigger != null) {
                             String fullDisplayName = job.getFullDisplayName();
                             LOGGER.debug("Considering to poke {}", fullDisplayName);

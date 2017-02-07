@@ -15,6 +15,7 @@ import java.util.Set;
  * and triggers a build.
  *
  * @author aaronwalker
+ * @deprecated extend {@link GitHubTrigger2} instead
  */
 public interface GitHubTrigger {
 
@@ -23,8 +24,6 @@ public interface GitHubTrigger {
 
     // TODO: document me
     void onPost(String triggeredByUser);
-
-    void onPost(String origin, String triggeredByUser);
 
     /**
      * Obtains the list of the repositories that this trigger is looking at.
