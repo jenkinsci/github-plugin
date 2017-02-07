@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.github.webhook.subscriber;
 
 import com.cloudbees.jenkins.GitHubPushTrigger;
+import com.cloudbees.jenkins.GitHubTriggerEvent;
 import hudson.model.FreeStyleProject;
 import hudson.plugins.git.GitSCM;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
@@ -53,7 +54,11 @@ public class DefaultPushGHEventListenerTest {
         new DefaultPushGHEventSubscriber()
                 .onEvent("shouldParsePushPayload", GHEvent.PUSH, classpath("payloads/push.json"));
 
-        verify(trigger).onPost("shouldParsePushPayload", TRIGGERED_BY_USER_FROM_RESOURCE);
+        verify(trigger).onPost(GitHubTriggerEvent.create()
+                .withOrigin("shouldParsePushPayload")
+                .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
+                .build()
+        );
     }
 
     @Test
@@ -70,7 +75,11 @@ public class DefaultPushGHEventListenerTest {
         new DefaultPushGHEventSubscriber()
                 .onEvent("shouldReceivePushHookOnWorkflow", GHEvent.PUSH, classpath("payloads/push.json"));
 
-        verify(trigger).onPost("shouldReceivePushHookOnWorkflow", TRIGGERED_BY_USER_FROM_RESOURCE);
+        verify(trigger).onPost(GitHubTriggerEvent.create()
+                .withOrigin("shouldReceivePushHookOnWorkflow")
+                .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
+                .build()
+        );
     }
 
     @Test
@@ -85,6 +94,10 @@ public class DefaultPushGHEventListenerTest {
         new DefaultPushGHEventSubscriber()
                 .onEvent("shouldNotReceivePushHookOnWorkflowWithNoBuilds", GHEvent.PUSH, classpath("payloads/push.json"));
 
-        verify(trigger, never()).onPost("shouldNotReceivePushHookOnWorkflowWithNoBuilds", TRIGGERED_BY_USER_FROM_RESOURCE);
+        verify(trigger, never()).onPost(GitHubTriggerEvent.create()
+                .withOrigin("shouldNotReceivePushHookOnWorkflowWithNoBuilds")
+                .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
+                .build()
+        );
     }
 }
