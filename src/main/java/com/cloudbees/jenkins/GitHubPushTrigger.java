@@ -20,6 +20,7 @@ import hudson.util.SequentialExecutionQueue;
 import hudson.util.StreamTaskListener;
 import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
+import jenkins.scm.api.SCMEvent;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
 import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.plugins.github.GitHubPlugin;
@@ -31,6 +32,7 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.Stapler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +77,13 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
      * Called when a POST is made.
      */
     public void onPost(String triggeredByUser) {
+        onPost(SCMEvent.originOf(Stapler.getCurrentRequest()), triggeredByUser);
+    }
+
+    /**
+     * Called when a POST is made.
+     */
+    public void onPost(final String origin, String triggeredByUser) {
         final String pushBy = triggeredByUser;
         DescriptorImpl d = getDescriptor();
         d.checkThreadPoolSizeAndUpdateIfNecessary();
@@ -87,6 +96,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         PrintStream logger = listener.getLogger();
                         long start = System.currentTimeMillis();
                         logger.println("Started on " + DateFormat.getDateTimeInstance().format(new Date()));
+                        logger.println("Started by event from " + origin);
                         boolean result = SCMTriggerItems.asSCMTriggerItem(job).poll(listener).hasChanges();
                         logger.println("Done. Took " + Util.getTimeSpanString(System.currentTimeMillis() - start));
                         if (result) {

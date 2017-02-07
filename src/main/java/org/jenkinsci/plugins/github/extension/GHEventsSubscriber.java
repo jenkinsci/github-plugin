@@ -10,9 +10,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import javax.annotation.CheckForNull;
 import jenkins.model.Jenkins;
+import jenkins.scm.api.SCMEvent;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
 import org.kohsuke.github.GHEvent;
+import org.kohsuke.stapler.StaplerRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,13 +117,30 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      * This method called when root action receives webhook from GH and this extension is interested in such
      * events (provided by {@link #events()} method). By default do nothing and can be overrided to implement any
      * parse logic
-     * Don't call it directly, use {@link #processEvent(GHEvent, String)} static function
+     * Don't call it directly, use {@link #processEvent(String, GHEvent, String)} static function
      *
      * @param event   gh-event (as of PUSH, ISSUE...). One of returned by {@link #events()} method. Never null.
      * @param payload payload of gh-event. Never blank. Can be parsed with help of GitHub#parseEventPayload
+     * @deprecated override {@link #onEvent(String, GHEvent, String)} instead.
      */
+    @Deprecated
     protected void onEvent(GHEvent event, String payload) {
         // do nothing by default
+    }
+
+    /**
+     * This method called when root action receives webhook from GH and this extension is interested in such
+     * events (provided by {@link #events()} method). By default do nothing and can be overrided to implement any
+     * parse logic
+     * Don't call it directly, use {@link #processEvent(String, GHEvent, String)} static function
+     *
+     * @param origin the origin of the event (or {@code null})
+     * @param event   gh-event (as of PUSH, ISSUE...). One of returned by {@link #events()} method. Never null.
+     * @param payload payload of gh-event. Never blank. Can be parsed with help of GitHub#parseEventPayload
+     * @since TODO
+     */
+    protected void onEvent(String origin, GHEvent event, String payload) {
+        onEvent(event, payload);
     }
 
     /**
@@ -200,13 +219,31 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      * @param payload string content of hook from GH. Never blank
      *
      * @return function to process {@link GHEventsSubscriber} list. Returns null on apply.
+     * @deprecated use {@link #processEvent(String, GHEvent, String)}
      */
+    @Deprecated
     public static Function<GHEventsSubscriber, Void> processEvent(final GHEvent event, final String payload) {
+        return processEvent(null, event, payload);
+    }
+
+    /**
+     * Function which calls {@link #onEvent(GHEvent, String)} for every subscriber on apply
+     *
+     * @param origin  the origin of the event or {@code null} if the origin is unknown,
+     *                {@link SCMEvent#originOf(StaplerRequest)} is usually the best way to generate the origin.
+     * @param event   from hook. Applied only with event from {@link #events()} set
+     * @param payload string content of hook from GH. Never blank
+     *
+     * @return function to process {@link GHEventsSubscriber} list. Returns null on apply.
+     * @since TODO
+     */
+    public static Function<GHEventsSubscriber, Void> processEvent(final String origin, final GHEvent event,
+                                                                  final String payload) {
         return new NullSafeFunction<GHEventsSubscriber, Void>() {
             @Override
             protected Void applyNullSafe(@Nonnull GHEventsSubscriber subscriber) {
                 try {
-                    subscriber.onEvent(event, payload);
+                    subscriber.onEvent(origin, event, payload);
                 } catch (Throwable t) {
                     LOGGER.error("Subscriber {} failed to process {} hook, skipping...",
                             subscriber.getClass().getName(), event, t);

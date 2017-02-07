@@ -51,9 +51,9 @@ public class DefaultPushGHEventListenerTest {
         prj.setScm(GIT_SCM_FROM_RESOURCE);
 
         new DefaultPushGHEventSubscriber()
-                .onEvent(GHEvent.PUSH, classpath("payloads/push.json"));
+                .onEvent("shouldParsePushPayload", GHEvent.PUSH, classpath("payloads/push.json"));
 
-        verify(trigger).onPost(TRIGGERED_BY_USER_FROM_RESOURCE);
+        verify(trigger).onPost("shouldParsePushPayload", TRIGGERED_BY_USER_FROM_RESOURCE);
     }
 
     @Test
@@ -68,9 +68,9 @@ public class DefaultPushGHEventListenerTest {
         jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
 
         new DefaultPushGHEventSubscriber()
-                .onEvent(GHEvent.PUSH, classpath("payloads/push.json"));
+                .onEvent("shouldReceivePushHookOnWorkflow", GHEvent.PUSH, classpath("payloads/push.json"));
 
-        verify(trigger).onPost(TRIGGERED_BY_USER_FROM_RESOURCE);
+        verify(trigger).onPost("shouldReceivePushHookOnWorkflow", TRIGGERED_BY_USER_FROM_RESOURCE);
     }
 
     @Test
@@ -83,8 +83,8 @@ public class DefaultPushGHEventListenerTest {
         job.setDefinition(new CpsFlowDefinition(classpath(getClass(), "workflow-definition.groovy")));
 
         new DefaultPushGHEventSubscriber()
-                .onEvent(GHEvent.PUSH, classpath("payloads/push.json"));
+                .onEvent("shouldNotReceivePushHookOnWorkflowWithNoBuilds", GHEvent.PUSH, classpath("payloads/push.json"));
 
-        verify(trigger, never()).onPost(TRIGGERED_BY_USER_FROM_RESOURCE);
+        verify(trigger, never()).onPost("shouldNotReceivePushHookOnWorkflowWithNoBuilds", TRIGGERED_BY_USER_FROM_RESOURCE);
     }
 }
