@@ -4,6 +4,7 @@ import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubTriggerEvent;
 import hudson.model.FreeStyleProject;
 import hudson.plugins.git.GitSCM;
+import org.jenkinsci.plugins.github.extension.GHSubscriberEvent;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.junit.Rule;
@@ -51,10 +52,12 @@ public class DefaultPushGHEventListenerTest {
         prj.addTrigger(trigger);
         prj.setScm(GIT_SCM_FROM_RESOURCE);
 
-        new DefaultPushGHEventSubscriber()
-                .onEvent("shouldParsePushPayload", GHEvent.PUSH, classpath("payloads/push.json"));
+        GHSubscriberEvent subscriberEvent =
+                new GHSubscriberEvent("shouldParsePushPayload", GHEvent.PUSH, classpath("payloads/push.json"));
+        new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
 
         verify(trigger).onPost(GitHubTriggerEvent.create()
+                .withTimestamp(subscriberEvent.getTimestamp())
                 .withOrigin("shouldParsePushPayload")
                 .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
                 .build()
@@ -72,10 +75,12 @@ public class DefaultPushGHEventListenerTest {
         // Trigger the build once to register SCMs
         jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
 
-        new DefaultPushGHEventSubscriber()
-                .onEvent("shouldReceivePushHookOnWorkflow", GHEvent.PUSH, classpath("payloads/push.json"));
+        GHSubscriberEvent subscriberEvent =
+                new GHSubscriberEvent("shouldReceivePushHookOnWorkflow", GHEvent.PUSH, classpath("payloads/push.json"));
+        new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
 
         verify(trigger).onPost(GitHubTriggerEvent.create()
+                .withTimestamp(subscriberEvent.getTimestamp())
                 .withOrigin("shouldReceivePushHookOnWorkflow")
                 .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
                 .build()
@@ -91,10 +96,13 @@ public class DefaultPushGHEventListenerTest {
         job.addTrigger(trigger);
         job.setDefinition(new CpsFlowDefinition(classpath(getClass(), "workflow-definition.groovy")));
 
-        new DefaultPushGHEventSubscriber()
-                .onEvent("shouldNotReceivePushHookOnWorkflowWithNoBuilds", GHEvent.PUSH, classpath("payloads/push.json"));
+        GHSubscriberEvent subscriberEvent =
+                new GHSubscriberEvent("shouldNotReceivePushHookOnWorkflowWithNoBuilds", GHEvent.PUSH,
+                        classpath("payloads/push.json"));
+        new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
 
         verify(trigger, never()).onPost(GitHubTriggerEvent.create()
+                .withTimestamp(subscriberEvent.getTimestamp())
                 .withOrigin("shouldNotReceivePushHookOnWorkflowWithNoBuilds")
                 .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
                 .build()

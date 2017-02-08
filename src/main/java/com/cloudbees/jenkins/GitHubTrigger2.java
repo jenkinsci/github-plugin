@@ -10,6 +10,9 @@ import hudson.triggers.Trigger;
  */
 public interface GitHubTrigger2 extends GitHubTrigger {
 
-    // TODO: document me
+    /**
+     * Callback to notify when a change in GitHub triggeres a build.
+     * @param event the event details.
+     */
     void onPost(GitHubTriggerEvent event);
 }

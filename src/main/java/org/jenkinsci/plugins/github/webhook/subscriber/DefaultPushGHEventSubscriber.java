@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.github.extension.GHSubscriberEvent;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.github.GHEventPayload;
@@ -62,21 +63,19 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      * Calls {@link GitHubPushTrigger} in all projects to handle this hook
      *
      * @param event   only PUSH event
-     * @param payload payload of gh-event. Never blank
      */
     @Override
-    protected void onEvent(final String origin, GHEvent event, String payload) {
-        final long timestamp = System.currentTimeMillis();
+    protected void onEvent(final GHSubscriberEvent event) {
         GHEventPayload.Push push;
         try {
-            push = GitHub.offline().parseEventPayload(new StringReader(payload), GHEventPayload.Push.class);
+            push = GitHub.offline().parseEventPayload(new StringReader(event.getPayload()), GHEventPayload.Push.class);
         } catch (IOException e) {
-            LOGGER.warn("Received malformed PushEvent: " + payload, e);
+            LOGGER.warn("Received malformed PushEvent: " + event.getPayload(), e);
             return;
         }
         URL repoUrl = push.getRepository().getUrl();
         final String pusherName = push.getPusher().getName();
-        LOGGER.info("Received PushEvent for {} from {}", repoUrl, origin);
+        LOGGER.info("Received PushEvent for {} from {}", repoUrl, event.getOrigin());
         final GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl.toExternalForm());
 
         if (changedRepository != null) {
@@ -95,8 +94,8 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                                     .contains(changedRepository)) {
                                 LOGGER.info("Poked {}", fullDisplayName);
                                 trigger.onPost(GitHubTriggerEvent.create()
-                                        .withTimestamp(timestamp)
-                                        .withOrigin(origin)
+                                        .withTimestamp(event.getTimestamp())
+                                        .withOrigin(event.getOrigin())
                                         .withTriggeredByUser(pusherName)
                                         .build()
                                 );

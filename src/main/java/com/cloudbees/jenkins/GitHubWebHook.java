@@ -12,6 +12,7 @@ import jenkins.model.Jenkins;
 import jenkins.scm.api.SCMEvent;
 import org.apache.commons.lang3.Validate;
 import org.jenkinsci.plugins.github.GitHubPlugin;
+import org.jenkinsci.plugins.github.extension.GHSubscriberEvent;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.webhook.GHEventHeader;
@@ -116,9 +117,11 @@ public class GitHubWebHook implements UnprotectedRootAction {
     @SuppressWarnings("unused")
     @RequirePostWithGHHookPayload
     public void doIndex(@Nonnull @GHEventHeader GHEvent event, @Nonnull @GHEventPayload String payload) {
+        GHSubscriberEvent subscriberEvent =
+                new GHSubscriberEvent(SCMEvent.originOf(Stapler.getCurrentRequest()), event, payload);
         from(GHEventsSubscriber.all())
                 .filter(isInterestedIn(event))
-                .transform(processEvent(SCMEvent.originOf(Stapler.getCurrentRequest()), event, payload)).toList();
+                .transform(processEvent(subscriberEvent)).toList();
     }
 
     private <T extends Item> Function<T, T> reRegisterHookForJob() {
