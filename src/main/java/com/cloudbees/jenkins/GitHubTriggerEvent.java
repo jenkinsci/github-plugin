@@ -6,7 +6,7 @@ import jenkins.scm.api.SCMEvent;
 /**
  * Encapsulates an event for {@link GitHubTrigger2}.
  *
- * @since TODO
+ * @since 1.25.2
  */
 public class GitHubTriggerEvent {
 
@@ -75,11 +75,11 @@ public class GitHubTriggerEvent {
 
     @Override
     public String toString() {
-        return "GitHubTriggerEvent{" +
-                "timestamp=" + timestamp +
-                ", origin='" + origin + '\'' +
-                ", triggeredByUser='" + triggeredByUser + '\'' +
-                '}';
+        return "GitHubTriggerEvent{"
+                + "timestamp=" + timestamp
+                + ", origin='" + origin + '\''
+                + ", triggeredByUser='" + triggeredByUser + '\''
+                + '}';
     }
 
     /**
@@ -115,11 +115,11 @@ public class GitHubTriggerEvent {
 
         @Override
         public String toString() {
-            return "GitHubTriggerEvent.Builder{" +
-                    "timestamp=" + timestamp +
-                    ", origin='" + origin + '\'' +
-                    ", triggeredByUser='" + triggeredByUser + '\'' +
-                    '}';
+            return "GitHubTriggerEvent.Builder{"
+                    + "timestamp=" + timestamp
+                    + ", origin='" + origin + '\''
+                    + ", triggeredByUser='" + triggeredByUser + '\''
+                    + '}';
         }
     }
 }
