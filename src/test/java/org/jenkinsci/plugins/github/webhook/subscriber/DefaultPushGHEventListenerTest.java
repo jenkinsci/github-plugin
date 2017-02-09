@@ -12,10 +12,15 @@ import org.junit.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.kohsuke.github.GHEvent;
+import org.mockito.Mockito;
 
 import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
+import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
+import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -56,12 +61,12 @@ public class DefaultPushGHEventListenerTest {
                 new GHSubscriberEvent("shouldParsePushPayload", GHEvent.PUSH, classpath("payloads/push.json"));
         new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
 
-        verify(trigger).onPost(GitHubTriggerEvent.create()
+        verify(trigger).onPost(eq(GitHubTriggerEvent.create()
                 .withTimestamp(subscriberEvent.getTimestamp())
                 .withOrigin("shouldParsePushPayload")
                 .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
                 .build()
-        );
+        ));
     }
 
     @Test
@@ -79,12 +84,12 @@ public class DefaultPushGHEventListenerTest {
                 new GHSubscriberEvent("shouldReceivePushHookOnWorkflow", GHEvent.PUSH, classpath("payloads/push.json"));
         new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
 
-        verify(trigger).onPost(GitHubTriggerEvent.create()
+        verify(trigger).onPost(eq(GitHubTriggerEvent.create()
                 .withTimestamp(subscriberEvent.getTimestamp())
                 .withOrigin("shouldReceivePushHookOnWorkflow")
                 .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
                 .build()
-        );
+        ));
     }
 
     @Test
@@ -101,11 +106,6 @@ public class DefaultPushGHEventListenerTest {
                         classpath("payloads/push.json"));
         new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
 
-        verify(trigger, never()).onPost(GitHubTriggerEvent.create()
-                .withTimestamp(subscriberEvent.getTimestamp())
-                .withOrigin("shouldNotReceivePushHookOnWorkflowWithNoBuilds")
-                .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
-                .build()
-        );
+        verify(trigger, never()).onPost(Mockito.any(GitHubTriggerEvent.class));
     }
 }
