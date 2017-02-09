@@ -15,7 +15,7 @@ import java.util.Set;
  * and triggers a build.
  *
  * @author aaronwalker
- * @deprecated extend {@link GitHubTrigger2} instead
+ * @deprecated not used any more
  */
 public interface GitHubTrigger {
 

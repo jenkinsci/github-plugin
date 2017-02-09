@@ -59,7 +59,7 @@ import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJo
  *
  * @author Kohsuke Kawaguchi
  */
-public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigger2 {
+public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigger {
 
     @DataBoundConstructor
     public GitHubPushTrigger() {
