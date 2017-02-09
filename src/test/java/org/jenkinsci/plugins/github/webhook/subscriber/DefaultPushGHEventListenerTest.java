@@ -15,10 +15,7 @@ import org.kohsuke.github.GHEvent;
 import org.mockito.Mockito;
 
 import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
-import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
-import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
