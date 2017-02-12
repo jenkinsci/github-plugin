@@ -4,9 +4,9 @@ import javax.servlet.http.HttpServletRequest;
 import jenkins.scm.api.SCMEvent;
 
 /**
- * Encapsulates an event for {@link GitHubTrigger2}.
+ * Encapsulates an event for {@link GitHubPushTrigger}.
  *
- * @since 1.25.2
+ * @since 1.26.0
  */
 public class GitHubTriggerEvent {
 
