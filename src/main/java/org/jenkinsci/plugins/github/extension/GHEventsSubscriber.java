@@ -135,7 +135,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      * Don't call it directly, use {@link #processEvent(GHSubscriberEvent)} static function
      *
      * @param event   the event.
-     * @since 1.25.2
+     * @since 1.26.0
      */
     protected void onEvent(GHSubscriberEvent event) {
         onEvent(event.getGHEvent(), event.getPayload());
@@ -230,7 +230,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      * @param event the event
      *
      * @return function to process {@link GHEventsSubscriber} list. Returns null on apply.
-     * @since 1.25.2
+     * @since 1.26.0
      */
     public static Function<GHEventsSubscriber, Void> processEvent(final GHSubscriberEvent event) {
         return new NullSafeFunction<GHEventsSubscriber, Void>() {
