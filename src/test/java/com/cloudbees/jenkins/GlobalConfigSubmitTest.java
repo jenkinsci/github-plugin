@@ -3,6 +3,7 @@ package com.cloudbees.jenkins;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.jenkinsci.plugins.github.GitHubPlugin;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -20,6 +21,7 @@ import static org.hamcrest.Matchers.is;
  *
  * @author Seiji Sogabe
  */
+@Ignore("Have troubles with memory consumption")
 public class GlobalConfigSubmitTest {
 
     public static final String OVERRIDE_HOOK_URL_CHECKBOX = "_.overrideHookUrl";
