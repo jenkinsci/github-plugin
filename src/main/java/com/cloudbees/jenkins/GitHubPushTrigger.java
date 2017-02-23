@@ -28,6 +28,7 @@ import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.migration.Migrator;
+import org.jenkinsci.Symbol;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
@@ -248,6 +249,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     }
 
     @Extension
+    @Symbol("githubPush")
     public static class DescriptorImpl extends TriggerDescriptor {
         private final transient SequentialExecutionQueue queue =
                 new SequentialExecutionQueue(Executors.newSingleThreadExecutor(threadFactory()));
