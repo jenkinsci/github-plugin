@@ -4,7 +4,7 @@ import com.cloudbees.jenkins.GitHubWebHook;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.hash.Hashing;
-import com.squareup.okhttp.Cache;
+import okhttp3.Cache;
 import org.apache.commons.io.FileUtils;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
@@ -70,7 +70,6 @@ public final class GitHubClientCacheOps {
      * To accept for cleaning only not active cache dirs
      *
      * @param caches set of active cache names, extracted with help of {@link #cacheToName()}
-     *
      * @return filter to accept only names not in set
      */
     public static DirectoryStream.Filter<Path> notInCaches(Set<String> caches) {
@@ -155,7 +154,6 @@ public final class GitHubClientCacheOps {
 
         /**
          * @param config url and creds id to be hashed
-         *
          * @return unique id for folder name to create cache inside of base cache dir
          */
         private static String hashed(GitHubServerConfig config) {
@@ -171,7 +169,7 @@ public final class GitHubClientCacheOps {
     private static class CacheToName extends NullSafeFunction<Cache, String> {
         @Override
         protected String applyNullSafe(@Nonnull Cache cache) {
-            return cache.getDirectory().getName();
+            return cache.directory().getName();
         }
     }
 

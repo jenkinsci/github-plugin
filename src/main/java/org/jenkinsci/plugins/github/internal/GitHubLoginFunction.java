@@ -1,10 +1,10 @@
 package org.jenkinsci.plugins.github.internal;
 
 import com.cloudbees.jenkins.GitHubWebHook;
-import com.squareup.okhttp.Cache;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.OkUrlFactory;
 import jenkins.model.Jenkins;
+import okhttp3.Cache;
+import okhttp3.OkHttpClient;
+import okhttp3.OkUrlFactory;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.kohsuke.accmod.Restricted;
@@ -33,10 +33,10 @@ import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.toCache
 /**
  * Converts server config to authorized GH instance on {@link #applyNullSafe(GitHubServerConfig)}.
  * If login process is not successful it returns null
- *
+ * <p>
  * Uses okHttp (https://github.com/square/okhttp) as connector to have ability to use cache and proxy
  * The capacity of cache can be changed in advanced section of global configuration for plugin
- *
+ * <p>
  * Don't use this class in any place directly
  * as of it have public static factory {@link GitHubServerConfig#loginToGithub()}
  *
@@ -53,7 +53,6 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
      * Logins to GH and returns client instance
      *
      * @param github config where token saved
-     *
      * @return authorized client or null on login error
      */
     @Override
@@ -81,7 +80,6 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
      * Uses proxy if configured on pluginManager/advanced page
      *
      * @param apiUrl GitHub's url to build proxy to
-     *
      * @return proxy to use it in connector. Should not be null as it can lead to unexpected behaviour
      */
     @Nonnull
@@ -107,14 +105,15 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
      * @return connector to be used as backend for client
      */
     private OkHttpConnector connector(GitHubServerConfig config) {
-        OkHttpClient client = new OkHttpClient().setProxy(getProxy(defaultIfBlank(config.getApiUrl(), GITHUB_URL)));
+        final OkHttpClient.Builder builder = new OkHttpClient.Builder()
+                .proxy(getProxy(defaultIfBlank(config.getApiUrl(), GITHUB_URL)));
 
         if (config.getClientCacheSize() > 0) {
             Cache cache = toCacheDir().apply(config);
-            client.setCache(cache);
+            builder.cache(cache);
         }
 
-        return new OkHttpConnector(new OkUrlFactory(client));
+        return new OkHttpConnector(new OkUrlFactory(builder.build()));
     }
 
     /**
