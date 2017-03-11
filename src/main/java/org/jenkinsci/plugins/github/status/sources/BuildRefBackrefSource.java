@@ -4,6 +4,7 @@ import hudson.Extension;
 import hudson.model.Descriptor;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import org.jenkinsci.plugins.displayurlapi.DisplayURLProvider;
 import org.jenkinsci.plugins.github.extension.status.GitHubStatusBackrefSource;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -25,7 +26,7 @@ public class BuildRefBackrefSource extends GitHubStatusBackrefSource {
     @SuppressWarnings("deprecation")
     @Override
     public String get(Run<?, ?> run, TaskListener listener) {
-        return run.getAbsoluteUrl();
+        return DisplayURLProvider.get().getRunURL(run);
     }
 
     @Extension
