@@ -29,6 +29,8 @@ public class DefaultPushGHEventListenerTest {
 
     public static final GitSCM GIT_SCM_FROM_RESOURCE = new GitSCM("ssh://git@github.com/lanwen/test.git");
     public static final String TRIGGERED_BY_USER_FROM_RESOURCE = "lanwen";
+    public static final String MASTER_BRANCH_REF = "refs/heads/master";
+    public static final String HEAD_COMMIT = "1eee2db8927ab3f7ec983b2e6052f351dd61a419";
 
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
@@ -62,6 +64,8 @@ public class DefaultPushGHEventListenerTest {
                 .withTimestamp(subscriberEvent.getTimestamp())
                 .withOrigin("shouldParsePushPayload")
                 .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
+                .withRef(MASTER_BRANCH_REF)
+                .withHead(HEAD_COMMIT)
                 .build()
         ));
     }
@@ -85,6 +89,8 @@ public class DefaultPushGHEventListenerTest {
                 .withTimestamp(subscriberEvent.getTimestamp())
                 .withOrigin("shouldReceivePushHookOnWorkflow")
                 .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
+                .withRef(MASTER_BRANCH_REF)
+                .withHead(HEAD_COMMIT)
                 .build()
         ));
     }
