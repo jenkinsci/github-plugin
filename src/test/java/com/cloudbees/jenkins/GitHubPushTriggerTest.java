@@ -85,13 +85,9 @@ public class GitHubPushTriggerTest {
         assertThat("should be 2 build after hook", job.getLastBuild().getNumber(), is(2));
 
         // Validate that the we have added 2 actions of the correct types
-        List<? extends Action> jobActions = job.getLastBuild().getAllActions();
-        assertThat("action list has at least two elements", jobActions.size(), greaterThanOrEqualTo(2));
-        assertThat("first action is a ParametersAction", jobActions.get(0) instanceof ParametersAction);
-        assertThat("second action is a CauseAction", jobActions.get(1) instanceof CauseAction);
-
         // Validate that the parameters we have added are correct
-        ParametersAction parametersAction = ((ParametersAction)jobActions.get(0));
+        GitHubParametersAction parametersAction = job.getLastBuild().getAction(GitHubParametersAction.class);
+        assertThat("found GitHubParametersAction", parametersAction != null);
         assertThat("should be 2 parameters added", parametersAction.getParameters(), hasSize(2));
         assertThat("first parameter is ref with value " + MASTER_BRANCH_REF,
                   "ref".equalsIgnoreCase(parametersAction.getParameters().get(0).getName())
@@ -99,6 +95,8 @@ public class GitHubPushTriggerTest {
         assertThat("second parameter is head with value " + HEAD_COMMIT,
                    "head".equalsIgnoreCase(parametersAction.getParameters().get(1).getName())
                    && HEAD_COMMIT.equals(parametersAction.getParameters().get(1).getValue()));
+        CauseAction causeAction = job.getLastBuild().getAction(CauseAction.class);
+        assertThat("found CauseAction", causeAction != null);
     }
 
     @Test

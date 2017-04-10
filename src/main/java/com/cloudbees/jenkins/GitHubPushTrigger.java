@@ -13,7 +13,6 @@ import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
-import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Project;
 import hudson.model.StringParameterValue;
@@ -168,7 +167,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
                     // Schedule the job with the parameters and cause
                     QueueTaskFuture<?> build = asParameterizedJobMixIn(job)
-                            .scheduleBuild2(0, new ParametersAction(values), new CauseAction(cause));
+                            .scheduleBuild2(0, new GitHubParametersAction(values), new CauseAction(cause));
                     if (build != null) {
                         LOGGER.info("SCM changes detected in " + job.getFullName()
                                 + ". Triggering #" + job.getNextBuildNumber());
@@ -188,9 +187,6 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         ParametersDefinitionProperty pdp = this.job.getProperty(ParametersDefinitionProperty.class);
         if (pdp != null) {
             for (ParameterDefinition pd : pdp.getParameterDefinitions()) {
-                if (pd.getName().equals("sha1")) {
-                    continue;
-                }
                 values.add(pd.getDefaultParameterValue());
             }
         }

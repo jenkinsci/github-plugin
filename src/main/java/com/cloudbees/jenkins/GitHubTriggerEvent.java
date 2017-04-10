@@ -86,10 +86,7 @@ public class GitHubTriggerEvent {
         if (ref != null ? !ref.equals(that.ref) : that.ref != null) {
             return false;
         }
-        if (head != null ? !head.equals(that.head) : that.head != null) {
-            return false;
-        }
-        return true;
+        return head != null ? head.equals(that.head) : that.head == null;
     }
 
     @Override
