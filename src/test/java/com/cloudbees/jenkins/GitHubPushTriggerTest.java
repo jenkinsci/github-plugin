@@ -1,9 +1,7 @@
 package com.cloudbees.jenkins;
 
-import hudson.model.Action;
 import hudson.model.CauseAction;
 import hudson.model.FreeStyleProject;
-import hudson.model.ParametersAction;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.util.Build;
 import hudson.plugins.git.util.BuildData;
@@ -23,12 +21,10 @@ import org.jvnet.hudson.test.JenkinsRule;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.jenkinsci.plugins.github.webhook.subscriber.DefaultPushGHEventListenerTest.HEAD_COMMIT;
