@@ -1,8 +1,11 @@
+sudo: required
+dist: trusty
 language: java
 jdk: oraclejdk8
 before_install:
  - pip install --user codecov
-install: travis_wait mvn install
+script: mvn package | grep -v Download
+install: true
 after_success:
  - codecov
 cache:
