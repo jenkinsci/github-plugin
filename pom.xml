@@ -132,6 +132,12 @@
             <version>1.11</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>display-url-api</artifactId>
+            <version>2.0</version>
+        </dependency>
+
         <dependency><!-- exists in the core -->
             <groupId>org.jenkins-ci.modules</groupId>
             <artifactId>instance-identity</artifactId>

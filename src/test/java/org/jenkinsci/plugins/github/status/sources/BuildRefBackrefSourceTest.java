@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.github.status.sources;
 import hudson.model.FreeStyleProject;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import org.jenkinsci.plugins.displayurlapi.DisplayURLProvider;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,15 +32,13 @@ public class BuildRefBackrefSourceTest {
 
     @Test
     /**
-     * Should've used mocked Run, but getAbsoluteUrl is final.
-     *
      * @throws Exception
      */
     public void shouldReturnRunAbsoluteUrl() throws Exception {
         Run<?, ?> run = jenkinsRule.buildAndAssertSuccess(jenkinsRule.createFreeStyleProject());
 
         String result = new BuildRefBackrefSource().get(run, listener);
-        assertThat("state", result, is(run.getAbsoluteUrl()));
+        assertThat("state", result, is(DisplayURLProvider.get().getRunURL(run)));
     }
 
 }
