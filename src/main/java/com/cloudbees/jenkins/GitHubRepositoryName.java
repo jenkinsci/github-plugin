@@ -196,7 +196,21 @@ public class GitHubRepositoryName {
 
     @Override
     public boolean equals(Object obj) {
-        return EqualsBuilder.reflectionEquals(this, obj);
+        boolean equalsByReflection = EqualsBuilder.reflectionEquals(this, obj);
+        if (obj instanceof GitHubRepositoryName) {
+            GitHubRepositoryName other = (GitHubRepositoryName) obj;
+            if (other.userName.equalsIgnoreCase(userName)
+                    && other.host.equalsIgnoreCase(host)
+                    && other.repositoryName.equalsIgnoreCase(repositoryName)
+                    && !equalsByReflection) {
+                LOGGER.warn("Repositories were equal ignoring case but considered unequal. "
+                        + "This usually indicates a configuration issue in which the case "
+                        + "of a repository name does not match the case on GitHub. "
+                        + "Webhooks will not work. Github repo: {}, Jenkins repo: {}", this, other);
+
+            }
+        }
+        return equalsByReflection;
     }
 
     @Override
