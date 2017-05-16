@@ -4,6 +4,8 @@ import hudson.model.Run;
 import hudson.plugins.git.Revision;
 import hudson.plugins.git.util.Build;
 import hudson.plugins.git.util.BuildData;
+import jenkins.scm.api.SCMRevisionAction;
+
 import org.eclipse.jgit.lib.ObjectId;
 
 import javax.annotation.Nonnull;
@@ -28,22 +30,16 @@ public final class BuildDataHelper {
      * @throws IOException Cannot get the info about commit ID
      */
     @Nonnull
-    public static ObjectId getCommitSHA1(@Nonnull Run<?, ?> build) throws IOException {
-        BuildData buildData = build.getAction(BuildData.class);
-        if (buildData == null) {
+    public static String getCommitSHA1(@Nonnull Run<?, ?> build) throws IOException {
+    	SCMRevisionAction scmRevisionAction = build.getAction(SCMRevisionAction.class);
+        if (scmRevisionAction == null) {
             throw new IOException(Messages.BuildDataHelper_NoBuildDataError());
         }
 
         // buildData?.lastBuild?.marked and fall back to .revision with null check everywhere to be defensive
-        Build b = buildData.lastBuild;
-        if (b != null) {
-            Revision r = b.marked;
-            if (r == null) {
-                r = b.revision;
-            }
-            if (r != null) {
-                return r.getSha1();
-            }
+        String b = scmRevisionAction.getRevision().toString();
+        if (scmRevisionAction != null && scmRevisionAction.getRevision() != null) {
+        	return scmRevisionAction.getRevision().toString();
         }
 
         // Nowhere to report => fail the build

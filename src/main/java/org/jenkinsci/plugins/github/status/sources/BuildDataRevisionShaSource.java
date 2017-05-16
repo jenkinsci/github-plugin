@@ -29,7 +29,7 @@ public class BuildDataRevisionShaSource extends GitHubCommitShaSource {
      */
     @Override
     public String get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) throws IOException {
-        return ObjectId.toString(BuildDataHelper.getCommitSHA1(run));
+        return BuildDataHelper.getCommitSHA1(run);
     }
 
     @Extension
