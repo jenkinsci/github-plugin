@@ -67,4 +67,19 @@ public class GitHubServerConfigTest {
     public void shouldNotMatchDefaultConfigWithNonDefaultHost() throws Exception {
         assertThat(withHost(URI.create(CUSTOM_GH_SERVER).getHost()).apply(new GitHubServerConfig("")), is(false));
     }
+
+    @Test
+    public void shouldGuessNameIfNotProvided() throws Exception {
+        GitHubServerConfig input = new GitHubServerConfig("");
+        input.setApiUrl(CUSTOM_GH_SERVER);
+        assertThat(input.getName(), is("some"));
+    }
+
+    @Test
+    public void shouldUseNameIfProvided() throws Exception {
+        GitHubServerConfig input = new GitHubServerConfig("");
+        input.setApiUrl(CUSTOM_GH_SERVER);
+        input.setName("Test Example");
+        assertThat(input.getName(), is("Test Example"));
+    }
 }
