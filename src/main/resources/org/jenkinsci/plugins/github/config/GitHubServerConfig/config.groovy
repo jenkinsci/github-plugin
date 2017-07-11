@@ -5,6 +5,9 @@ import org.jenkinsci.plugins.github.config.GitHubServerConfig
 def f = namespace(lib.FormTagLib);
 def c = namespace(lib.CredentialsTagLib)
 
+f.entry(title: _("Name"), field: "name") {
+    f.textbox()
+}
 
 f.entry(title: _("API URL"), field: "apiUrl") {
     f.textbox(default: GitHubServerConfig.GITHUB_URL)
