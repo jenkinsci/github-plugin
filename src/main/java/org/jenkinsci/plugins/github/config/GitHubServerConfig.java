@@ -17,6 +17,13 @@ import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Collections;
+import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
 import jenkins.scm.api.SCMName;
 import org.apache.commons.lang3.StringUtils;
@@ -31,14 +38,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Collections;
-import java.util.List;
 
 import static com.cloudbees.plugins.credentials.CredentialsMatchers.filter;
 import static com.cloudbees.plugins.credentials.CredentialsMatchers.withId;
@@ -64,7 +63,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     /**
      * Common prefixes that we should remove when inferring a {@link #name}.
      *
-     * @since 1.27.0
+     * @since 1.28.0
      */
     private static final String[] COMMON_PREFIX_HOSTNAMES = {
         "git.",
@@ -81,7 +80,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     /**
      * The name to display for the public GitHub service.
      *
-     * @since 1.27.0
+     * @since 1.28.0
      */
     private static final String GITHUB_NAME = "GitHub";
 
@@ -164,8 +163,10 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
 
     /**
      * Gets the optional display name of this server.
+     *
      * @return the optional display name of this server, may be empty or {@code null} but best effort is made to ensure
      * that it has some meaningful text.
+     * @since 1.28.0
      */
     public String getName() {
         if (StringUtils.isBlank(name)) {
@@ -173,6 +174,19 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
                     ? GITHUB_NAME : SCMName.fromUrl(apiUrl, COMMON_PREFIX_HOSTNAMES);
         }
         return name;
+    }
+
+    /**
+     * Gets the formatted display name (which will always include the api url)
+     *
+     * @return the formatted display name.
+     * @since 1.28.0
+     */
+    public String getDisplayName() {
+        String n = getName();
+        String a = StringUtils.isBlank(apiUrl) || GITHUB_URL.equals(apiUrl)
+                ? "https://github.com" : StringUtils.removeEnd(apiUrl, "/api/v3");
+        return StringUtils.isBlank(n) ? a : Messages.GitHubServerConfig_displayName(n, a);
     }
 
     public String getApiUrl() {

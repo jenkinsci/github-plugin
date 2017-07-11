@@ -73,6 +73,14 @@ public class GitHubServerConfigTest {
         GitHubServerConfig input = new GitHubServerConfig("");
         input.setApiUrl(CUSTOM_GH_SERVER);
         assertThat(input.getName(), is("some"));
+        assertThat(input.getDisplayName(), is("some (http://some.com)"));
+    }
+
+    @Test
+    public void shouldPickCorrectNamesForGitHub() throws Exception {
+        GitHubServerConfig input = new GitHubServerConfig("");
+        assertThat(input.getName(), is("GitHub"));
+        assertThat(input.getDisplayName(), is("GitHub (https://github.com)"));
     }
 
     @Test
@@ -81,5 +89,6 @@ public class GitHubServerConfigTest {
         input.setApiUrl(CUSTOM_GH_SERVER);
         input.setName("Test Example");
         assertThat(input.getName(), is("Test Example"));
+        assertThat(input.getDisplayName(), is("Test Example (http://some.com)"));
     }
 }
