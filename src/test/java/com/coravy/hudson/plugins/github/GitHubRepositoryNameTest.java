@@ -23,7 +23,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(DataProviderRunner.class)
 public class GitHubRepositoryNameTest {
 
-    public static final String FULL_REPO_NAME = "jenkinsci/jenkins";
+    public static final String FULL_REPO_NAME = "jenkins/jenkins";
     public static final String VALID_HTTPS_GH_PROJECT = "https://github.com/" + FULL_REPO_NAME;
 
     @Test
