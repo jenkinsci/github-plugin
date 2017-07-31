@@ -179,13 +179,15 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      * @since 1.28.0
      */
     public String getDisplayName() {
-        String _name = getName();
-        boolean gitHubOrg = StringUtils.isBlank(apiUrl) || GITHUB_URL.equals(apiUrl);
-        if (StringUtils.isBlank(_name)) {
-            _name = gitHubOrg ? PUBLIC_GITHUB_NAME : SCMName.fromUrl(apiUrl, COMMON_PREFIX_HOSTNAMES);
+        String gitHubName = getName();
+        boolean isGitHubCom = StringUtils.isBlank(apiUrl) || GITHUB_URL.equals(apiUrl);
+        if (StringUtils.isBlank(gitHubName)) {
+            gitHubName = isGitHubCom ? PUBLIC_GITHUB_NAME : SCMName.fromUrl(apiUrl, COMMON_PREFIX_HOSTNAMES);
         }
-        String gitHubUrl = gitHubOrg ? "https://github.com" : StringUtils.removeEnd(apiUrl, "/api/v3");
-        return StringUtils.isBlank(_name) ? gitHubUrl : Messages.GitHubServerConfig_displayName(_name, gitHubUrl);
+        String gitHubUrl = isGitHubCom ? "https://github.com" : StringUtils.removeEnd(apiUrl, "/api/v3");
+        return StringUtils.isBlank(gitHubName)
+                ? gitHubUrl
+                : Messages.GitHubServerConfig_displayName(gitHubName, gitHubUrl);
     }
 
     public String getApiUrl() {
