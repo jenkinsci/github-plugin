@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.net.URI;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.GITHUB_URL;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.isUrlCustom;
@@ -72,14 +73,14 @@ public class GitHubServerConfigTest {
     public void shouldGuessNameIfNotProvided() throws Exception {
         GitHubServerConfig input = new GitHubServerConfig("");
         input.setApiUrl(CUSTOM_GH_SERVER);
-        assertThat(input.getName(), is("some"));
+        assertThat(input.getName(), is(nullValue()));
         assertThat(input.getDisplayName(), is("some (http://some.com)"));
     }
 
     @Test
     public void shouldPickCorrectNamesForGitHub() throws Exception {
         GitHubServerConfig input = new GitHubServerConfig("");
-        assertThat(input.getName(), is("GitHub"));
+        assertThat(input.getName(), is(nullValue()));
         assertThat(input.getDisplayName(), is("GitHub (https://github.com)"));
     }
 
