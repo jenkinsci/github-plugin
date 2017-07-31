@@ -82,7 +82,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      *
      * @since 1.28.0
      */
-    private static final String GITHUB_NAME = "GitHub";
+    private static final String PUBLIC_GITHUB_NAME = "GitHub";
 
     /**
      * Used as default token value if no any creds found by given credsId.
@@ -182,10 +182,10 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
         String _name = getName();
         boolean gitHubOrg = StringUtils.isBlank(apiUrl) || GITHUB_URL.equals(apiUrl);
         if (StringUtils.isBlank(_name)) {
-            _name = gitHubOrg ? GITHUB_NAME : SCMName.fromUrl(apiUrl, COMMON_PREFIX_HOSTNAMES);
+            _name = gitHubOrg ? PUBLIC_GITHUB_NAME : SCMName.fromUrl(apiUrl, COMMON_PREFIX_HOSTNAMES);
         }
-        String _apiUrl = gitHubOrg ? "https://github.com" : StringUtils.removeEnd(apiUrl, "/api/v3");
-        return StringUtils.isBlank(_name) ? _apiUrl : Messages.GitHubServerConfig_displayName(_name, _apiUrl);
+        String gitHubUrl = gitHubOrg ? "https://github.com" : StringUtils.removeEnd(apiUrl, "/api/v3");
+        return StringUtils.isBlank(_name) ? gitHubUrl : Messages.GitHubServerConfig_displayName(_name, gitHubUrl);
     }
 
     public String getApiUrl() {
