@@ -6,6 +6,7 @@
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
         <version>2.6</version>
+        <relativePath/>
     </parent>
 
     <groupId>com.coravy.hudson.plugins.github</groupId>
@@ -54,6 +55,7 @@
         <concurrency>1</concurrency>
         <java.level>7</java.level>
         <hpi-plugin.version>1.120</hpi-plugin.version>
+        <workflow.version>1.14.2</workflow.version>
     </properties>
 
     <repositories>
@@ -99,7 +101,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>git</artifactId>
-            <version>2.4.0</version> <!-- should really be 3.4.0 to match scm-api but ok as git was forward compat -->
+            <version>3.4.0</version>
         </dependency>
 
         <dependency>
@@ -153,10 +155,23 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
             <version>2.4.0</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -183,14 +198,14 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-job</artifactId>
-            <version>1.4</version>
+            <version>${workflow.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-cps</artifactId>
-            <version>1.4</version>
+            <version>${workflow.version}</version>
             <scope>test</scope>
         </dependency>
 
