@@ -105,7 +105,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>scm-api</artifactId>
-            <version>2.2.0-20170711.141026-16</version> <!-- TODO switch for release version before merge -->
+            <version>2.2.0</version>
         </dependency>
 
         <dependency>
