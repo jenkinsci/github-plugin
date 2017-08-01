@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.net.URI;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.GITHUB_URL;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.isUrlCustom;
@@ -66,5 +67,29 @@ public class GitHubServerConfigTest {
     @Test
     public void shouldNotMatchDefaultConfigWithNonDefaultHost() throws Exception {
         assertThat(withHost(URI.create(CUSTOM_GH_SERVER).getHost()).apply(new GitHubServerConfig("")), is(false));
+    }
+
+    @Test
+    public void shouldGuessNameIfNotProvided() throws Exception {
+        GitHubServerConfig input = new GitHubServerConfig("");
+        input.setApiUrl(CUSTOM_GH_SERVER);
+        assertThat(input.getName(), is(nullValue()));
+        assertThat(input.getDisplayName(), is("some (http://some.com)"));
+    }
+
+    @Test
+    public void shouldPickCorrectNamesForGitHub() throws Exception {
+        GitHubServerConfig input = new GitHubServerConfig("");
+        assertThat(input.getName(), is(nullValue()));
+        assertThat(input.getDisplayName(), is("GitHub (https://github.com)"));
+    }
+
+    @Test
+    public void shouldUseNameIfProvided() throws Exception {
+        GitHubServerConfig input = new GitHubServerConfig("");
+        input.setApiUrl(CUSTOM_GH_SERVER);
+        input.setName("Test Example");
+        assertThat(input.getName(), is("Test Example"));
+        assertThat(input.getDisplayName(), is("Test Example (http://some.com)"));
     }
 }

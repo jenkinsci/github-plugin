@@ -10,13 +10,23 @@ import com.google.common.base.Supplier;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
+import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Collections;
+import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
+import jenkins.scm.api.SCMName;
+import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.plugins.github.internal.GitHubLoginFunction;
 import org.jenkinsci.plugins.github.util.FluentIterableWrapper;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
@@ -28,14 +38,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Collections;
-import java.util.List;
 
 import static com.cloudbees.plugins.credentials.CredentialsMatchers.filter;
 import static com.cloudbees.plugins.credentials.CredentialsMatchers.withId;
@@ -59,15 +61,33 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHubServerConfig.class);
 
     /**
+     * Common prefixes that we should remove when inferring a {@link #name}.
+     *
+     * @since 1.28.0
+     */
+    private static final String[] COMMON_PREFIX_HOSTNAMES = {
+        "git.",
+        "github.",
+        "vcs.",
+        "scm.",
+        "source."
+    };
+    /**
      * Because of {@link GitHub} hide this const from external use we need to store it here
      */
     public static final String GITHUB_URL = "https://api.github.com";
 
     /**
+     * The name to display for the public GitHub service.
+     *
+     * @since 1.28.0
+     */
+    private static final String PUBLIC_GITHUB_NAME = "GitHub";
+
+    /**
      * Used as default token value if no any creds found by given credsId.
      */
     private static final String UNKNOWN_TOKEN = "UNKNOWN_TOKEN";
-
     /**
      * Default value in MB for client cache size
      *
@@ -75,6 +95,11 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      */
     public static final int DEFAULT_CLIENT_CACHE_SIZE_MB = 20;
 
+    /**
+     * The optional display name of this server.
+     */
+    @CheckForNull
+    private String name;
     private String apiUrl = GITHUB_URL;
     private boolean manageHooks = true;
     private final String credentialsId;
@@ -93,6 +118,15 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     @DataBoundConstructor
     public GitHubServerConfig(String credentialsId) {
         this.credentialsId = credentialsId;
+    }
+
+    /**
+     * Sets the optional display name.
+     * @param name the optional display name.
+     */
+    @DataBoundSetter
+    public void setName(@CheckForNull String name) {
+        this.name = Util.fixEmptyAndTrim(name);
     }
 
     /**
@@ -125,6 +159,35 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      */
     @Deprecated
     public void setCustomApiUrl(boolean customApiUrl) {
+    }
+
+    /**
+     * Gets the optional display name of this server.
+     *
+     * @return the optional display name of this server, may be empty or {@code null} but best effort is made to ensure
+     * that it has some meaningful text.
+     * @since 1.28.0
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Gets the formatted display name (which will always include the api url)
+     *
+     * @return the formatted display name.
+     * @since 1.28.0
+     */
+    public String getDisplayName() {
+        String gitHubName = getName();
+        boolean isGitHubCom = StringUtils.isBlank(apiUrl) || GITHUB_URL.equals(apiUrl);
+        if (StringUtils.isBlank(gitHubName)) {
+            gitHubName = isGitHubCom ? PUBLIC_GITHUB_NAME : SCMName.fromUrl(apiUrl, COMMON_PREFIX_HOSTNAMES);
+        }
+        String gitHubUrl = isGitHubCom ? "https://github.com" : StringUtils.removeEnd(apiUrl, "/api/v3");
+        return StringUtils.isBlank(gitHubName)
+                ? gitHubUrl
+                : Messages.GitHubServerConfig_displayName(gitHubName, gitHubUrl);
     }
 
     public String getApiUrl() {
