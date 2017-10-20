@@ -24,7 +24,7 @@ f.section(title: descriptor.displayName) {
         if (GitHubPushTrigger.ALLOW_HOOKURL_OVERRIDE) {
             f.entry(title: _("Override Hook URL")) {
                 table(width: "100%", style: "margin-left: 7px;") {
-                    f.optionalBlock(title: _("Specify another hook url for GitHub configuration"),
+                    f.optionalBlock(title: _("Specify another hook URL for GitHub configuration"),
                             inline: true,
                             field: "overrideHookUrl",
                             checked: instance.overrideHookURL) {
@@ -48,4 +48,3 @@ f.section(title: descriptor.displayName) {
         }
     }
 }
-
