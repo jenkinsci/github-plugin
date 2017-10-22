@@ -5,38 +5,32 @@
             <h3>By default</h3>
 
             <p>
-                This plugin don't do anything with GitHub api unless you add config with credentials.
-                So if you don't want to add any config, you can setup hooks for this jenkins instance manually.
+                This plugin doesn't do anything with the GitHub API unless you add a configuration with credentials.
+                So if you don't want to add any configuration, you can setup hooks for this Jenkins instance manually.
                 <br/>
-                In this mode, in addition to configure projects with "<i>Build when a change is pushed to GitHub</i>",
+                In this mode, in addition to configuring projects with "<i>Build when a change is pushed to GitHub</i>",
                 you need to ensure that Jenkins gets a POST to its
-                <tt>
-                    <a href="${rootURL}/github-webhook/">${app.rootUrl}github-webhook/</a>
-                </tt>
+                <tt><a href="${rootURL}/github-webhook/">${app.rootUrl}github-webhook/</a></tt>.
             </p>
 
             <h3>If you setup credentials</h3>
             <p>
-                In this mode, Jenkins will add/remove hook URLs to GitHub based on the project configuration of
-                Jenkins.
+                In this mode, Jenkins will add/remove hook URLs to GitHub based on the project configuration.
                 Jenkins has a single post-commit hook URL for all the repositories, and this URL will be added
-                to
-                all the GitHub repositories Jenkins is interested in. You should provide credentials with scope
-                <b>admin:repo_hook</b>
-                for every repo which should be managed by Jenkins. It needs to read current list of hooks,
-                create new hooks and remove old.
+                to all the GitHub repositories Jenkins is interested in. You should provide credentials with scope
+                <b>admin:repo_hook</b> for every repository which should be managed by Jenkins. It needs to read the
+                current list of hooks, create new hooks and remove old hooks.
 
                 <p>
-                    Hook URL is
+                    The Hook URL is
                     <tt>
                         <a href="${rootURL}/github-webhook/">${app.rootUrl}github-webhook/</a>
                     </tt>
                     ,
                     and it needs to be accessible from the internet. If you have a firewall and such between
-                    GitHub
-                    and Jenkins, you can set up a reverse proxy and override the hook URL that Jenkins registers
-                    to GitHub,
-                    by checking "override hook URL" in advanced configuration and specify the URL GitHub should POST to.
+                    GitHub and Jenkins, you can set up a reverse proxy and override the hook URL that Jenkins registers
+                    to GitHub, by checking "override hook URL" in the advanced configuration and specify to which URL
+                    GitHub should POST.
                 </p>
             </p>
         </div>
