@@ -198,7 +198,7 @@ public class GitHubRepositoryName {
      * Does this repository match the repository referenced in the given {@link GHCommitPointer}?
      */
     public boolean matches(GHRepository repo) throws IOException {
-        return userName.equals(repo.getOwner().getLogin()) // TODO: use getOwnerName
+        return userName.equals(repo.getOwnerName())
                 && repositoryName.equals(repo.getName())
                 && host.equals(repo.getHtmlUrl().getHost());
     }
