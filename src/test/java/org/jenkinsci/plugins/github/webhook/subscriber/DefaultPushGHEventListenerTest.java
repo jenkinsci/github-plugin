@@ -4,6 +4,8 @@ import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubTriggerEvent;
 import hudson.model.FreeStyleProject;
 import hudson.plugins.git.GitSCM;
+import jenkins.model.GlobalConfiguration;
+import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.extension.GHSubscriberEvent;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
@@ -59,6 +61,50 @@ public class DefaultPushGHEventListenerTest {
         new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
 
         verify(trigger).onPost(eq(GitHubTriggerEvent.create()
+                .withTimestamp(subscriberEvent.getTimestamp())
+                .withOrigin("shouldParsePushPayload")
+                .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
+                .build()
+        ));
+    }
+
+    @Test
+    public void shouldntTriggerBuildIfPusherIsOnIgnoreList() throws Exception {
+        GitHubPushTrigger trigger = mock(GitHubPushTrigger.class);
+        GitHubPluginConfig config = GlobalConfiguration.all().get(GitHubPluginConfig.class);
+        config.setCommittersToIgnore("lanwen");
+
+        FreeStyleProject prj = jenkins.createFreeStyleProject();
+        prj.addTrigger(trigger);
+        prj.setScm(GIT_SCM_FROM_RESOURCE);
+
+        GHSubscriberEvent subscriberEvent =
+                new GHSubscriberEvent("shouldParsePushPayload", GHEvent.PUSH, classpath("payloads/push.json"));
+        new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
+
+        verify(trigger, never()).onPost(eq(GitHubTriggerEvent.create()
+                .withTimestamp(subscriberEvent.getTimestamp())
+                .withOrigin("shouldParsePushPayload")
+                .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
+                .build()
+        ));
+    }
+
+    @Test
+    public void shouldntTriggerBuildIfPusherIsOnIgnoreList_MultipleUsernames() throws Exception {
+        GitHubPushTrigger trigger = mock(GitHubPushTrigger.class);
+        GitHubPluginConfig config = GlobalConfiguration.all().get(GitHubPluginConfig.class);
+        config.setCommittersToIgnore("lanwen,joe,bob,someoneelse");
+
+        FreeStyleProject prj = jenkins.createFreeStyleProject();
+        prj.addTrigger(trigger);
+        prj.setScm(GIT_SCM_FROM_RESOURCE);
+
+        GHSubscriberEvent subscriberEvent =
+                new GHSubscriberEvent("shouldParsePushPayload", GHEvent.PUSH, classpath("payloads/push.json"));
+        new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
+
+        verify(trigger, never()).onPost(eq(GitHubTriggerEvent.create()
                 .withTimestamp(subscriberEvent.getTimestamp())
                 .withOrigin("shouldParsePushPayload")
                 .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)

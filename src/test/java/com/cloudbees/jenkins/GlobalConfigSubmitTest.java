@@ -26,8 +26,10 @@ public class GlobalConfigSubmitTest {
 
     public static final String OVERRIDE_HOOK_URL_CHECKBOX = "_.overrideHookUrl";
     public static final String HOOK_URL_INPUT = "_.hookUrl";
+    public static final String COMMITTERS_TO_IGNORE_INPUT = "_.committersToIgnore";
 
     private static final String WEBHOOK_URL = "http://jenkinsci.example.com/jenkins/github-webhook/";
+    private static final String COMMITTERS_TO_IGNORE = "lanwen,dbsanfte";
 
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
@@ -42,6 +44,18 @@ public class GlobalConfigSubmitTest {
 
         assertThat(GitHubPlugin.configuration().isOverrideHookURL(), is(true));
         assertThat(GitHubPlugin.configuration().getHookUrl(), equalTo(new URL(WEBHOOK_URL)));
+    }
+
+    @Test
+    public void shouldSetIgnorableCommittersField() throws Exception {
+        HtmlForm form = globalConfig();
+
+        form.getInputByName(COMMITTERS_TO_IGNORE_INPUT).setValueAttribute(COMMITTERS_TO_IGNORE);
+        jenkins.submit(form);
+
+        assertThat(GitHubPlugin.configuration().getCommittersToIgnore(), is(COMMITTERS_TO_IGNORE));
+        assertThat(GitHubPlugin.configuration().getCommittersToIgnoreArray()[0], is(COMMITTERS_TO_IGNORE.split(",")[0]));
+        assertThat(GitHubPlugin.configuration().getCommittersToIgnoreArray()[1], is(COMMITTERS_TO_IGNORE.split(",")[1]));
     }
 
     public HtmlForm globalConfig() throws IOException, SAXException {
