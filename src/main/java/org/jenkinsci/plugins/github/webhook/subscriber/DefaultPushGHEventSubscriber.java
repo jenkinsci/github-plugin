@@ -101,7 +101,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
 
                                 boolean toIgnore = false;
                                 for (String committer : config.getCommittersToIgnoreArray()) {
-                                    if (committer.equals(pusherName)) {
+                                    if (committer.trim().equals(pusherName)) {
                                         toIgnore = true;
                                         break;
                                     }
