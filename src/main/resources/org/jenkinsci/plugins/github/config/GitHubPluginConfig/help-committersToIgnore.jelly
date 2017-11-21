@@ -2,16 +2,18 @@
 <j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout">
     <l:ajax>
         <div>
-            A comma-delimited list of usernames to ignore push events from. These events will be handled
-            and logged by the plugin but will not trigger builds. The obvious use-case for this is
-            ignoring push events by a designated Jenkins git user, so that your builds don't trigger
-            more builds.
+            <p>
+                A comma-delimited list of usernames to ignore push events from. These events will be handled
+                and logged by the plugin but will not trigger builds. The obvious use-case for this is
+                ignoring push events by a designated Jenkins git user, so that your builds don't trigger
+                more builds.
+    
+                This must <b>exactly</b> match their Github username.
 
-            This must <b>exactly</b> match their Github username.
-
-            Examples:
-            <i>jenkinsuser</i>
-            <i>jenkinsuser,otheruser,anotheruser,yetanotheruser</i>
+                Examples:
+                <i>jenkinsuser</i>
+                <i>jenkinsuser,otheruser,anotheruser,yetanotheruser</i>
+            </p>
         </div>
     </l:ajax>
 </j:jelly>
