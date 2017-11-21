@@ -63,6 +63,13 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     private URL hookUrl;
     private HookSecretConfig hookSecretConfig = new HookSecretConfig(null);
 
+    /**
+     * @see #getCommittersToIgnore()
+     * @see #setCommittersToIgnore(String)
+     */
+    private String committersToIgnore = "";
+
+
     private transient boolean overrideHookUrl;
 
     /**
@@ -136,6 +143,45 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     public List<Descriptor> actions() {
         return Collections.singletonList(Jenkins.getInstance().getDescriptor(GitHubTokenCredentialsCreator.class));
+    }
+
+    /**
+     * Comma-delimited list of git usernames to ignore when receiving push events (ie, jenkinsuser)
+     *
+     * Defaults to empty string
+     *
+     * @since 1.28.2
+     */
+    public String getCommittersToIgnore() {
+        return committersToIgnore;
+    }
+
+    /**
+     * Array of git usernames to ignore when receiving push events (ie, jenkinsuser)
+     *
+     * Defaults to empty array
+     *
+     * @since 1.28.2
+     */
+    public String[] getCommittersToIgnoreArray() {
+        String[] committers = new String[0];
+        if (null != committersToIgnore && !committersToIgnore.isEmpty()) {
+            try {
+                committers = committersToIgnore.split(",");
+            } catch (Exception e) {
+                LOGGER.error("Caught exception trying to parse "
+                    + "the list of committers to ignore. Malformed list?", e);
+            }
+        }
+        return committers;
+    }
+
+    /**
+     * @param committersToIgnore comma-delimited list of git usernames to
+     * ignore when receiving push events (ie, jenkinsuser)
+     */
+    public void setCommittersToIgnore(String committersToIgnore) {
+        this.committersToIgnore = committersToIgnore;
     }
 
     /**

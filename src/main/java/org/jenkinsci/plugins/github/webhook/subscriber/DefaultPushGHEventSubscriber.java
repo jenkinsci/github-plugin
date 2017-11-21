@@ -12,7 +12,10 @@ import hudson.security.ACL;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
+
+import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.extension.GHSubscriberEvent;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.kohsuke.github.GHEvent;
@@ -75,7 +78,8 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
         }
         URL repoUrl = push.getRepository().getUrl();
         final String pusherName = push.getPusher().getName();
-        LOGGER.info("Received PushEvent for {} from {}", repoUrl, event.getOrigin());
+        LOGGER.info("Received PushEvent for {} from {} by user {}", repoUrl, event.getOrigin(), pusherName);
+
         final GitHubRepositoryName changedRepository = GitHubRepositoryName.create(repoUrl.toExternalForm());
 
         if (changedRepository != null) {
@@ -92,13 +96,28 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                             LOGGER.debug("Considering to poke {}", fullDisplayName);
                             if (GitHubRepositoryNameContributor.parseAssociatedNames(job)
                                     .contains(changedRepository)) {
-                                LOGGER.info("Poked {}", fullDisplayName);
-                                trigger.onPost(GitHubTriggerEvent.create()
-                                        .withTimestamp(event.getTimestamp())
-                                        .withOrigin(event.getOrigin())
-                                        .withTriggeredByUser(pusherName)
-                                        .build()
-                                );
+
+                                GitHubPluginConfig config = GlobalConfiguration.all().get(GitHubPluginConfig.class);
+
+                                boolean toIgnore = false;
+                                for (String committer : config.getCommittersToIgnoreArray()) {
+                                    if (committer.equals(pusherName)) {
+                                        toIgnore = true;
+                                        break;
+                                    }
+                                }
+                                if (toIgnore) {
+                                    LOGGER.info("Skipping push event by {} as we are configured "
+                                            + "to ignore events from this user.", pusherName);
+                                } else {
+                                    LOGGER.info("Poked {}", fullDisplayName);
+                                    trigger.onPost(GitHubTriggerEvent.create()
+                                            .withTimestamp(event.getTimestamp())
+                                            .withOrigin(event.getOrigin())
+                                            .withTriggeredByUser(pusherName)
+                                            .build()
+                                    );
+                                }
                             } else {
                                 LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
                                         fullDisplayName);

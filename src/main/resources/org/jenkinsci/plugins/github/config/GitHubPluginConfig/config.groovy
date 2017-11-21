@@ -46,5 +46,10 @@ f.section(title: descriptor.displayName) {
                     name: "actions",
                     oneEach: "true", hasHeader: "true", descriptors: instance.actions())
         }
+
+        f.entry(title: _("Ignore push events from certain git users"),
+                help: descriptor.getHelpFile('committersToIgnore'), field: "committersToIgnore") {
+            f.textbox()
+        }
     }
 }
