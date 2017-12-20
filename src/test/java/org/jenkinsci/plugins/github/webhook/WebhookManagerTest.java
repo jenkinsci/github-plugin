@@ -167,7 +167,7 @@ public class WebhookManagerTest {
     }
 
     @Test
-    public void shouldNotReplaceAlreadyRegisteredHook() throws IOException {
+    public void shouldReplaceAlreadyRegisteredHook() throws IOException {
         doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
 
@@ -175,8 +175,8 @@ public class WebhookManagerTest {
         when(repo.getHooks()).thenReturn(newArrayList(hook));
 
         manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
-        verify(manager, never()).deleteWebhook();
-        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class));
+        verify(manager, times(1)).deleteWebhook();
+        verify(manager, times(1)).createWebhook(any(URL.class), anySetOf(GHEvent.class));
     }
 
     @Test
