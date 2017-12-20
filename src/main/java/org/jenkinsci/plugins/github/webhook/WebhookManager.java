@@ -190,11 +190,6 @@ public class WebhookManager {
                     Set<GHEvent> alreadyRegistered = from(hooks)
                             .transformAndConcat(eventsFromHook()).toSet();
 
-                    if (hooks.size() == 1 && isEqualCollection(alreadyRegistered, events)) {
-                        LOGGER.debug("Hook already registered for events {}", events);
-                        return null;
-                    }
-
                     Set<GHEvent> merged = from(alreadyRegistered).append(events).toSet();
 
                     from(hooks)
