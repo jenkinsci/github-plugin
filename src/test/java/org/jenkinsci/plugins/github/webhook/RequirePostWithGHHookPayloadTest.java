@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecret;
+import static org.jenkinsci.plugins.github.test.HookSecretHelper.removeSecret;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -96,7 +97,17 @@ public class RequirePostWithGHHookPayloadTest {
     }
 
     @Test
-    public void shouldPassOnAbsentSignatureInRequest() throws Exception {
+    @Issue("JENKINS-37481")
+    public void shouldPassOnAbsentSignatureInRequestIfSecretIsNotConfigured() throws Exception {
+        doReturn(PAYLOAD).when(processor).payloadFrom(req, null);
+        removeSecret();
+
+        processor.shouldProvideValidSignature(req, null);
+    }
+
+    @Test(expected = InvocationTargetException.class)
+    @Issue("JENKINS-48012")
+    public void shouldNotPassOnAbsentSignatureInRequest() throws Exception {
         doReturn(PAYLOAD).when(processor).payloadFrom(req, null);
 
         processor.shouldProvideValidSignature(req, null);
