@@ -32,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Predicates.or;
 import static java.lang.String.format;
+import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.extractEvents;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
@@ -188,6 +189,14 @@ public class WebhookManager {
 
                     Set<GHEvent> alreadyRegistered = from(hooks)
                             .transformAndConcat(eventsFromHook()).toSet();
+
+                    if (hooks.size() == 1 && isEqualCollection(alreadyRegistered, events)) {
+                        final Secret secret = GitHubPlugin.configuration().getHookSecretConfig().getHookSecret();
+                        if (secret == null) {
+                            LOGGER.debug("Hook already registered for events {}", events);
+                            return null;
+                        }
+                    }
 
                     Set<GHEvent> merged = from(alreadyRegistered).append(events).toSet();
 

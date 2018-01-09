@@ -14,6 +14,7 @@ import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
 import org.kohsuke.github.GHEvent;
@@ -36,7 +37,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecretIn;
+import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecret;
+import static org.jenkinsci.plugins.github.test.HookSecretHelper.removeSecret;
 import static org.jenkinsci.plugins.github.webhook.WebhookManager.forHookUrl;
 import static org.junit.Assert.assertThat;
 import static org.kohsuke.github.GHEvent.CREATE;
@@ -167,16 +169,32 @@ public class WebhookManagerTest {
     }
 
     @Test
-    public void shouldReplaceAlreadyRegisteredHook() throws IOException {
+    @Issue("JENKINS-48610")
+    public void shouldReplaceAlreadyRegisteredHookIfSecretIsConfigured() throws IOException {
         doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
 
+        storeSecret("secret_text");
         GHHook hook = hook(HOOK_ENDPOINT, PUSH);
         when(repo.getHooks()).thenReturn(newArrayList(hook));
 
         manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
         verify(manager, times(1)).deleteWebhook();
         verify(manager, times(1)).createWebhook(any(URL.class), anySetOf(GHEvent.class));
+    }
+
+    @Test
+    public void shouldNotReplaceAlreadyRegisteredHookIfSecretIsNotConfigured() throws IOException {
+        doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
+        when(repo.hasAdminAccess()).thenReturn(true);
+
+        removeSecret();
+        GHHook hook = hook(HOOK_ENDPOINT, PUSH);
+        when(repo.getHooks()).thenReturn(newArrayList(hook));
+
+        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
+        verify(manager, never()).deleteWebhook();
+        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class));
     }
 
     @Test
@@ -233,7 +251,7 @@ public class WebhookManagerTest {
     public void shouldSendSecretIfDefined() throws Exception {
         String secretText = "secret_text";
 
-        storeSecretIn(GitHubPlugin.configuration(), secretText);
+        storeSecret(secretText);
 
         manager.createWebhook(HOOK_ENDPOINT, ImmutableSet.of(PUSH)).apply(repo);
 
