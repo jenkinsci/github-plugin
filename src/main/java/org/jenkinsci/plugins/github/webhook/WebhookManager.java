@@ -32,7 +32,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Predicates.or;
 import static java.lang.String.format;
-import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.extractEvents;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
