@@ -12,6 +12,7 @@ import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.kohsuke.github.GHCommitPointer;
 import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GHUser;
 import org.kohsuke.github.GitHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -180,7 +181,15 @@ public class GitHubRepositoryName {
      * Does this repository match the repository referenced in the given {@link GHCommitPointer}?
      */
     public boolean matches(GHCommitPointer commit) {
-        return userName.equals(commit.getUser().getLogin())
+        final GHUser user;
+        try {
+            user = commit.getUser();
+        } catch (IOException ex) {
+            LOGGER.debug("Failed to extract user from commit " + commit, ex);
+            return false;
+        }
+
+        return userName.equals(user.getLogin())
                 && repositoryName.equals(commit.getRepository().getName())
                 && host.equals(commit.getRepository().getHtmlUrl().getHost());
     }
