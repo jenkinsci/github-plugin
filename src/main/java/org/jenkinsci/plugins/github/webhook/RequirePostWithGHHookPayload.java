@@ -132,17 +132,18 @@ public @interface RequirePostWithGHHookPayload {
         }
 
         /**
-         * Checks that an incoming request has a valid signature, if there is specified a signature in the config.
+         * Checks that an incoming request has a valid signature, if a hook secret is specified in the GitHub plugin config.
+         * If no hook secret is configured, then the signature is ignored.
          *
          * @param req Incoming request.
          *
          * @throws InvocationTargetException if any of preconditions is not satisfied
          */
         protected void shouldProvideValidSignature(StaplerRequest req, Object[] args) throws InvocationTargetException {
-            Optional<String> signHeader = Optional.fromNullable(req.getHeader(SIGNATURE_HEADER));
             Secret secret = GitHubPlugin.configuration().getHookSecretConfig().getHookSecret();
 
             if (Optional.fromNullable(secret).isPresent()) {
+                Optional<String> signHeader = Optional.fromNullable(req.getHeader(SIGNATURE_HEADER));
                 isTrue(signHeader.isPresent(), "Signature was expected, but not provided");
 
                 String digest = substringAfter(signHeader.get(), SHA1_PREFIX);
