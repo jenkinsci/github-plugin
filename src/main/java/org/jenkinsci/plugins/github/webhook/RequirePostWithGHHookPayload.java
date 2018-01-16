@@ -112,7 +112,6 @@ public @interface RequirePostWithGHHookPayload {
          * If any other argument will be added to root action index method, then arg count check should be changed
          *
          * @param arguments event and payload. Both not null and not blank
-         *
          * @throws InvocationTargetException if any of preconditions is not satisfied
          */
         protected void shouldContainParseablePayload(Object[] arguments) throws InvocationTargetException {
@@ -132,12 +131,11 @@ public @interface RequirePostWithGHHookPayload {
         }
 
         /**
-         * Checks that an incoming request has a valid signature, 
+         * Checks that an incoming request has a valid signature,
          * if a hook secret is specified in the GitHub plugin config.
          * If no hook secret is configured, then the signature is ignored.
          *
          * @param req Incoming request.
-         *
          * @throws InvocationTargetException if any of preconditions is not satisfied
          */
         protected void shouldProvideValidSignature(StaplerRequest req, Object[] args) throws InvocationTargetException {
@@ -188,7 +186,6 @@ public @interface RequirePostWithGHHookPayload {
          *
          * @param condition on false throws exception
          * @param msg       to add to exception
-         *
          * @throws InvocationTargetException BAD REQUEST 400 status code with message
          */
         private void isTrue(boolean condition, String msg) throws InvocationTargetException {
