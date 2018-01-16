@@ -132,7 +132,8 @@ public @interface RequirePostWithGHHookPayload {
         }
 
         /**
-         * Checks that an incoming request has a valid signature, if a hook secret is specified in the GitHub plugin config.
+         * Checks that an incoming request has a valid signature, 
+         * if a hook secret is specified in the GitHub plugin config.
          * If no hook secret is configured, then the signature is ignored.
          *
          * @param req Incoming request.
