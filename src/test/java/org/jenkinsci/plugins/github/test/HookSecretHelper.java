@@ -62,4 +62,20 @@ public class HookSecretHelper {
     public static void storeSecret(final String secretText) {
         storeSecretIn(Jenkins.getInstance().getDescriptorByType(GitHubPluginConfig.class), secretText);
     }
+
+    /**
+     * Unsets the current hook secret.
+     *
+     * @param config where to remove
+     */
+    public static void removeSecretIn(GitHubPluginConfig config) {
+        config.getHookSecretConfig().setCredentialsId(null);
+    }
+
+    /**
+     * Unsets the current hook secret.
+     */
+    public static void removeSecret() {
+        removeSecretIn(Jenkins.getInstance().getDescriptorByType(GitHubPluginConfig.class));
+    }
 }
