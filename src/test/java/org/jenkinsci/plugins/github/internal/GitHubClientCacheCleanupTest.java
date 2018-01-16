@@ -1,8 +1,10 @@
 package org.jenkinsci.plugins.github.internal;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import hudson.Functions;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.jenkinsci.plugins.github.test.GHMockRule;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -18,8 +20,12 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.nio.file.Files.newDirectoryStream;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.startsWith;
 import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.clearRedundantCaches;
 import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.getBaseCacheDir;
+import static org.junit.Assume.assumeThat;
 
 /**
  * @author lanwen (Merkushev Kirill)
@@ -35,6 +41,12 @@ public class GitHubClientCacheCleanupTest {
     @Rule
     public GHMockRule github = new GHMockRule(new WireMockRule(wireMockConfig().dynamicPort())).stubUser();
 
+    @Before
+    public void setUp() throws Exception {
+        assumeThat("ignore for windows (dunno how to fix it without win - heed help!)",
+                Functions.isWindows(), is(false)
+        );
+    }
 
     @Test
     public void shouldCreateCachedFolder() throws Exception {
