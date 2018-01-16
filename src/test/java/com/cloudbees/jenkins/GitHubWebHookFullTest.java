@@ -29,6 +29,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.commons.lang3.ClassUtils.PACKAGE_SEPARATOR;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.jenkinsci.plugins.github.test.HookSecretHelper.removeSecretIn;
 import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecretIn;
 import static org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER;
 
@@ -77,6 +78,7 @@ public class GitHubWebHookFullTest {
 
     @Test
     public void shouldParseJsonWebHookFromGH() throws Exception {
+        removeSecretIn(config);
         given().spec(spec)
                 .header(eventHeader(GHEvent.PUSH))
                 .header(JSON_CONTENT_TYPE)
