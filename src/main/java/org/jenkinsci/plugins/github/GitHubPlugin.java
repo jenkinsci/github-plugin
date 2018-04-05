@@ -32,7 +32,7 @@ public class GitHubPlugin extends Plugin {
      * Launches migration after all extensions have been augmented as we need to ensure that the credentials plugin
      * has been initialized.
      * We need ensure that migrator will run after xstream aliases will be added.
-     * @see <a href="https://issues.jenkins-ci.org/browse/JENKINS-36446>JENKINS-36446</a>
+     * @see <a href="https://issues.jenkins-ci.org/browse/JENKINS-36446">JENKINS-36446</a>
      */
     @Initializer(after = InitMilestone.EXTENSIONS_AUGMENTED, before = InitMilestone.JOB_LOADED)
     public static void runMigrator() throws Exception {
