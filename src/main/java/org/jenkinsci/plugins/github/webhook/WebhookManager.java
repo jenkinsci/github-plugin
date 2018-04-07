@@ -176,10 +176,12 @@ public class WebhookManager {
             @Override
             protected GHHook applyNullSafe(@Nonnull GitHubRepositoryName name) {
                 try {
-                    GHRepository repo = checkNotNull(
-                            from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull(),
-                            "There is no credentials with admin access to manage hooks on %s", name
-                    );
+                    GHRepository repo = from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess())
+                            .orNull();
+                    if (repo == null) {
+                        LOGGER.warn("There is no credentials with admin access to manage hooks on {}", name);
+                        return null;
+                    }
 
                     Validate.notEmpty(events, "Events list for hook can't be empty");
 
