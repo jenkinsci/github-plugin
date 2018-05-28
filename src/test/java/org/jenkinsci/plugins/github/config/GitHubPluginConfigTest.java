@@ -22,13 +22,13 @@ public class GitHubPluginConfigTest {
     }
 
     @Test
-    public void shouldManageHooksOnMangedConfig() throws Exception {
+    public void shouldManageHooksOnManagedConfig() throws Exception {
         GitHubPlugin.configuration().getConfigs().add(new GitHubServerConfig(""));
         assertThat(GitHubPlugin.configuration().isManageHooks(), is(true));
     }
 
     @Test
-    public void shouldNotManageHooksOnNotMangedConfig() throws Exception {
+    public void shouldNotManageHooksOnNotManagedConfig() throws Exception {
         GitHubServerConfig conf = new GitHubServerConfig("");
         conf.setManageHooks(false);
         GitHubPlugin.configuration().getConfigs().add(conf);

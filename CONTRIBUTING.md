@@ -34,7 +34,7 @@ Checkstyle rules are more important than this document.
 1. "hungarian"-style notation is banned (i.e. instance variable names preceded by an 'm', etc)
 2. If the field is `static final` then it shall be named in `ALL_CAPS_WITH_UNDERSCORES`.
 3. Start variable names with a lowercase letter and use camelCase rather than under_scores.
-4. Spelling and abreviations: If the word is widely used in the JVM runtime, stick with the spelling/abreviation in the JVM runtime, e.g. `color` over `colour`, `sync` over `synch`, `async` over `asynch`, etc.
+4. Spelling and abbreviations: If the word is widely used in the JVM runtime, stick with the spelling/abbreviation in the JVM runtime, e.g. `color` over `colour`, `sync` over `synch`, `async` over `asynch`, etc.
 5. It is acceptable to use `i`, `j`, `k` for loop indices and iterators. If you need more than three, you are likely doing something wrong and as such you shall either use full descriptive names or refactor.
 6. It is acceptable to use `e` for the exception in a `try...catch` block.
 7. You shall never use `l` (i.e. lower case `L`) as a variable name.
@@ -110,7 +110,7 @@ To the greatest extent possible, please wrap lines to ensure that they do not ex
         + Indent case statements in switch
     - Wrapping
         + Change all the `Never` values to `If Long`
-        + Select the checkbox for Wrap After Assignement Operators
+        + Select the checkbox for Wrap After Assignment Operators
 * IntelliJ, by and large the IDE defaults are acceptable with the following changes:
     - Wrapping and Braces
         + Change `Do not wrap` to `Wrap if long`
