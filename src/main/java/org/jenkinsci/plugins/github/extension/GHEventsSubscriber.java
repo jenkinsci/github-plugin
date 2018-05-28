@@ -115,7 +115,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
 
     /**
      * This method called when root action receives webhook from GH and this extension is interested in such
-     * events (provided by {@link #events()} method). By default do nothing and can be overrided to implement any
+     * events (provided by {@link #events()} method). By default do nothing and can be overridden to implement any
      * parse logic
      * Don't call it directly, use {@link #processEvent(GHSubscriberEvent)} static function
      *
@@ -130,7 +130,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
 
     /**
      * This method called when root action receives webhook from GH and this extension is interested in such
-     * events (provided by {@link #events()} method). By default do nothing and can be overrided to implement any
+     * events (provided by {@link #events()} method). By default do nothing and can be overridden to implement any
      * parse logic
      * Don't call it directly, use {@link #processEvent(GHSubscriberEvent)} static function
      *
