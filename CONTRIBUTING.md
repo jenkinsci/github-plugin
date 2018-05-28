@@ -110,7 +110,7 @@ To the greatest extent possible, please wrap lines to ensure that they do not ex
         + Indent case statements in switch
     - Wrapping
         + Change all the `Never` values to `If Long`
-        + Select the checkbox for Wrap After Assignement Operators
+        + Select the checkbox for Wrap After Assignment Operators
 * IntelliJ, by and large the IDE defaults are acceptable with the following changes:
     - Wrapping and Braces
         + Change `Do not wrap` to `Wrap if long`
