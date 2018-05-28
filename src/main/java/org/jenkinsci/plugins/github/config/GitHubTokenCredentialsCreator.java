@@ -128,7 +128,7 @@ public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredent
                 fromUri(defaultIfBlank(apiUrl, GITHUB_URL)).build()),
                 withId(credentialsId));
         if (creds == null) {
-            // perhaps they selected a personal credential for convertion
+            // perhaps they selected a personal credential for conversion
             creds = firstOrNull(lookupCredentials(
                     StandardUsernamePasswordCredentials.class,
                     Jenkins.getInstance(),
