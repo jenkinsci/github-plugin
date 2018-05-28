@@ -1,21 +1,21 @@
 # Functional contribution
 
 We are welcome for any contribution. But every new feature implemented in this plugin should:
- 
-- Be useful enough for lot of people (should not cover only your professional case)
-- Should not break existing use cases and should avoid breaking the backward compatibility in existing APIs.
-  - If the compatibility break is required, it should be well justified. 
-    [Guide](https://wiki.eclipse.org/Evolving_Java-based_APIs_2) 
-    and [jenkins solutions](https://wiki.jenkins-ci.org/display/JENKINS/Hint+on+retaining+backward+compatibility) can help to retain the backward compatibility   
-- Should be easily maintained (so maintainers need some time to think about architecture of implementation)
-- Have at least one test for positive use case
 
-This plugin is used by lot of people, so it should be stable enough. Please ensure your change is compatible at least with the last LTS line. 
-Any core dependency upgrade must be justified
+- Be useful enough for lot of people (should not cover only your professional case).
+- Should not break existing use cases and should avoid breaking the backward compatibility in existing APIs.
+  - If the compatibility break is required, it should be well justified.
+    [Guide](https://wiki.eclipse.org/Evolving_Java-based_APIs_2)
+    and [jenkins solutions](https://wiki.jenkins-ci.org/display/JENKINS/Hint+on+retaining+backward+compatibility) can help to retain the backward compatibility.
+- Should be easily maintained (so maintainers need some time to think about architecture of implementation).
+- Have at least one test for positive use case.
+
+This plugin is used by lot of people, so it should be stable enough. Please ensure your change is compatible at least with the last LTS line.
+Any core dependency upgrade must be justified.
 
 # Code Style Guidelines
 
-Most of rules is checked with help of the *maven-checkstyle-plugin* during the `validate` phase. 
+Most of rules is checked with help of the *maven-checkstyle-plugin* during the `validate` phase.
 Checkstyle rules are more important than this document.
 
 ## Resulting from long experience
@@ -27,11 +27,11 @@ Checkstyle rules are more important than this document.
 ## Indentation
 
 1. **Use spaces.** Tabs are banned.
-2. **Java blocks are 4 spaces.** JavaScript blocks as for Java. **XML nesting is 4 spaces**
+2. **Java blocks are 4 spaces.** JavaScript blocks as for Java. **XML nesting is 4 spaces**.
 
 ## Field Naming Conventions
 
-1. "hungarian"-style notation is banned (i.e. instance variable names preceded by an 'm', etc)
+1. "hungarian"-style notation is banned (e.g. instance variable names preceded by an 'm', etc.).
 2. If the field is `static final` then it shall be named in `ALL_CAPS_WITH_UNDERSCORES`.
 3. Start variable names with a lowercase letter and use camelCase rather than under_scores.
 4. Spelling and abbreviations: If the word is widely used in the JVM runtime, stick with the spelling/abbreviation in the JVM runtime, e.g. `color` over `colour`, `sync` over `synch`, `async` over `asynch`, etc.
@@ -55,7 +55,7 @@ To the greatest extent possible, please wrap lines to ensure that they do not ex
 ### Imports
 
 * For code in `src/main`:
-    - `*` imports are banned. 
+    - `*` imports are banned.
     - `static` imports are preferred until not mislead.
 * For code in `src/test`:
     - `*` imports of anything other than JUnit classes and Hamcrest matchers are banned.
@@ -63,28 +63,28 @@ To the greatest extent possible, please wrap lines to ensure that they do not ex
 ### Annotation placement
 
 * Annotations on classes, interfaces, annotations, enums, methods, fields and local variables shall be on the lines immediately preceding the line where modifier(s) (e.g. `public` / `protected` / `private` / `final`, etc) would be appropriate.
-* Annotations on method arguments shall, to the largest extent possible, be on the same line as the method argument (and, if present, before the `final` modifier)
+* Annotations on method arguments shall, to the largest extent possible, be on the same line as the method argument (and, if present, before the `final` modifier).
 
 ### Javadoc
 
 * Each class shall have a Javadoc comment.
 * Unless the method is `private`, it shall have a Javadoc comment.
-* Getters and Setters shall have a Javadoc comment. The following is prefered
+* Getters and Setters shall have a Javadoc comment. The following is prefered:
     ```
     /**
      * The count of widgets
      */
     private int widgetCount;
-    
+
     /**
      * Returns the count of widgets.
      *
-     * @return the count of widgets. 
+     * @return the count of widgets.
      */
     public int getWidgetCount() {
         return widgetCount;
     }
-    
+
     /**
      * Sets the count of widgets.
      *
@@ -99,38 +99,38 @@ To the greatest extent possible, please wrap lines to ensure that they do not ex
 ### IDE Configuration
 
 * Eclipse, by and large the IDE defaults are acceptable with the following changes:
-    - Tab policy to `Spaces only`
-    - Indent statements within `switch` body
-    - Maximum line width `120`
-    - Line wrapping, ensure all to `wrap where necessary`
-    - Organize imports alphabetically, no grouping
+    - Tab policy to `Spaces only`.
+    - Indent statements within `switch` body.
+    - Maximum line width `120`.
+    - Line wrapping, ensure all to `wrap where necessary`.
+    - Organize imports alphabetically, no grouping.
 * NetBeans, by and large the IDE defaults are acceptable with the following changes:
-    - Tabs and Indents
-        + Change Right Margin to `120`
-        + Indent case statements in switch
-    - Wrapping
-        + Change all the `Never` values to `If Long`
-        + Select the checkbox for Wrap After Assignment Operators
+    - Tabs and Indents:
+        + Change Right Margin to `120`.
+        + Indent case statements in switch.
+    - Wrapping:
+        + Change all the `Never` values to `If Long`.
+        + Select the checkbox for Wrap After Assignment Operators.
 * IntelliJ, by and large the IDE defaults are acceptable with the following changes:
-    - Wrapping and Braces
-        + Change `Do not wrap` to `Wrap if long`
-        + Change `Do not force` to `Always`
-    - Javadoc
-        + Disable generating `<p/>` on empty lines
-    - Imports
-        + Class count to use import with '*': `9999`
-        + Names count to use static import with '*': `99999`
-        + Import Layout
-            * import all other imports
-            * blank line
-            * import static all other imports
-    
+    - Wrapping and Braces:
+        + Change `Do not wrap` to `Wrap if long`.
+        + Change `Do not force` to `Always`.
+    - Javadoc:
+        + Disable generating `<p/>` on empty lines.
+    - Imports:
+        + Class count to use import with '*': `9999`.
+        + Names count to use static import with '*': `99999`.
+        + Import Layout:
+            * import all other imports.
+            * blank line.
+            * import static all other imports.
+
 ## Issues
 
-This project uses [Jenkins Jira issue tracker](https://issues.jenkins-ci.org) 
+This project uses [Jenkins Jira issue tracker](https://issues.jenkins-ci.org)
 with [github-plugin](https://issues.jenkins-ci.org/browse/JENKINS/component/15896) component.
-            
-## Links 
+
+## Links
 
 - https://wiki.jenkins-ci.org/display/JENKINS/contributing
 - https://wiki.jenkins-ci.org/display/JENKINS/Extend+Jenkins
