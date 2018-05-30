@@ -17,9 +17,12 @@ import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.Messages;
 import org.jenkinsci.plugins.github.internal.GHPluginConfigException;
 import org.jenkinsci.plugins.github.migration.Migrator;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -187,8 +190,11 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         return FormValidation.ok("Called re-register hooks for %s items", registered.size());
     }
 
+    @RequirePOST
+    @Restricted(DoNotUse.class) // WebOnly
     @SuppressWarnings("unused")
     public FormValidation doCheckHookUrl(@QueryParameter String value) {
+        Jenkins.getActiveInstance().checkPermission(Jenkins.ADMINISTER);
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(value).openConnection();
             con.setRequestMethod("POST");

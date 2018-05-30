@@ -29,7 +29,7 @@ f.section(title: descriptor.displayName) {
                             field: "overrideHookUrl",
                             checked: instance.overrideHookURL) {
                         f.entry(field: "hookUrl") {
-                            f.textbox()
+                            f.textbox(checkMethod: "post")
                         }
                     }
                 }
