@@ -179,7 +179,9 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     }
 
     @SuppressWarnings("unused")
+    @RequirePOST
     public FormValidation doReRegister() {
+        Jenkins.getActiveInstance().checkPermission(Jenkins.ADMINISTER);
         if (!GitHubPlugin.configuration().isManageHooks()) {
             return FormValidation.warning("Works only when Jenkins manages hooks (one or more creds specified)");
         }

@@ -403,6 +403,10 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         public FormValidation doCheckHookRegistered(@AncestorInPath Item item) {
             Preconditions.checkNotNull(item, "Item can't be null if wants to check hook in monitor");
 
+            if (!item.hasPermission(Item.CONFIGURE)) {
+                return FormValidation.ok();
+            }
+
             Collection<GitHubRepositoryName> repos = GitHubRepositoryNameContributor.parseAssociatedNames(item);
 
             for (GitHubRepositoryName repo : repos) {
