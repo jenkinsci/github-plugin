@@ -32,10 +32,13 @@ import org.jenkinsci.plugins.github.util.FluentIterableWrapper;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -361,10 +364,13 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
                     );
         }
 
+        @RequirePOST
+        @Restricted(DoNotUse.class) // WebOnly
         @SuppressWarnings("unused")
         public FormValidation doVerifyCredentials(
                 @QueryParameter String apiUrl,
                 @QueryParameter String credentialsId) throws IOException {
+            Jenkins.getActiveInstance().checkPermission(Jenkins.ADMINISTER);
 
             GitHubServerConfig config = new GitHubServerConfig(credentialsId);
             config.setApiUrl(apiUrl);

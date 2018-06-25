@@ -11,7 +11,7 @@
 
     <groupId>com.coravy.hudson.plugins.github</groupId>
     <artifactId>github</artifactId>
-    <version>1.29.1-SNAPSHOT</version>
+    <version>1.29.3-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <name>GitHub plugin</name>
@@ -246,10 +246,10 @@
         </dependency>
 
         <dependency>
-            <!-- Keep this as the last dependency, it brings a conflicting version of groovy -->
             <groupId>com.jayway.restassured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>2.4.0</version>
+            <!--1.7.2 is the last version that use a compatible groovy version-->
+            <version>1.7.2</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>

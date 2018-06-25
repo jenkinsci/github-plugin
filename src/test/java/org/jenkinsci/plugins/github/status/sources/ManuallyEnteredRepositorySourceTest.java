@@ -14,7 +14,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.io.PrintStream;
 import java.util.List;
 
-import static com.jayway.restassured.RestAssured.when;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;

@@ -24,6 +24,7 @@ import org.kohsuke.github.GHAuthorization;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
 import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,10 +114,11 @@ public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredent
     }
 
     @SuppressWarnings("unused")
+    @RequirePOST
     public FormValidation doCreateTokenByCredentials(
             @QueryParameter String apiUrl,
             @QueryParameter String credentialsId) {
-
+        Jenkins.getActiveInstance().checkPermission(Jenkins.ADMINISTER);
         if (isEmpty(credentialsId)) {
             return FormValidation.error("Please specify credentials to create token");
         }
@@ -156,11 +158,12 @@ public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredent
     }
 
     @SuppressWarnings("unused")
+    @RequirePOST
     public FormValidation doCreateTokenByPassword(
             @QueryParameter String apiUrl,
             @QueryParameter String login,
             @QueryParameter String password) {
-
+        Jenkins.getActiveInstance().checkPermission(Jenkins.ADMINISTER);
         try {
             GHAuthorization token = createToken(login, password, defaultIfBlank(apiUrl, GITHUB_URL));
             StandardCredentials credentials = createCredentials(apiUrl, token.getToken(), login);

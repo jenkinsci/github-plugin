@@ -66,12 +66,9 @@ public class GitHubWebHookFullTest {
         @Override
         protected void before() throws Throwable {
             spec = new RequestSpecBuilder()
-                    .setBaseUri(jenkins.getInstance().getRootUrl())
-                    .setBasePath(GitHubWebHook.URLNAME.concat("/"))
                     .setConfig(newConfig()
                             .encoderConfig(encoderConfig()
-                                    .defaultContentCharset(Charsets.UTF_8)
-                                    .appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+                                    .defaultContentCharset(Charsets.UTF_8.name())))
                     .build();
         }
     };
@@ -84,7 +81,7 @@ public class GitHubWebHookFullTest {
                 .header(JSON_CONTENT_TYPE)
                 .content(classpath("payloads/push.json"))
                 .log().all()
-                .expect().log().all().statusCode(SC_OK).post();
+                .expect().log().all().statusCode(SC_OK).post(getPath());
     }
 
 
@@ -100,7 +97,7 @@ public class GitHubWebHookFullTest {
                 .header(SIGNATURE_HEADER, format("sha1=%s", hash))
                 .content(classpath(String.format("payloads/ping_hash_%s_secret_%s.json", hash, secret)))
                 .log().all()
-                .expect().log().all().statusCode(SC_OK).post();
+                .expect().log().all().statusCode(SC_OK).post(getPath());
     }
 
     @Test
@@ -110,7 +107,7 @@ public class GitHubWebHookFullTest {
                 .header(FORM_CONTENT_TYPE)
                 .formParam("payload", classpath("payloads/push.json"))
                 .log().all()
-                .expect().log().all().statusCode(SC_OK).post();
+                .expect().log().all().statusCode(SC_OK).post(getPath());
     }
 
     @Test
@@ -122,7 +119,7 @@ public class GitHubWebHookFullTest {
                 .log().all()
                 .expect().log().all()
                 .statusCode(SC_OK)
-                .post();
+                .post(getPath());
     }
 
     @Test
@@ -132,7 +129,7 @@ public class GitHubWebHookFullTest {
                 .expect().log().all()
                 .statusCode(SC_BAD_REQUEST)
                 .body(containsString("Hook should contain event type"))
-                .post();
+                .post(getPath());
     }
 
     @Test
@@ -143,7 +140,7 @@ public class GitHubWebHookFullTest {
                 .expect().log().all()
                 .statusCode(SC_BAD_REQUEST)
                 .body(containsString("Hook should contain payload"))
-                .post();
+                .post(getPath());
     }
 
     @Test
@@ -151,7 +148,7 @@ public class GitHubWebHookFullTest {
         given().spec(spec)
                 .log().all().expect().log().all()
                 .statusCode(SC_METHOD_NOT_ALLOWED)
-                .get();
+                .get(getPath());
     }
 
     @Test
@@ -162,7 +159,7 @@ public class GitHubWebHookFullTest {
                 .expect().log().all()
                 .statusCode(SC_OK)
                 .header(GitHubWebHook.X_INSTANCE_IDENTITY, notNullValue())
-                .post();
+                .post(getPath());
     }
 
     public Header eventHeader(GHEvent event) {
@@ -185,5 +182,9 @@ public class GitHubWebHookFullTest {
         } catch (IOException e) {
             throw new RuntimeException(format("Can't load %s for class %s", path, clazz), e);
         }
+    }
+    
+    private String getPath(){
+        return jenkins.getInstance().getRootUrl() + GitHubWebHook.URLNAME.concat("/");
     }
 }
