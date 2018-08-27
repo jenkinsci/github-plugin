@@ -15,6 +15,7 @@ import hudson.tasks.Publisher;
 import hudson.util.ListBoxModel;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.plugins.github.common.ExpandableMessage;
+import org.jenkinsci.plugins.github.extension.status.GitHubStatusContextSource;
 import org.jenkinsci.plugins.github.extension.status.StatusErrorHandler;
 import org.jenkinsci.plugins.github.status.GitHubCommitStatusSetter;
 import org.jenkinsci.plugins.github.status.err.ChangingBuildStatusErrorHandler;
@@ -56,6 +57,7 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
     private static final ExpandableMessage DEFAULT_MESSAGE = new ExpandableMessage("");
 
     private ExpandableMessage statusMessage = DEFAULT_MESSAGE;
+    private GitHubStatusContextSource contextSource = new DefaultCommitContextSource();
 
     private final String resultOnFailure;
     private static final Result[] SUPPORTED_RESULTS = {FAILURE, UNSTABLE, SUCCESS};
@@ -76,10 +78,26 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
     }
 
     /**
+     * @return Context provider
+     * @since 1.24.0
+     */
+    public GitHubStatusContextSource getContextSource() {
+        return contextSource;
+    }
+
+    /**
      * @since 1.14.1
      */
     public ExpandableMessage getStatusMessage() {
         return statusMessage;
+    }
+
+    /**
+     * @since 1.24.0
+     */
+    @DataBoundSetter
+    public void setContextSource(GitHubStatusContextSource contextSource) {
+        this.contextSource = contextSource;
     }
 
     /**
@@ -122,7 +140,7 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
         GitHubCommitStatusSetter setter = new GitHubCommitStatusSetter();
         setter.setReposSource(new AnyDefinedRepositorySource());
         setter.setCommitShaSource(new BuildDataRevisionShaSource());
-        setter.setContextSource(new DefaultCommitContextSource());
+        setter.setContextSource(contextSource);
 
 
         String content = firstNonNull(statusMessage, DEFAULT_MESSAGE).getContent();
@@ -149,6 +167,13 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
         }
 
         setter.perform(build, ws, launcher, listener);
+    }
+
+    public Object readResolve() {
+        if (getContextSource() == null) {
+            setContextSource(new DefaultCommitContextSource());
+        }
+        return this;
     }
 
     @Extension
