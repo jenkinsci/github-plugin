@@ -37,6 +37,10 @@ public final class BuildDataHelper {
     public static BuildData calculateBuildData(
         String parentName, String parentFullName, List<BuildData> buildDataList) {
 
+        if (buildDataList != null && buildDataList.size() == 1) {
+            return buildDataList.get(0);
+        }
+
         String projectName = parentFullName.replace(parentName, "");
 
         if (projectName.endsWith("/")) {
