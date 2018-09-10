@@ -35,9 +35,14 @@ public final class BuildDataHelper {
      * @return the build data related to the project, null if not found
      */
     public static BuildData calculateBuildData(
-        String parentName, String parentFullName, List<BuildData> buildDataList) {
+        String parentName, String parentFullName, List<BuildData> buildDataList
+    ) {
 
-        if (buildDataList != null && buildDataList.size() == 1) {
+        if (buildDataList == null) {
+            return null;
+        }
+
+        if (buildDataList.size() == 1) {
             return buildDataList.get(0);
         }
 
@@ -45,10 +50,6 @@ public final class BuildDataHelper {
 
         if (projectName.endsWith("/")) {
             projectName = projectName.substring(0, projectName.lastIndexOf('/'));
-        }
-
-        if (buildDataList == null) {
-            return null;
         }
 
         for (BuildData buildData : buildDataList) {
@@ -79,7 +80,9 @@ public final class BuildDataHelper {
         Job<?, ?> parent = build.getParent();
 
         BuildData buildData = calculateBuildData(
-            parent.getName(), parent.getFullName(), buildDataList);
+            parent.getName(), parent.getFullName(), buildDataList
+        );
+
         if (buildData == null) {
             throw new IOException(Messages.BuildDataHelper_NoBuildDataError());
         }
