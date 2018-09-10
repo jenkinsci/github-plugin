@@ -29,6 +29,25 @@ public class BuildDataHelperTest {
 
 		@Test
 		@Issue("JENKINS-53149")
+		public void shouldCalculateDataBuildFromProject() throws Exception {
+			BuildData projectBuildData = new BuildData();
+			projectBuildData.remoteUrls = new HashSet<>();
+
+			projectBuildData.addRemoteUrl(
+				"https://github.com/" + GITHUB_USERNAME + "/project.git");
+
+			List<BuildData> buildDataList = new ArrayList<>();
+
+			buildDataList.add(projectBuildData);
+
+			BuildData buildData = BuildDataHelper.calculateBuildData(
+				"master", "project/master", buildDataList);
+
+			assertThat("should fetch project build data", buildData, is(projectBuildData));
+		}
+
+		@Test
+		@Issue("JENKINS-53149")
 		public void shouldCalculateDataBuildFromProjectWithTwoBuildDatas() throws Exception {
 			BuildData sharedLibBuildData = new BuildData();
 			sharedLibBuildData.remoteUrls = new HashSet<>();
@@ -76,6 +95,25 @@ public class BuildDataHelperTest {
 	public static class WhenBuildingOrganizationJobs {
 
 		private static final String ORGANIZATION_NAME = "Organization";
+
+		@Test
+		@Issue("JENKINS-53149")
+		public void shouldCalculateDataBuildFromProject() throws Exception {
+			BuildData projectBuildData = new BuildData();
+			projectBuildData.remoteUrls = new HashSet<>();
+
+			projectBuildData.addRemoteUrl(
+				"https://github.com/" + ORGANIZATION_NAME + "/project.git");
+
+			List<BuildData> buildDataList = new ArrayList<>();
+
+			buildDataList.add(projectBuildData);
+
+			BuildData buildData = BuildDataHelper.calculateBuildData(
+				"master", ORGANIZATION_NAME + "/project/master", buildDataList);
+
+			assertThat("should fetch project build data", buildData, is(projectBuildData));
+		}
 
 		@Test
 		@Issue("JENKINS-53149")
