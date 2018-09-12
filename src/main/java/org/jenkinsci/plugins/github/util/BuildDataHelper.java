@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.util;
 
+import hudson.model.Job;
 import hudson.model.Run;
 import hudson.plugins.git.Revision;
 import hudson.plugins.git.util.Build;
@@ -8,6 +9,8 @@ import org.eclipse.jgit.lib.ObjectId;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Stores common methods for {@link BuildData} handling.
@@ -20,6 +23,49 @@ public final class BuildDataHelper {
     }
 
     /**
+     * Calculate build data from downstream builds, that could be a shared library
+     * which is loaded first in a pipeline. For that reason, this method compares
+     * all remote URLs for each build data, with the real project name, to determine
+     * the proper build data. This way, the SHA returned in the build data will
+     * relate to the project
+     *
+     * @param parentName name of the parent build
+     * @param parentFullName full name of the parent build
+     * @param buildDataList the list of build datas from a build run
+     * @return the build data related to the project, null if not found
+     */
+    public static BuildData calculateBuildData(
+        String parentName, String parentFullName, List<BuildData> buildDataList
+    ) {
+
+        if (buildDataList == null) {
+            return null;
+        }
+
+        if (buildDataList.size() == 1) {
+            return buildDataList.get(0);
+        }
+
+        String projectName = parentFullName.replace(parentName, "");
+
+        if (projectName.endsWith("/")) {
+            projectName = projectName.substring(0, projectName.lastIndexOf('/'));
+        }
+
+        for (BuildData buildData : buildDataList) {
+            Set<String> remoteUrls = buildData.getRemoteUrls();
+
+            for (String remoteUrl : remoteUrls) {
+                if (remoteUrl.contains(projectName)) {
+                    return buildData;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Gets SHA1 from the build.
      *
      * @param build
@@ -29,7 +75,14 @@ public final class BuildDataHelper {
      */
     @Nonnull
     public static ObjectId getCommitSHA1(@Nonnull Run<?, ?> build) throws IOException {
-        BuildData buildData = build.getAction(BuildData.class);
+        List<BuildData> buildDataList = build.getActions(BuildData.class);
+
+        Job<?, ?> parent = build.getParent();
+
+        BuildData buildData = calculateBuildData(
+            parent.getName(), parent.getFullName(), buildDataList
+        );
+
         if (buildData == null) {
             throw new IOException(Messages.BuildDataHelper_NoBuildDataError());
         }
