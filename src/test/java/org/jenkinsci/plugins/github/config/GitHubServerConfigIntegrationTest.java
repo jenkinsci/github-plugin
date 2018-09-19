@@ -17,6 +17,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.jvnet.hudson.test.For;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.mortbay.jetty.Server;
@@ -36,8 +37,11 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hamcrest.Matchers.not;
 
-//TODO this class can be merged with GitHubServerConfigTest after the security fix
-public class GitHubServerConfigTest_SEC804 {
+/**
+ * Integration counterpart of GitHubServerConfigTest
+ */
+@For(GitHubServerConfig.class)
+public class GitHubServerConfigIntegrationTest {
     
     @Rule
     public JenkinsRule j = new JenkinsRule();
