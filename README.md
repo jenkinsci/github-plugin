@@ -30,19 +30,13 @@ Jenkins Plugin Maven goals
 	
 How to install
 --------------
+ 1. Create the plugin .hpi file by following method:
+ 
+		mvn hpi:hpi
 
-Run 
-
-	mvn hpi:hpi
+2. copy the resulting ./target/rdoc.hpi file to the $JENKINS_HOME/plugins directory. Don't forget to restart Jenkins afterwards.
 	
-to create the plugin .hpi file.
-
-
-To install:
-
-1. copy the resulting ./target/rdoc.hpi file to the $JENKINS_HOME/plugins directory. Don't forget to restart Jenkins afterwards.
-	
-2. or use the plugin management console (http://example.com:8080/pluginManager/advanced) to upload the hpi file. You have to restart Jenkins in order to find the plugin in the installed plugins list.
+3. or use the plugin management console (http://example.com:8080/pluginManager/advanced) to upload the hpi file. You have to restart Jenkins in order to find the plugin in the installed plugins list.
 
 
 Plugin releases
