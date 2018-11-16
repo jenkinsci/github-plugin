@@ -27,7 +27,6 @@ import java.net.URL;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.GITHUB_URL;
-import static org.jenkinsci.plugins.github.config.GitHubServerConfig.tokenFor;
 import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.toCacheDir;
 
 /**
@@ -59,10 +58,7 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
     @Override
     @CheckForNull
     protected GitHub applyNullSafe(@Nonnull GitHubServerConfig github) {
-        String accessToken = tokenFor(github.getCredentialsId());
-
-        GitHubBuilder builder = new GitHubBuilder()
-                .withOAuthToken(accessToken)
+        GitHubBuilder builder = github.authenticate(new GitHubBuilder())
                 .withConnector(connector(github))
                 .withRateLimitHandler(RateLimitHandler.FAIL);
         try {

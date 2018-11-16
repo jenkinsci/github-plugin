@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.config;
 
+import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
@@ -24,9 +25,12 @@ import java.util.Collections;
 import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import jenkins.authentication.tokens.api.AuthenticationTokenContext;
+import jenkins.authentication.tokens.api.AuthenticationTokens;
 import jenkins.model.Jenkins;
 import jenkins.scm.api.SCMName;
 import org.apache.commons.lang3.StringUtils;
+import org.jenkinsci.plugins.github.authentication.GitHubAuth;
 import org.jenkinsci.plugins.github.internal.GitHubLoginFunction;
 import org.jenkinsci.plugins.github.util.FluentIterableWrapper;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
@@ -34,7 +38,9 @@ import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.github.GitHub;
+import org.kohsuke.github.GitHubBuilder;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -269,7 +275,11 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      * @param credentialsId id to find creds
      *
      * @return token from creds or default non empty string
+     * @deprecated use {@link AuthenticationTokens} to obtain the {@link GitHubAuth} from a credential or
+     * use {@link #authenticate(GitHubBuilder)}.
      */
+    @Restricted(NoExternalUse.class) // stop using this, it is incompatible with authentication tokens
+    @Deprecated
     @Nonnull
     public static String tokenFor(String credentialsId) {
         return secretFor(credentialsId).or(new Supplier<Secret>() {
@@ -278,6 +288,31 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
                 return Secret.fromString(UNKNOWN_TOKEN);
             }
         }).getPlainText();
+    }
+
+    /**
+     * Authenticates the supplied {@link GitHubBuilder}.
+     * @param builder the {@link GitHubBuilder} to authenticate.
+     * @return the supplied builder for method chaining.
+     */
+    @Nonnull
+    public GitHubBuilder authenticate(@Nonnull GitHubBuilder builder) {
+        AuthenticationTokenContext<GitHubAuth> ctx = AuthenticationTokenContext.builder(GitHubAuth.class)
+                .with(GitHubAuth.API_URL, apiUrl)
+                .build();
+        GitHubAuth auth = AuthenticationTokens.convert(ctx,
+                CredentialsMatchers.filter(lookupCredentials(
+                        Credentials.class,
+                        Jenkins.getInstance(),
+                        ACL.SYSTEM,
+                        Collections.<DomainRequirement>emptyList()),
+                        CredentialsMatchers.allOf(
+                                withId(trimToEmpty(getCredentialsId())),
+                                AuthenticationTokens.matcher(ctx)
+                        )
+                )
+        );
+        return auth != null ? auth.authenticate(builder) : builder;
     }
 
     /**
