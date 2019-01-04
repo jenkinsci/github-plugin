@@ -4,6 +4,7 @@ import com.coravy.hudson.plugins.github.GithubProjectProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -63,6 +64,9 @@ public class GitHubRepositoryName {
             Pattern.compile("git://([^/]+)/([^/]+)/([^/]+)/?"),
             Pattern.compile("ssh://(?:git@)?([^/]+)/([^/]+)/([^/]+)/?")
     };
+
+    private static final int MAX_RETRIES = 3;
+    private static final int BACKOFF_MILLIS = 50;
 
     /**
      * Create {@link GitHubRepositoryName} from URL
@@ -160,10 +164,32 @@ public class GitHubRepositoryName {
      * @return iterable with lazy login process for getting authenticated repos
      * @since 1.13.0
      */
-    public Iterable<GHRepository> resolve(Predicate<GitHubServerConfig> predicate) {
+    public Iterable<GHRepository> baseResolve(Predicate<GitHubServerConfig> predicate) {
         return from(GitHubPlugin.configuration().findGithubConfig(and(withHost(host), predicate)))
                 .transform(toGHRepository(this))
                 .filter(notNull());
+    }
+
+
+    /**
+     * Wraps baseResolve with a retry mechanism with linear backoff
+     */
+    public Iterable<GHRepository> resolve(Predicate<GitHubServerConfig> predicate) {
+        int mtries = 0;
+        Iterable<GHRepository> repos = baseResolve(predicate);
+
+        while(Iterables.size(repos) == 0 && mtries < MAX_RETRIES){
+            mtries++;
+            LOGGER.info("No repository names resolved for predicate: " + predicate.toString() + "\n Retrying...");
+            try {
+                Thread.sleep(BACKOFF_MILLIS * mtries);
+            }catch(InterruptedException e) {
+                LOGGER.error("Error resolving GitHubRepositoryName with predicate: " + predicate.toString());
+            }
+            repos = baseResolve(predicate);
+        }
+
+        return repos;
     }
 
     /**
