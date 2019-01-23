@@ -220,7 +220,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
             return FormValidation.ok();
         } catch (IOException e) {
-            return FormValidation.error(e, "Failed to test a connection to %s", value);
+            return FormValidation.error(e, "Connection test for %s failed", value);
         }
     }
 
