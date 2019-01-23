@@ -143,7 +143,7 @@ public class WebhookManager {
         try {
             GHRepository repo = checkNotNull(
                     from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull(),
-                    "There is no credentials with admin access to manage hooks on %s", name
+                    "There are no credentials with admin access to manage hooks on %s", name
             );
 
             LOGGER.debug("Check {} for redundant hooks...", repo);
@@ -178,7 +178,7 @@ public class WebhookManager {
                 try {
                     GHRepository repo = checkNotNull(
                             from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull(),
-                            "There is no credentials with admin access to manage hooks on %s", name
+                            "There are no credentials with admin access to manage hooks on %s", name
                     );
 
                     Validate.notEmpty(events, "Events list for hook can't be empty");

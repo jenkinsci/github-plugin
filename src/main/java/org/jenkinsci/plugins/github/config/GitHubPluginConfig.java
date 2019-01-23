@@ -207,7 +207,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
             }
             String v = con.getHeaderField(GitHubWebHook.X_INSTANCE_IDENTITY);
             if (v == null) {
-                // people might be running clever apps that's not Jenkins, and that's OK
+                // people might be running clever apps that aren't Jenkins, and that's OK
                 return FormValidation.warning("It doesn't look like %s is talking to any Jenkins. "
                         + "Are you running your own app?", value);
             }
