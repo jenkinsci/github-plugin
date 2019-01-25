@@ -26,9 +26,8 @@ f.block() {
     )
 }
 
-
-f.entry(title: _("Manage hooks"), field: "manageHooks") {
-    f.checkbox(default: true)
+f.entry() {
+    f.checkbox(title: _("Manage hooks"), field: "manageHooks")
 }
 
 f.advanced() {
