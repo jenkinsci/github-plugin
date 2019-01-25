@@ -26,10 +26,7 @@ f.block() {
     )
 }
 
-
-f.entry(title: _("Manage hooks"), field: "manageHooks") {
-    f.checkbox(default: true)
-}
+f.optionalBlock (title: _("Manage hooks"), field: "manageHooks")
 
 f.advanced() {
     f.entry(title: _("GitHub client cache size (MB)"), field: "clientCacheSize") {
