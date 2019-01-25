@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -164,32 +165,10 @@ public class GitHubRepositoryName {
      * @return iterable with lazy login process for getting authenticated repos
      * @since 1.13.0
      */
-    public Iterable<GHRepository> baseResolve(Predicate<GitHubServerConfig> predicate) {
+    public Iterable<GHRepository> resolve(Predicate<GitHubServerConfig> predicate) {
         return from(GitHubPlugin.configuration().findGithubConfig(and(withHost(host), predicate)))
                 .transform(toGHRepository(this))
                 .filter(notNull());
-    }
-
-
-    /**
-     * Wraps baseResolve with a retry mechanism with linear backoff
-     */
-    public Iterable<GHRepository> resolve(Predicate<GitHubServerConfig> predicate) {
-        int mtries = 0;
-        Iterable<GHRepository> repos = baseResolve(predicate);
-
-        while(Iterables.size(repos) == 0 && mtries < MAX_RETRIES){
-            mtries++;
-            LOGGER.info("No repository names resolved for predicate: " + predicate.toString() + "\n Retrying...");
-            try {
-                Thread.sleep(BACKOFF_MILLIS * mtries);
-            }catch(InterruptedException e) {
-                LOGGER.error("Error resolving GitHubRepositoryName with predicate: " + predicate.toString());
-            }
-            repos = baseResolve(predicate);
-        }
-
-        return repos;
     }
 
     /**
@@ -249,12 +228,24 @@ public class GitHubRepositoryName {
         return new NullSafeFunction<GitHub, GHRepository>() {
             @Override
             protected GHRepository applyNullSafe(@Nonnull GitHub gitHub) {
-                try {
-                    return gitHub.getRepository(format("%s/%s", repoName.getUserName(), repoName.getRepositoryName()));
-                } catch (IOException e) {
-                    LOGGER.warn("Failed to obtain repository {}", this, e);
-                    return null;
+                int mtries = 0;
+                while(mtries < MAX_RETRIES){
+                    try {
+                        return gitHub.getRepository(format("%s/%s", repoName.getUserName(), repoName.getRepositoryName()));
+                    } catch (UnknownHostException e){
+                        LOGGER.warn("Failed to resolve repository {}", this, e);
+                        mtries++;
+                        try {
+                            Thread.sleep(BACKOFF_MILLIS * mtries);
+                        } catch(InterruptedException ex) {
+                            LOGGER.error("{}", this, ex);
+                        }
+                    } catch (IOException e) {
+                        LOGGER.warn("Failed to obtain repository {}", this, e);
+                        return null;
+                    }
                 }
+                return null;
             }
         };
     }
