@@ -4,7 +4,6 @@ import com.coravy.hudson.plugins.github.GithubProjectProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -229,15 +228,16 @@ public class GitHubRepositoryName {
             @Override
             protected GHRepository applyNullSafe(@Nonnull GitHub gitHub) {
                 int mtries = 0;
-                while(mtries < MAX_RETRIES){
+                while (mtries < MAX_RETRIES) {
                     try {
-                        return gitHub.getRepository(format("%s/%s", repoName.getUserName(), repoName.getRepositoryName()));
-                    } catch (UnknownHostException e){
+                        return gitHub.getRepository(format("%s/%s", repoName.getUserName(),
+                                repoName.getRepositoryName()));
+                    } catch (UnknownHostException e) {
                         LOGGER.warn("Failed to resolve repository {}", this, e);
                         mtries++;
                         try {
                             Thread.sleep(BACKOFF_MILLIS * mtries);
-                        } catch(InterruptedException ex) {
+                        } catch (InterruptedException ex) {
                             LOGGER.error("{}", this, ex);
                         }
                     } catch (IOException e) {
