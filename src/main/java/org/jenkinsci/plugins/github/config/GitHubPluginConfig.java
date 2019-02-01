@@ -21,6 +21,8 @@ import org.jenkinsci.plugins.github.migration.Migrator;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.github.GitHub;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -77,6 +79,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     @SuppressWarnings("unused")
     private transient InstanceIdentity identity;
 
+    @DataBoundConstructor
     public GitHubPluginConfig() {
         load();
     }
@@ -86,6 +89,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     }
 
     @SuppressWarnings("unused")
+    @DataBoundSetter
     public void setConfigs(List<GitHubServerConfig> configs) {
         this.configs = configs;
     }
@@ -98,14 +102,16 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         return from(getConfigs()).filter(allowedToManageHooks()).first().isPresent();
     }
 
-    public void setHookUrl(URL hookUrl) {
+    @DataBoundSetter
+    public void setHookUrl(String hookUrl) {
         if (overrideHookUrl) {
-            this.hookUrl = hookUrl;
+            this.hookUrl = parseHookUrl(hookUrl);
         } else {
             this.hookUrl = null;
         }
     }
 
+    @DataBoundSetter
     public void setOverrideHookUrl(boolean overrideHookUrl) {
         this.overrideHookUrl = overrideHookUrl;
     }
@@ -264,7 +270,16 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         return hookSecretConfig;
     }
 
+    @DataBoundSetter
     public void setHookSecretConfig(HookSecretConfig hookSecretConfig) {
         this.hookSecretConfig = hookSecretConfig;
+    }
+
+    private URL parseHookUrl(String hookUrl) {
+        try {
+            return new URL(hookUrl);
+        } catch (MalformedURLException e) {
+            return null;
+        }
     }
 }
