@@ -104,12 +104,17 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     }
 
     @DataBoundSetter
-    public void setHookUrl(String hookUrl) {
+    public void setHookUrl(URL hookUrl) {
         if (overrideHookUrl) {
-            this.hookUrl = parseHookUrl(hookUrl);
+            this.hookUrl = hookUrl;
         } else {
             this.hookUrl = null;
         }
+    }
+
+    @SuppressWarnings("unused")
+    public boolean isOverrideHookUrl() {
+        return overrideHookUrl;
     }
 
     @DataBoundSetter
@@ -274,13 +279,5 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setHookSecretConfig(HookSecretConfig hookSecretConfig) {
         this.hookSecretConfig = hookSecretConfig;
-    }
-
-    private URL parseHookUrl(String hookUrl) {
-        try {
-            return new URL(hookUrl);
-        } catch (MalformedURLException e) {
-            return null;
-        }
     }
 }
