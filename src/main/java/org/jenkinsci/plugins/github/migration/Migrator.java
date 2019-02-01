@@ -1,8 +1,5 @@
 package org.jenkinsci.plugins.github.migration;
 
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
-import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
-
 import com.cloudbees.jenkins.Credential;
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
@@ -17,6 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 
 /**
  * Helper class incapsulates migration process from old configs to new ones
@@ -54,7 +54,7 @@ public class Migrator {
         if (descriptor.getDeprecatedHookUrl() != null) {
             LOGGER.warn("Migration for old GitHub Plugin hook url started");
             GitHubPlugin.configuration().setOverrideHookUrl(true);
-            GitHubPlugin.configuration().setHookUrl(descriptor.getDeprecatedHookUrl().toString());
+            GitHubPlugin.configuration().setHookUrl(descriptor.getDeprecatedHookUrl());
             descriptor.clearDeprecatedHookUrl();
             descriptor.save();
             GitHubPlugin.configuration().save();
