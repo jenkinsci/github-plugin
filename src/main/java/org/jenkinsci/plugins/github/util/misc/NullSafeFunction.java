@@ -15,7 +15,7 @@ public abstract class NullSafeFunction<F, T> implements Function<F, T> {
 
     @Override
     public T apply(F input) {
-        return applyNullSafe(checkNotNull(input, "This function not allows to use null as argument"));
+        return applyNullSafe(checkNotNull(input, "This function does not allow using null as argument"));
     }
 
     /**

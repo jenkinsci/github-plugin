@@ -207,8 +207,8 @@ public class GitHubPluginConfig extends GlobalConfiguration {
             }
             String v = con.getHeaderField(GitHubWebHook.X_INSTANCE_IDENTITY);
             if (v == null) {
-                // people might be running clever apps that's not Jenkins, and that's OK
-                return FormValidation.warning("It doesn't look like %s is talking to any Jenkins. "
+                // people might be running clever apps that aren't Jenkins, and that's OK
+                return FormValidation.warning("It doesn't look like %s is talking to Jenkins. "
                         + "Are you running your own app?", value);
             }
             RSAPublicKey key = identity.getPublic();
@@ -220,7 +220,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
             return FormValidation.ok();
         } catch (IOException e) {
-            return FormValidation.error(e, "Failed to test a connection to %s", value);
+            return FormValidation.error(e, "Connection test for %s failed", value);
         }
     }
 

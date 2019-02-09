@@ -143,7 +143,7 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
     }
 
     /**
-     * Depending on whether the user said "yes" or "no", send him to the right place.
+     * Depending on whether the user said "yes" or "no", send them to the right place.
      */
     @RequirePOST
     @RequireAdminRights
