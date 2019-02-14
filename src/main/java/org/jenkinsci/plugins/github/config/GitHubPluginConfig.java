@@ -80,7 +80,6 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     @SuppressWarnings("unused")
     private transient InstanceIdentity identity;
 
-    @DataBoundConstructor
     public GitHubPluginConfig() {
         load();
     }
