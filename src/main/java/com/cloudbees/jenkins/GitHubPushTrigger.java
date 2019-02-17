@@ -8,9 +8,15 @@ import hudson.XmlFile;
 import hudson.console.AnnotatedLargeText;
 import hudson.model.AbstractProject;
 import hudson.model.Action;
+import hudson.model.CauseAction;
 import hudson.model.Item;
 import hudson.model.Job;
+import hudson.model.ParameterDefinition;
+import hudson.model.ParameterValue;
+import hudson.model.ParametersDefinitionProperty;
 import hudson.model.Project;
+import hudson.model.StringParameterValue;
+import hudson.model.queue.QueueTaskFuture;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
@@ -44,9 +50,11 @@ import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -79,10 +87,12 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     /**
      * Called when a POST is made.
      */
-    public void onPost(String triggeredByUser) {
+    public void onPost(String triggeredByUser, String ref, String head) {
         onPost(GitHubTriggerEvent.create()
                 .withOrigin(SCMEvent.originOf(Stapler.getCurrentRequest()))
                 .withTriggeredByUser(triggeredByUser)
+                .withRef(ref)
+                .withHead(head)
                 .build()
         );
     }
@@ -92,6 +102,8 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
      */
     public void onPost(final GitHubTriggerEvent event) {
         final String pushBy = event.getTriggeredByUser();
+        final String ref = event.getRef();
+        final String head = event.getHead();
         DescriptorImpl d = getDescriptor();
         d.checkThreadPoolSizeAndUpdateIfNecessary();
         d.queue.execute(new Runnable() {
@@ -140,7 +152,23 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         LOGGER.warn("Failed to parse the polling log", e);
                         cause = new GitHubPushCause(pushBy);
                     }
-                    if (asParameterizedJobMixIn(job).scheduleBuild(cause)) {
+
+                    // Get the parameters defined by the job, as we will be overriding certain values
+                    List<ParameterValue> values = getDefaultParameters();
+                    Iterator<ParameterValue> it = values.iterator();
+                    while (it.hasNext()) {
+                        ParameterValue pv = it.next();
+                        if (parameterIsOverridable(pv.getName())) {
+                            it.remove();
+                        }
+                    }
+                    values.add(new StringParameterValue("ref", ref));
+                    values.add(new StringParameterValue("head", head));
+
+                    // Schedule the job with the parameters and cause
+                    QueueTaskFuture<?> build = asParameterizedJobMixIn(job)
+                            .scheduleBuild2(0, new GitHubParametersAction(values), new CauseAction(cause));
+                    if (build != null) {
                         LOGGER.info("SCM changes detected in " + job.getFullName()
                                 + ". Triggering #" + job.getNextBuildNumber());
                     } else {
@@ -149,6 +177,27 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                 }
             }
         });
+    }
+
+    /**
+     * Returns the default parameter values for the parameters of this job
+     */
+    private List<ParameterValue> getDefaultParameters() {
+        ArrayList<ParameterValue> values = new ArrayList<ParameterValue>();
+        ParametersDefinitionProperty pdp = this.job.getProperty(ParametersDefinitionProperty.class);
+        if (pdp != null) {
+            for (ParameterDefinition pd : pdp.getParameterDefinitions()) {
+                values.add(pd.getDefaultParameterValue());
+            }
+        }
+        return values;
+    }
+
+    /**
+     * Returns whether or not a given parameter WILL be overridden
+     */
+    private static boolean parameterIsOverridable(String paramName) {
+        return "ref".equalsIgnoreCase(paramName) || "head".equalsIgnoreCase(paramName);
     }
 
     /**
