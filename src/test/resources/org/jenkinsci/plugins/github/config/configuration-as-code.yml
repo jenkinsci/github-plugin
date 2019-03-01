@@ -1,0 +1,17 @@
+unclassified:
+
+  githubpluginconfig:
+    hookUrl: "http://some.com/github-webhook/secret-path"
+    hookSecretConfig:
+      credentialsId: "hook_secret_cred_id"
+    configs:
+      - credentialsId: "public_cred_id"
+        name: "Public GitHub"
+        apiUrl: "https://api.github.com"
+        manageHooks: true
+        clientCacheSize: 20
+      - credentialsId: "private_cred_id"
+        name: "Private GitHub"
+        apiUrl: "https://api.some.com"
+        manageHooks: false
+        clientCacheSize: 40
