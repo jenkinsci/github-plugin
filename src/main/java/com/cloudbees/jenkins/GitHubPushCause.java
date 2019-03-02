@@ -4,6 +4,7 @@ import hudson.triggers.SCMTrigger.SCMTriggerCause;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
@@ -36,6 +37,20 @@ public class GitHubPushCause extends SCMTriggerCause {
     @Override
     public String getShortDescription() {
         return format("Started by GitHub push by %s", trimToEmpty(pushedBy));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof GitHubPushCause
+                && Objects.equals(this.pushedBy, ((GitHubPushCause) o).pushedBy)
+                && super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = super.hashCode();
+        hash = 89 * hash + Objects.hash(this.pushedBy);
+        return hash;
     }
 }
 
