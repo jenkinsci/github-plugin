@@ -54,7 +54,7 @@ public class Migrator {
         if (descriptor.getDeprecatedHookUrl() != null) {
             LOGGER.warn("Migration for old GitHub Plugin hook url started");
             GitHubPlugin.configuration().setOverrideHookUrl(true);
-            GitHubPlugin.configuration().setHookUrl(descriptor.getDeprecatedHookUrl());
+            GitHubPlugin.configuration().setHookUrl(descriptor.getDeprecatedHookUrl().toString());
             descriptor.clearDeprecatedHookUrl();
             descriptor.save();
             GitHubPlugin.configuration().save();

@@ -55,13 +55,13 @@ public class MigratorTest {
         assertThat("self hook url", trigger.getDescriptor().getDeprecatedHookUrl(), nullValue());
         assertThat("imported hook url", valueOf(trigger.getDescriptor().getHookUrl()),
                 containsString(Jenkins.getInstance().getRootUrl() + GitHubWebHook.URLNAME));
-        assertThat("in plugin - override", GitHubPlugin.configuration().isOverrideHookURL(), is(false));
+        assertThat("in plugin - override", GitHubPlugin.configuration().isOverrideHookUrl(), is(false));
     }
 
     @Test
     @LocalData
     public void shouldMigrateHookUrl() {
-        assertThat("in plugin - override", GitHubPlugin.configuration().isOverrideHookURL(), is(true));
+        assertThat("in plugin - override", GitHubPlugin.configuration().isOverrideHookUrl(), is(true));
         assertThat("in plugin", valueOf(GitHubPlugin.configuration().getHookUrl()), is(HOOK_FROM_LOCAL_DATA));
 
         assertThat("should nullify hook url after migration",
