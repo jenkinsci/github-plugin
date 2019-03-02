@@ -389,11 +389,11 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         }
 
         /**
-         * @deprecated use {@link GitHubPluginConfig#isOverrideHookURL()}
+         * @deprecated use {@link GitHubPluginConfig#isOverrideHookUrl()}
          */
         @Deprecated
         public boolean hasOverrideURL() {
-            return GitHubPlugin.configuration().isOverrideHookURL();
+            return GitHubPlugin.configuration().isOverrideHookUrl();
         }
 
         /**

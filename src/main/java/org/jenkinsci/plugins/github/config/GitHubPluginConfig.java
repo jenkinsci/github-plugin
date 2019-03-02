@@ -41,6 +41,7 @@ import java.util.Objects;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.loginToGithub;
@@ -68,8 +69,6 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     private List<GitHubServerConfig> configs = new ArrayList<GitHubServerConfig>();
     private URL hookUrl;
     private HookSecretConfig hookSecretConfig = new HookSecretConfig(null);
-
-    private transient boolean overrideHookUrl;
 
     /**
      * Used to get current instance identity.
@@ -102,22 +101,18 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     }
 
     @DataBoundSetter
-    public void setHookUrl(URL hookUrl) {
-        if (overrideHookUrl) {
-            this.hookUrl = hookUrl;
-        } else {
+    public void setHookUrl(String hookUrl) {
+        if (isEmpty(hookUrl)) {
             this.hookUrl = null;
+        } else {
+            this.hookUrl = parseHookUrl(hookUrl);
         }
     }
 
-    @SuppressWarnings("unused")
-    public boolean isOverrideHookUrl() {
-        return overrideHookUrl;
-    }
-
     @DataBoundSetter
+    @Deprecated
     public void setOverrideHookUrl(boolean overrideHookUrl) {
-        this.overrideHookUrl = overrideHookUrl;
+
     }
 
     /**
@@ -132,8 +127,14 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         }
     }
 
-    public boolean isOverrideHookURL() {
+    @SuppressWarnings("unused")
+    public boolean isOverrideHookUrl() {
         return hookUrl != null;
+    }
+
+    @Deprecated
+    public boolean isOverrideHookURL() {
+        return isOverrideHookUrl();
     }
 
     /**
@@ -277,5 +278,13 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     @DataBoundSetter
     public void setHookSecretConfig(HookSecretConfig hookSecretConfig) {
         this.hookSecretConfig = hookSecretConfig;
+    }
+
+    private URL parseHookUrl(String hookUrl) {
+        try {
+            return new URL(hookUrl);
+        } catch (MalformedURLException e) {
+            return null;
+        }
     }
 }
