@@ -2,12 +2,13 @@ package com.cloudbees.jenkins;
 
 import com.google.common.base.Charsets;
 import com.google.common.net.HttpHeaders;
-import com.jayway.restassured.builder.RequestSpecBuilder;
-import com.jayway.restassured.response.Header;
-import com.jayway.restassured.specification.RequestSpecification;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.http.Header;
+import io.restassured.specification.RequestSpecification;
 import org.apache.commons.io.IOUtils;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.webhook.GHEventHeader;
+import org.jenkinsci.plugins.github.webhook.GHEventPayload;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,9 +20,9 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 
-import static com.jayway.restassured.RestAssured.given;
-import static com.jayway.restassured.config.EncoderConfig.encoderConfig;
-import static com.jayway.restassured.config.RestAssuredConfig.newConfig;
+import static io.restassured.RestAssured.given;
+import static io.restassured.config.EncoderConfig.encoderConfig;
+import static io.restassured.config.RestAssuredConfig.newConfig;
 import static java.lang.String.format;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
@@ -38,8 +39,9 @@ import static org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload.
  */
 public class GitHubWebHookFullTest {
 
-    public static final String APPLICATION_JSON = "application/json";
-    public static final String FORM = "application/x-www-form-urlencoded";
+    // GitHub doesn't send the charset per docs, so re-use the exact content-type from the handler
+    public static final String APPLICATION_JSON = GHEventPayload.PayloadHandler.APPLICATION_JSON;
+    public static final String FORM = GHEventPayload.PayloadHandler.FORM_URLENCODED;
 
     public static final Header JSON_CONTENT_TYPE = new Header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
     public static final Header FORM_CONTENT_TYPE = new Header(HttpHeaders.CONTENT_TYPE, FORM);
@@ -68,7 +70,9 @@ public class GitHubWebHookFullTest {
             spec = new RequestSpecBuilder()
                     .setConfig(newConfig()
                             .encoderConfig(encoderConfig()
-                                    .defaultContentCharset(Charsets.UTF_8.name())))
+                                    .defaultContentCharset(Charsets.UTF_8.name())
+                                    // GitHub doesn't add charsets, so don't test with them
+                                    .appendDefaultContentCharsetToContentTypeIfUndefined(false)))
                     .build();
         }
     };
@@ -79,9 +83,9 @@ public class GitHubWebHookFullTest {
         given().spec(spec)
                 .header(eventHeader(GHEvent.PUSH))
                 .header(JSON_CONTENT_TYPE)
-                .content(classpath("payloads/push.json"))
+                .body(classpath("payloads/push.json"))
                 .log().all()
-                .expect().log().all().statusCode(SC_OK).post(getPath());
+                .expect().log().all().statusCode(SC_OK).request().post(getPath());
     }
 
 
@@ -95,9 +99,9 @@ public class GitHubWebHookFullTest {
                 .header(eventHeader(GHEvent.PUSH))
                 .header(JSON_CONTENT_TYPE)
                 .header(SIGNATURE_HEADER, format("sha1=%s", hash))
-                .content(classpath(String.format("payloads/ping_hash_%s_secret_%s.json", hash, secret)))
+                .body(classpath(String.format("payloads/ping_hash_%s_secret_%s.json", hash, secret)))
                 .log().all()
-                .expect().log().all().statusCode(SC_OK).post(getPath());
+                .expect().log().all().statusCode(SC_OK).request().post(getPath());
     }
 
     @Test
@@ -107,7 +111,7 @@ public class GitHubWebHookFullTest {
                 .header(FORM_CONTENT_TYPE)
                 .formParam("payload", classpath("payloads/push.json"))
                 .log().all()
-                .expect().log().all().statusCode(SC_OK).post(getPath());
+                .expect().log().all().statusCode(SC_OK).request().post(getPath());
     }
 
     @Test
@@ -115,10 +119,11 @@ public class GitHubWebHookFullTest {
         given().spec(spec)
                 .header(eventHeader(GHEvent.PING))
                 .header(JSON_CONTENT_TYPE)
-                .content(classpath("payloads/ping.json"))
+                .body(classpath("payloads/ping.json"))
                 .log().all()
                 .expect().log().all()
                 .statusCode(SC_OK)
+                .request()
                 .post(getPath());
     }
 
@@ -129,6 +134,7 @@ public class GitHubWebHookFullTest {
                 .expect().log().all()
                 .statusCode(SC_BAD_REQUEST)
                 .body(containsString("Hook should contain event type"))
+                .request()
                 .post(getPath());
     }
 
@@ -140,6 +146,7 @@ public class GitHubWebHookFullTest {
                 .expect().log().all()
                 .statusCode(SC_BAD_REQUEST)
                 .body(containsString("Hook should contain payload"))
+                .request()
                 .post(getPath());
     }
 
@@ -148,6 +155,7 @@ public class GitHubWebHookFullTest {
         given().spec(spec)
                 .log().all().expect().log().all()
                 .statusCode(SC_METHOD_NOT_ALLOWED)
+                .request()
                 .get(getPath());
     }
 
@@ -159,6 +167,7 @@ public class GitHubWebHookFullTest {
                 .expect().log().all()
                 .statusCode(SC_OK)
                 .header(GitHubWebHook.X_INSTANCE_IDENTITY, notNullValue())
+                .request()
                 .post(getPath());
     }
 

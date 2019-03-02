@@ -21,6 +21,7 @@ import hudson.util.StreamTaskListener;
 import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
 import jenkins.scm.api.SCMEvent;
+import jenkins.triggers.SCMTriggerItem;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
 import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.plugins.github.GitHubPlugin;
@@ -101,12 +102,17 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
 
                     try {
                         PrintStream logger = listener.getLogger();
+
                         long start = System.currentTimeMillis();
                         logger.println("Started on " + DateFormat.getDateTimeInstance().format(new Date()));
                         if (event.getOrigin() != null) {
                             logger.format("Started by event from %s on %tc%n", event.getOrigin(), event.getTimestamp());
                         }
-                        boolean result = SCMTriggerItems.asSCMTriggerItem(job).poll(listener).hasChanges();
+                        SCMTriggerItem item = SCMTriggerItems.asSCMTriggerItem(job);
+                        if (null == item) {
+                            throw new RuntimeException("Job is not an SCMTriggerItem: " + job);
+                        }
+                        boolean result = item.poll(listener).hasChanges();
                         logger.println("Done. Took " + Util.getTimeSpanString(System.currentTimeMillis() - start));
                         if (result) {
                             logger.println("Changes found");
@@ -140,11 +146,13 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                         LOGGER.warn("Failed to parse the polling log", e);
                         cause = new GitHubPushCause(pushBy);
                     }
-                    if (asParameterizedJobMixIn(job).scheduleBuild(cause)) {
+
+                    if (null != job && asParameterizedJobMixIn(job).scheduleBuild(cause)) {
                         LOGGER.info("SCM changes detected in " + job.getFullName()
                                 + ". Triggering #" + job.getNextBuildNumber());
                     } else {
-                        LOGGER.info("SCM changes detected in " + job.getFullName() + ". Job is already in the queue");
+                        LOGGER.info("SCM changes detected in " + ((null == job) ? "null" : job.getFullName())
+                                + ". Job is already in the queue");
                     }
                 }
             }
@@ -154,7 +162,11 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     /**
      * Returns the file that records the last/current polling activity.
      */
-    public File getLogFile() {
+    public File getLogFile() throws IOException {
+        if (null == job) {
+            throw new IOException("Job was null, unable to getLogFile");
+        }
+
         return new File(job.getRootDir(), "github-polling.log");
     }
 
