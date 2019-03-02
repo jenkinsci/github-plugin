@@ -6,6 +6,7 @@ import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.interceptor.Interceptor;
 import org.kohsuke.stapler.interceptor.InterceptorAnnotation;
 
+import javax.servlet.ServletException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
@@ -29,7 +30,7 @@ public @interface RequireAdminRights {
 
         @Override
         public Object invoke(StaplerRequest request, StaplerResponse response, Object instance, Object[] arguments)
-                throws IllegalAccessException, InvocationTargetException {
+                throws IllegalAccessException, InvocationTargetException, ServletException {
 
             Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
             return target.invoke(request, response, instance, arguments);
