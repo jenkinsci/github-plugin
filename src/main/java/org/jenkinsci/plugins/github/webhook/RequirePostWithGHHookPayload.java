@@ -66,7 +66,7 @@ public @interface RequirePostWithGHHookPayload {
 
         @Override
         public Object invoke(StaplerRequest req, StaplerResponse rsp, Object instance, Object[] arguments)
-                throws IllegalAccessException, InvocationTargetException {
+                throws IllegalAccessException, InvocationTargetException, ServletException {
 
             shouldBePostMethod(req);
             returnsInstanceIdentityIfLocalUrlTest(req);
