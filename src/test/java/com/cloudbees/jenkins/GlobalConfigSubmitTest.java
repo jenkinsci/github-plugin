@@ -24,7 +24,7 @@ import static org.hamcrest.Matchers.is;
 @Ignore("Have troubles with memory consumption")
 public class GlobalConfigSubmitTest {
 
-    public static final String OVERRIDE_HOOK_URL_CHECKBOX = "_.overrideHookUrl";
+    public static final String OVERRIDE_HOOK_URL_CHECKBOX = "_.isOverrideHookUrl";
     public static final String HOOK_URL_INPUT = "_.hookUrl";
 
     private static final String WEBHOOK_URL = "http://jenkinsci.example.com/jenkins/github-webhook/";
@@ -33,14 +33,39 @@ public class GlobalConfigSubmitTest {
     public JenkinsRule jenkins = new JenkinsRule();
 
     @Test
-    public void shouldTurnOnOverridingWhenThereIsCredentials() throws Exception {
+    public void shouldSetHookUrl() throws Exception {
         HtmlForm form = globalConfig();
 
         form.getInputByName(OVERRIDE_HOOK_URL_CHECKBOX).setChecked(true);
         form.getInputByName(HOOK_URL_INPUT).setValueAttribute(WEBHOOK_URL);
         jenkins.submit(form);
 
-        assertThat(GitHubPlugin.configuration().isOverrideHookURL(), is(true));
+        assertThat(GitHubPlugin.configuration().getHookUrl(), equalTo(new URL(WEBHOOK_URL)));
+    }
+
+    @Test
+    public void shouldNotSetHookUrl() throws Exception {
+        GitHubPlugin.configuration().setHookUrl(WEBHOOK_URL);
+
+        HtmlForm form = globalConfig();
+
+        form.getInputByName(OVERRIDE_HOOK_URL_CHECKBOX).setChecked(false);
+        form.getInputByName(HOOK_URL_INPUT).setValueAttribute("http://foo");
+        jenkins.submit(form);
+
+        assertThat(GitHubPlugin.configuration().getHookUrl(), equalTo(new URL(WEBHOOK_URL)));
+    }
+
+    @Test
+    public void shouldNotOverrideAPreviousHookUrlIfNotChecked() throws Exception {
+        GitHubPlugin.configuration().setHookUrl(WEBHOOK_URL);
+
+        HtmlForm form = globalConfig();
+
+        form.getInputByName(OVERRIDE_HOOK_URL_CHECKBOX).setChecked(false);
+        form.getInputByName(HOOK_URL_INPUT).setValueAttribute("");
+        jenkins.submit(form);
+
         assertThat(GitHubPlugin.configuration().getHookUrl(), equalTo(new URL(WEBHOOK_URL)));
     }
 
