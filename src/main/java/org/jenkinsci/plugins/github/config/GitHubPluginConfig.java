@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.github.config;
 
 import com.cloudbees.jenkins.GitHubWebHook;
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import hudson.Extension;
@@ -130,10 +131,15 @@ public class GitHubPluginConfig extends GlobalConfiguration {
      * logs in as the given user and returns the non null connection objects
      */
     public Iterable<GitHub> findGithubConfig(Predicate<GitHubServerConfig> match) {
+        Function<GitHubServerConfig, GitHub> loginFunction = loginToGithub();
+        if (null == loginFunction) {
+            return Collections.emptyList();
+        }
+
         // try all the credentials since we don't know which one would work
         return from(getConfigs())
                 .filter(match)
-                .transform(loginToGithub())
+                .transform(loginFunction)
                 .filter(Predicates.notNull());
     }
 
