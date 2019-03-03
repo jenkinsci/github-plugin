@@ -37,5 +37,17 @@ public class GitHubPushCause extends SCMTriggerCause {
     public String getShortDescription() {
         return format("Started by GitHub push by %s", trimToEmpty(pushedBy));
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof GitHubPushCause || super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = super.hashCode();
+        hash = 89 * hash + (this.pushedBy != null ? this.pushedBy.hashCode() : 0);
+        return hash;
+    }
 }
 
