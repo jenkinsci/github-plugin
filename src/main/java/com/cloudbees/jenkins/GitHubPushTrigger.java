@@ -38,6 +38,7 @@ import org.kohsuke.stapler.Stapler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.CheckForNull;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -98,7 +99,11 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         d.queue.execute(new Runnable() {
             private boolean runPolling() {
                 try {
-                    StreamTaskListener listener = new StreamTaskListener(getLogFile());
+                    File logFile = getLogFile();
+                    if (null == logFile) {
+                        throw new IOException("Log file was null.  Job was probably null.");
+                    }
+                    StreamTaskListener listener = new StreamTaskListener(logFile);
 
                     try {
                         PrintStream logger = listener.getLogger();
@@ -140,7 +145,12 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                 if (runPolling()) {
                     GitHubPushCause cause;
                     try {
-                        cause = new GitHubPushCause(getLogFile(), pushBy);
+                        File logFile = getLogFile();
+                        if (null == logFile) {
+                            throw new IOException("Log file was null.  Job was probably null.");
+                        }
+
+                        cause = new GitHubPushCause(logFile, pushBy);
                     } catch (IOException e) {
                         LOGGER.warn("Failed to parse the polling log", e);
                         cause = new GitHubPushCause(pushBy);
@@ -161,12 +171,12 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     /**
      * Returns the file that records the last/current polling activity.
      */
-    public File getLogFile() {
-        if (job == null) {
+    @CheckForNull public File getLogFile() throws IOException {
+        if (null == job) {
             return null;
-        } else {
-            return new File(job.getRootDir(), "github-polling.log");
         }
+
+        return new File(job.getRootDir(), "github-polling.log");
     }
 
     /**
@@ -245,7 +255,12 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         }
 
         public String getLog() throws IOException {
-            return Util.loadFile(getLogFile());
+            File logFile = getLogFile();
+            if (null == logFile) {
+                return "";
+            }
+
+            return Util.loadFile(logFile);
         }
 
         /**
@@ -254,8 +269,12 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
          * @since 1.350
          */
         public void writeLogTo(XMLOutput out) throws IOException {
-            new AnnotatedLargeText<GitHubWebHookPollingAction>(getLogFile(), Charsets.UTF_8, true, this)
+            File logFile = getLogFile();
+
+            if (null != logFile) {
+                new AnnotatedLargeText<GitHubWebHookPollingAction>(logFile, Charsets.UTF_8, true, this)
                     .writeHtmlTo(0, out.asWriter());
+            }
         }
     }
 
