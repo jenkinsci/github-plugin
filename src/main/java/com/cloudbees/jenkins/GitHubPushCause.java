@@ -40,7 +40,9 @@ public class GitHubPushCause extends SCMTriggerCause {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof GitHubPushCause || super.equals(o);
+        return o instanceof GitHubPushCause
+                && this.pushedBy.equals(((GitHubPushCause) o).pushedBy)
+                && super.equals(o);
     }
 
     @Override
