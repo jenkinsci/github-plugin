@@ -108,13 +108,6 @@
             <version>2.2.0</version>
         </dependency>
 
-        <!-- From jenkins 2.60.3 -->
-        <dependency>
-            <groupId>org.jenkins-ci.ui</groupId>
-            <artifactId>jquery-detached</artifactId>
-            <version>1.2.1</version>
-        </dependency>
-
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>credentials</artifactId>
@@ -148,17 +141,19 @@
         <dependency>
             <groupId>org.jenkins-ci.modules</groupId>
             <artifactId>instance-identity</artifactId>
-            <version>2.1</version><!-- matches 2.60.3 -->
+            <version>2.1</version><!-- Version matches https://mvnrepository.com/artifact/org.jenkins-ci.main/jenkins-war/2.60.3 -->
+            <scope>provided</scope><!-- https://wiki.jenkins.io/display/JENKINS/Instance+Identity "add a provided scope dependency to this module into your plugin" -->
         </dependency>
 
-        <!-- Required for java8 -->
-        <dependency> <!-- from org.eclipse.jetty:jetty-server:9.4.5.v20170502-->
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>3.1.0</version>
+            <scope>provided</scope><!-- Provided by core: https://mvnrepository.com/artifact/org.jenkins-ci.main/jenkins-core/2.60.3 -->
         </dependency>
 
         <!--TEST DEPS-->
+
         <!-- 4.5.3 used by rest-assured -->
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
@@ -201,6 +196,12 @@
             <artifactId>workflow-cps</artifactId>
             <version>${workflow.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jenkins-ci.ui</groupId>
+                    <artifactId>jquery-detached</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
