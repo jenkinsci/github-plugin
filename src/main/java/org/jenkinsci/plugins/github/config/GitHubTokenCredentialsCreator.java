@@ -45,7 +45,7 @@ import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.Validate.notNull;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.GITHUB_URL;
-import static org.kohsuke.github.GHAuthorization.AMIN_HOOK;
+import static org.kohsuke.github.GHAuthorization.ADMIN_HOOK;
 import static org.kohsuke.github.GHAuthorization.REPO;
 import static org.kohsuke.github.GHAuthorization.REPO_STATUS;
 
@@ -71,7 +71,7 @@ public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredent
      * - repo:status - to manipulate commit statuses
      */
     public static final List<String> GH_PLUGIN_REQUIRED_SCOPE = ImmutableList.of(
-            AMIN_HOOK,
+            ADMIN_HOOK,
             REPO,
             REPO_STATUS
     );
