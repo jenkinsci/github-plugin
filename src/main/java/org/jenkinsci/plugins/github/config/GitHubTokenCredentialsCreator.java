@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.cloudbees.plugins.credentials.CredentialsMatchers.firstOrNull;
@@ -140,7 +141,7 @@ public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredent
 
         GHAuthorization token;
 
-        if (null == creds) {
+        if (Objects.isNull(creds)) {
             return FormValidation.error("Can't create GH token - credentials are null.");
         }
 

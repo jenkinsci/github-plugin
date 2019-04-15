@@ -36,6 +36,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static java.lang.String.format;
@@ -132,7 +133,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
      */
     public Iterable<GitHub> findGithubConfig(Predicate<GitHubServerConfig> match) {
         Function<GitHubServerConfig, GitHub> loginFunction = loginToGithub();
-        if (null == loginFunction) {
+        if (Objects.isNull(loginFunction)) {
             return Collections.emptyList();
         }
 
