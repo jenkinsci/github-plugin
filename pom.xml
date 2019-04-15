@@ -148,7 +148,6 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
             <scope>provided</scope><!-- Provided by core: https://mvnrepository.com/artifact/org.jenkins-ci.main/jenkins-core/2.60.3 -->
         </dependency>
 
@@ -198,6 +197,7 @@
             <scope>test</scope>
             <exclusions>
                 <exclusion>
+                    <!-- TODO: Remove this exclusion after upgrading to a more recent workflow-* versions -->
                     <groupId>org.jenkins-ci.ui</groupId>
                     <artifactId>jquery-detached</artifactId>
                 </exclusion>
