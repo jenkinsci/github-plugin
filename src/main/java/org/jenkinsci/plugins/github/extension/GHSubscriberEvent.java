@@ -5,7 +5,6 @@ import org.kohsuke.github.GHEvent;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * An event for a {@link GHEventsSubscriber}.
@@ -21,7 +20,7 @@ public class GHSubscriberEvent extends SCMEvent<String> {
     /**
      * Constructs a new {@link GHSubscriberEvent}.
      *
-     * @param origin  the origin (see {@link SCMEvent#originOf(HttpServletRequest)}) or {@code null}.
+     * @param origin  the origin (see {@link SCMEvent#originOf(javax.servlet.http.HttpServletRequest)}) or {@code null}.
      * @param ghEvent the type of event received from GitHub.
      * @param payload the event payload.
      */

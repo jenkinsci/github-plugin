@@ -12,6 +12,12 @@ import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler.Context;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.After;
 import org.junit.Before;
@@ -20,11 +26,6 @@ import org.junit.Test;
 import org.jvnet.hudson.test.For;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.bio.SocketConnector;
-import org.mortbay.jetty.servlet.DefaultServlet;
-import org.mortbay.jetty.servlet.ServletHandler;
-import org.mortbay.jetty.servlet.ServletHolder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -66,27 +67,26 @@ public class GitHubServerConfigIntegrationTest {
     
     private void setupAttackerServer() throws Exception {
         this.server = new Server();
-        SocketConnector socketConnector = new SocketConnector();
-        socketConnector.setPort(0);
-        server.addConnector(socketConnector);
+        ServerConnector serverConnector = new ServerConnector(this.server);
+        server.addConnector(serverConnector);
+        
+        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        context.setContextPath("/*");
         
         this.attackerServlet = new AttackerServlet();
-        
         ServletHolder servletHolder = new ServletHolder(attackerServlet);
+        context.addServlet(servletHolder, "/*");
         
-        ServletHandler servletHandler = new ServletHandler();
-        servletHandler.addServletWithMapping(servletHolder, "/*");
-        
-        server.setHandler(servletHandler);
+        server.setHandler(context);
         
         server.start();
         
-        String host = socketConnector.getHost();
+        String host = serverConnector.getHost();
         if (host == null) {
             host = "localhost";
         }
         
-        this.attackerUrl = "http://" + host + ":" + socketConnector.getLocalPort();
+        this.attackerUrl = "http://" + host + ":" + serverConnector.getLocalPort();
     }
     
     @Test
@@ -105,7 +105,7 @@ public class GitHubServerConfigIntegrationTest {
         
         j.jenkins.setCrumbIssuer(null);
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
-        
+
         GlobalMatrixAuthorizationStrategy strategy = new GlobalMatrixAuthorizationStrategy();
         strategy.add(Jenkins.ADMINISTER, "admin");
         strategy.add(Jenkins.READ, "user");

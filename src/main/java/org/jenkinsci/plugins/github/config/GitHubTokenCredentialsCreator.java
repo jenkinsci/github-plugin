@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.cloudbees.plugins.credentials.CredentialsMatchers.firstOrNull;
@@ -43,7 +44,6 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.Validate.notNull;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.GITHUB_URL;
 import static org.kohsuke.github.GHAuthorization.AMIN_HOOK;
 import static org.kohsuke.github.GHAuthorization.REPO;
@@ -141,10 +141,14 @@ public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredent
 
         GHAuthorization token;
 
+        if (Objects.isNull(creds)) {
+            return FormValidation.error("Can't create GH token - credentials are null.");
+        }
+
         try {
             token = createToken(
-                    notNull(creds, "Why selected creds is null?").getUsername(),
-                    creds.getPassword().getPlainText(),
+                    creds.getUsername(),
+                    Secret.toString(creds.getPassword()),
                     defaultIfBlank(apiUrl, GITHUB_URL)
             );
         } catch (IOException e) {

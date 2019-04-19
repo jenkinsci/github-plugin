@@ -1,6 +1,5 @@
 package com.cloudbees.jenkins;
 
-import javax.servlet.http.HttpServletRequest;
 import jenkins.scm.api.SCMEvent;
 
 /**
@@ -15,7 +14,7 @@ public class GitHubTriggerEvent {
      */
     private final long timestamp;
     /**
-     * The origin of the event (see {@link SCMEvent#originOf(HttpServletRequest)})
+     * The origin of the event (see {@link SCMEvent#originOf(javax.servlet.http.HttpServletRequest)})
      */
     private final String origin;
     /**

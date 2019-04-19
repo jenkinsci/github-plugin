@@ -149,8 +149,7 @@ public final class GitHubClientCacheOps {
             checkArgument(config.getClientCacheSize() > 0, "Cache can't be with size <= 0");
 
             Path cacheDir = getBaseCacheDir().resolve(hashed(config));
-
-            return new Cache(cacheDir.toFile(), config.getClientCacheSize() * MB);
+            return new Cache(cacheDir.toFile(), (long) config.getClientCacheSize() * MB);
         }
 
         /**

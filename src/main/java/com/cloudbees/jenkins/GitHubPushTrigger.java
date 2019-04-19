@@ -21,6 +21,7 @@ import hudson.util.StreamTaskListener;
 import jenkins.model.Jenkins;
 import jenkins.model.ParameterizedJobMixIn;
 import jenkins.scm.api.SCMEvent;
+import jenkins.triggers.SCMTriggerItem;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
 import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.plugins.github.GitHubPlugin;
@@ -37,6 +38,7 @@ import org.kohsuke.stapler.Stapler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -48,11 +50,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.Validate.notNull;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJobMixIn;
 
 /**
@@ -91,22 +95,33 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
      * Called when a POST is made.
      */
     public void onPost(final GitHubTriggerEvent event) {
+        if (Objects.isNull(job)) {
+            return; // nothing to do
+        }
+
+        Job<?, ?> currentJob = notNull(job, "Job can't be null");
+
         final String pushBy = event.getTriggeredByUser();
         DescriptorImpl d = getDescriptor();
         d.checkThreadPoolSizeAndUpdateIfNecessary();
         d.queue.execute(new Runnable() {
             private boolean runPolling() {
                 try {
-                    StreamTaskListener listener = new StreamTaskListener(getLogFile());
+                    StreamTaskListener listener = new StreamTaskListener(getLogFileForJob(currentJob));
 
                     try {
                         PrintStream logger = listener.getLogger();
+
                         long start = System.currentTimeMillis();
                         logger.println("Started on " + DateFormat.getDateTimeInstance().format(new Date()));
                         if (event.getOrigin() != null) {
                             logger.format("Started by event from %s on %tc%n", event.getOrigin(), event.getTimestamp());
                         }
-                        boolean result = SCMTriggerItems.asSCMTriggerItem(job).poll(listener).hasChanges();
+                        SCMTriggerItem item = SCMTriggerItems.asSCMTriggerItem(currentJob);
+                        if (null == item) {
+                            throw new IllegalStateException("Job is not an SCMTriggerItem: " + currentJob);
+                        }
+                        boolean result = item.poll(listener).hasChanges();
                         logger.println("Done. Took " + Util.getTimeSpanString(System.currentTimeMillis() - start));
                         if (result) {
                             logger.println("Changes found");
@@ -135,16 +150,18 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                 if (runPolling()) {
                     GitHubPushCause cause;
                     try {
-                        cause = new GitHubPushCause(getLogFile(), pushBy);
+                        cause = new GitHubPushCause(getLogFileForJob(currentJob), pushBy);
                     } catch (IOException e) {
                         LOGGER.warn("Failed to parse the polling log", e);
                         cause = new GitHubPushCause(pushBy);
                     }
-                    if (asParameterizedJobMixIn(job).scheduleBuild(cause)) {
-                        LOGGER.info("SCM changes detected in " + job.getFullName()
-                                + ". Triggering #" + job.getNextBuildNumber());
+
+                    if (asParameterizedJobMixIn(currentJob).scheduleBuild(cause)) {
+                        LOGGER.info("SCM changes detected in " + currentJob.getFullName()
+                                + ". Triggering #" + currentJob.getNextBuildNumber());
                     } else {
-                        LOGGER.info("SCM changes detected in " + job.getFullName() + ". Job is already in the queue");
+                        LOGGER.info("SCM changes detected in " + currentJob.getFullName()
+                                + ". Job is already in the queue");
                     }
                 }
             }
@@ -155,6 +172,17 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
      * Returns the file that records the last/current polling activity.
      */
     public File getLogFile() {
+        try {
+            return getLogFileForJob(notNull(job, "Job can't be null!"));
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    /**
+     * Returns the file that records the last/current polling activity.
+     */
+    private File getLogFileForJob(@Nonnull Job job) throws IOException {
         return new File(job.getRootDir(), "github-polling.log");
     }
 
@@ -234,7 +262,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         }
 
         public String getLog() throws IOException {
-            return Util.loadFile(getLogFile());
+            return Util.loadFile(getLogFileForJob(job));
         }
 
         /**
@@ -243,7 +271,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
          * @since 1.350
          */
         public void writeLogTo(XMLOutput out) throws IOException {
-            new AnnotatedLargeText<GitHubWebHookPollingAction>(getLogFile(), Charsets.UTF_8, true, this)
+            new AnnotatedLargeText<GitHubWebHookPollingAction>(getLogFileForJob(job), Charsets.UTF_8, true, this)
                     .writeHtmlTo(0, out.asWriter());
         }
     }
