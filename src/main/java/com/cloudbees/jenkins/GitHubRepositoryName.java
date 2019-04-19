@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,6 +64,9 @@ public class GitHubRepositoryName {
             Pattern.compile("git://([^/]+)/([^/]+)/([^/]+)/?"),
             Pattern.compile("ssh://(?:git@)?([^/]+)/([^/]+)/([^/]+)/?")
     };
+
+    private static final int MAX_RETRIES = 3;
+    private static final int BACKOFF_MILLIS = 50;
 
     /**
      * Create {@link GitHubRepositoryName} from URL
@@ -223,12 +227,25 @@ public class GitHubRepositoryName {
         return new NullSafeFunction<GitHub, GHRepository>() {
             @Override
             protected GHRepository applyNullSafe(@Nonnull GitHub gitHub) {
-                try {
-                    return gitHub.getRepository(format("%s/%s", repoName.getUserName(), repoName.getRepositoryName()));
-                } catch (IOException e) {
-                    LOGGER.warn("Failed to obtain repository {}", this, e);
-                    return null;
+                int mtries = 0;
+                while (mtries < MAX_RETRIES) {
+                    try {
+                        return gitHub.getRepository(format("%s/%s", repoName.getUserName(),
+                                repoName.getRepositoryName()));
+                    } catch (UnknownHostException e) {
+                        LOGGER.warn("Failed to resolve repository {}", this, e);
+                        mtries++;
+                        try {
+                            Thread.sleep(BACKOFF_MILLIS * mtries);
+                        } catch (InterruptedException ex) {
+                            LOGGER.error("{}", this, ex);
+                        }
+                    } catch (IOException e) {
+                        LOGGER.warn("Failed to obtain repository {}", this, e);
+                        return null;
+                    }
                 }
+                return null;
             }
         };
     }

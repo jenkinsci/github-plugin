@@ -50,7 +50,7 @@
         <jenkins.version>2.60.3</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <maven.javadoc.skip>true</maven.javadoc.skip>
-        <findbugs-maven-plugin.version>3.0.2</findbugs-maven-plugin.version>
+        <findbugs-maven-plugin.version>3.0.5</findbugs-maven-plugin.version>
         <concurrency>1</concurrency>
         <java.level>8</java.level>
         <workflow.version>1.14.2</workflow.version>
