@@ -1,5 +1,6 @@
 package com.cloudbees.jenkins;
 
+import com.coravy.hudson.plugins.github.GithubProjectProperty;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -125,12 +126,20 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
     public static class FromSCM extends GitHubRepositoryNameContributor {
         @Override
         public void parseAssociatedNames(Item item, Collection<GitHubRepositoryName> result) {
+            // extract the GitHub project URL as defined under General job properties
+            Job job = (Job) item;
+            GithubProjectProperty ghpp = (GithubProjectProperty) job.getProperty(GithubProjectProperty.class);
+            GitHubRepositoryName githubrepo = GitHubRepositoryName.create(ghpp.getProjectUrl().toString());
+
             SCMTriggerItem triggerItem = SCMTriggerItems.asSCMTriggerItem(item);
             EnvVars envVars = item instanceof Job ? buildEnv((Job) item) : new EnvVars();
             if (triggerItem != null) {
                 for (SCM scm : triggerItem.getSCMs()) {
                     addRepositories(scm, envVars, result);
                 }
+                // additionally add the explicit GitHub project URL to the result collection
+                // as it may differ from the SCM URL due to proxy usage
+                result.add(githubrepo);
             }
         }
 
