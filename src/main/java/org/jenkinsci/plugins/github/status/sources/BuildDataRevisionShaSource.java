@@ -6,7 +6,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.github.extension.status.GitHubCommitShaSource;
-import org.jenkinsci.plugins.github.util.BuildDataHelper;
+import org.jenkinsci.plugins.github.util.BuildDetailsHelper;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
@@ -29,7 +29,7 @@ public class BuildDataRevisionShaSource extends GitHubCommitShaSource {
      */
     @Override
     public String get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) throws IOException {
-        return ObjectId.toString(BuildDataHelper.getCommitSHA1(run));
+        return ObjectId.toString(BuildDetailsHelper.getCommitSHA1(run));
     }
 
     @Extension

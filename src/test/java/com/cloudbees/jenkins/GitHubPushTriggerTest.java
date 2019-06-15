@@ -4,6 +4,7 @@ import hudson.model.FreeStyleProject;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.util.Build;
 import hudson.plugins.git.util.BuildData;
+import hudson.plugins.git.util.BuildDetails;
 import hudson.util.FormValidation;
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
@@ -65,7 +66,9 @@ public class GitHubPushTriggerTest {
         // Trigger the build once to register SCMs
         WorkflowRun lastRun = jRule.assertBuildStatusSuccess(job.scheduleBuild2(0));
         // Testing hack! This will make the polling believe that there was remote changes to build
-        BuildData buildData = lastRun.getActions(BuildData.class).get(0);
+
+        BuildDetails buildDetails = lastRun.getActions(BuildDetails.class).get(0);
+        BuildData buildData = new BuildData(buildDetails);
         buildData.buildsByBranchName = new HashMap<String, Build>();
         buildData.getLastBuiltRevision().setSha1(ObjectId.zeroId());
 

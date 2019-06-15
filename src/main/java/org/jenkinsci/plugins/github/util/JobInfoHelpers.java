@@ -111,7 +111,7 @@ public final class JobInfoHelpers {
         if (item instanceof ParameterizedJobMixIn.ParameterizedJob) {
             ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) item;
 
-            for (Trigger candidate : pJob.getTriggers().values()) {
+            for (Object candidate : pJob.getTriggers().values()) {
                 if (tClass.isInstance(candidate)) {
                     return tClass.cast(candidate);
                 }

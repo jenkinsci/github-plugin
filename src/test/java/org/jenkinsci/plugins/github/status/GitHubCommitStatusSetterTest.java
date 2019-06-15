@@ -85,7 +85,6 @@ public class GitHubCommitStatusSetterTest {
         }
     };
 
-
     @Test
     public void shouldSetGHCommitStatus() throws Exception {
         config.getConfigs().add(github.serverConfig());
