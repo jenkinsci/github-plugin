@@ -22,7 +22,19 @@ l.layout(title: _('page.title'), permission: app.ADMINISTER) {
 
             div {
                 p {
-                    text(_('help.for.page.and.debug.info'))
+                    text(_('help.for.page.and.debug.shows'))
+                    text(' ')
+
+                    text(_('help.for.page.and.debug.system.pre'))
+                    text(' ')
+                    a(_('help.for.page.and.debug.system.log'), href: "${rootURL}/log/all")
+                    text(_('help.for.page.and.debug.system.suffix'))
+
+                    text(' ')
+                    text(_('help.for.page.and.debug.log.pre'))
+                    text(' ')
+                    a(_('help.for.page.and.debug.log.enable'), href: "${rootURL}/log/levels")
+                    text(_('help.for.page.and.debug.log.suffix'))
                 }
 
                 ul {
