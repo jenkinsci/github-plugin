@@ -26,7 +26,7 @@ f.section(title: descriptor.displayName) {
                 table(width: "100%", style: "margin-left: 7px;") {
                     f.optionalBlock(title: _("Specify another hook URL for GitHub configuration"),
                             inline: true,
-                            checked: instance.isOverrideHookUrl) {
+                            checked: instance.isOverrideHookUrl()) {
                         f.entry(field: "hookUrl") {
                             f.textbox(checkMethod: "post")
                         }

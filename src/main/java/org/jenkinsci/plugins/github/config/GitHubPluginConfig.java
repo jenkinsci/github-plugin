@@ -64,9 +64,9 @@ public class GitHubPluginConfig extends GlobalConfiguration {
      * Helps to avoid null in {@link GitHubPlugin#configuration()}
      */
     public static final GitHubPluginConfig EMPTY_CONFIG =
-            new GitHubPluginConfig(Collections.<GitHubServerConfig>emptyList());
+            new GitHubPluginConfig(Collections.emptyList());
 
-    private List<GitHubServerConfig> configs = new ArrayList<GitHubServerConfig>();
+    private List<GitHubServerConfig> configs = new ArrayList<>();
     private URL hookUrl;
     private HookSecretConfig hookSecretConfig = new HookSecretConfig(null);
 
@@ -112,7 +112,6 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     @DataBoundSetter
     @Deprecated
     public void setOverrideHookUrl(boolean overrideHookUrl) {
-
     }
 
     /**
