@@ -125,9 +125,7 @@ public final class GitHubServerConfigMatcher {
         try {
             return mapping.get(key).asScalar().getValue();
         } catch (NullPointerException | ConfiguratorException e) {
-//            LOG.error("", e);
             throw new AssertionError(key);
-//            return "UNKNOWN VALUE: " + key;
         }
     }
 }
