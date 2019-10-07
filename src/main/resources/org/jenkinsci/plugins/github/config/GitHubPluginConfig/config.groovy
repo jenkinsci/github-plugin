@@ -1,8 +1,9 @@
 package org.jenkinsci.plugins.github.config.GitHubPluginConfig
 
 import com.cloudbees.jenkins.GitHubPushTrigger
+import lib.FormTagLib
 
-def f = namespace(lib.FormTagLib);
+def f = namespace(FormTagLib);
 
 f.section(title: descriptor.displayName) {
     f.entry(title: _("GitHub Servers"),

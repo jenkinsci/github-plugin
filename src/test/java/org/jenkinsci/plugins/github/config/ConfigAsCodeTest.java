@@ -1,24 +1,20 @@
 package org.jenkinsci.plugins.github.config;
 
-import io.jenkins.plugins.casc.ConfigurationAsCode;
+import io.jenkins.plugins.casc.ConfigurationContext;
+import io.jenkins.plugins.casc.Configurator;
+import io.jenkins.plugins.casc.ConfiguratorRegistry;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
+import io.jenkins.plugins.casc.model.CNode;
+import io.jenkins.plugins.casc.model.Mapping;
 import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
 
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.both;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withClientCacheSize;
-import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withCredsId;
-import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withApiUrl;
-import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withIsManageHooks;
-import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withName;
+import static org.hamcrest.Matchers.*;
+import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.*;
 
 public class ConfigAsCodeTest {
 
@@ -60,14 +56,41 @@ public class ConfigAsCodeTest {
                         .and(withCredsId(is("private_cred_id")))
                         .and(withClientCacheSize(is(40)))
                         .and(withIsManageHooks(is(false)))
-                ));
+        ));
     }
 
     @Test
     @ConfiguredWithCode("configuration-as-code.yml")
-    public void export_configuration() throws Exception {
-        /* TODO (From JCASC): Need to provide some YAML assertion library so that the resulting exported yaml
-            stream can be checked for expected content. */
-        ConfigurationAsCode.get().export(System.out);
+    public void exportConfiguration() throws Exception {
+        GitHubPluginConfig globalConfiguration = GitHubPluginConfig.all().get(GitHubPluginConfig.class);
+
+        ConfiguratorRegistry registry = ConfiguratorRegistry.get();
+        ConfigurationContext context = new ConfigurationContext(registry);
+        final Configurator c = context.lookupOrFail(GitHubPluginConfig.class);
+
+        @SuppressWarnings("unchecked")
+        CNode node = c.describe(globalConfiguration, context);
+        assertThat(node, notNullValue());
+        final Mapping mapping = node.asMapping();
+
+        assertThat(mapping.getScalarValue("hookUrl"), is("http://some.com/github-webhook/secret-path"));
+
+        CNode configsNode = mapping.get("configs");
+        assertThat(configsNode, notNullValue());
+
+        List<Mapping> configsMapping = (List) configsNode.asSequence();
+        assertThat(configsMapping, hasSize(2));
+
+        assertThat("configs are set", configsMapping,
+                hasItems(
+                        both(withCredsIdS(is("public_cred_id")))
+                                .and(withNameS(is("Public GitHub"))),
+                        both(withNameS(is("Private GitHub")))
+                                .and(withApiUrlS(is("https://api.some.com")))
+                                .and(withCredsIdS(is("private_cred_id")))
+                                .and(withClientCacheSizeS(is(40)))
+                                .and(withIsManageHooksS(is(false)))
+                )
+        );
     }
 }
