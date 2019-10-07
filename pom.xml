@@ -54,7 +54,7 @@
         <concurrency>1</concurrency>
         <java.level>8</java.level>
         <workflow.version>1.14.2</workflow.version>
-        <configuration-as-code.version>1.12</configuration-as-code.version>
+        <configuration-as-code.version>1.32</configuration-as-code.version>
     </properties>
 
     <repositories>
