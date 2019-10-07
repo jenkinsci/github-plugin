@@ -21,6 +21,7 @@ import org.jenkinsci.plugins.github.migration.Migrator;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
 import org.kohsuke.github.GitHub;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -40,6 +41,7 @@ import java.util.Objects;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.loginToGithub;
@@ -62,13 +64,11 @@ public class GitHubPluginConfig extends GlobalConfiguration {
      * Helps to avoid null in {@link GitHubPlugin#configuration()}
      */
     public static final GitHubPluginConfig EMPTY_CONFIG =
-            new GitHubPluginConfig(Collections.<GitHubServerConfig>emptyList());
+            new GitHubPluginConfig(Collections.emptyList());
 
-    private List<GitHubServerConfig> configs = new ArrayList<GitHubServerConfig>();
+    private List<GitHubServerConfig> configs = new ArrayList<>();
     private URL hookUrl;
     private HookSecretConfig hookSecretConfig = new HookSecretConfig(null);
-
-    private transient boolean overrideHookUrl;
 
     /**
      * Used to get current instance identity.
@@ -87,6 +87,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     }
 
     @SuppressWarnings("unused")
+    @DataBoundSetter
     public void setConfigs(List<GitHubServerConfig> configs) {
         this.configs = configs;
     }
@@ -99,16 +100,18 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         return from(getConfigs()).filter(allowedToManageHooks()).first().isPresent();
     }
 
-    public void setHookUrl(URL hookUrl) {
-        if (overrideHookUrl) {
-            this.hookUrl = hookUrl;
-        } else {
+    @DataBoundSetter
+    public void setHookUrl(String hookUrl) {
+        if (isEmpty(hookUrl)) {
             this.hookUrl = null;
+        } else {
+            this.hookUrl = parseHookUrl(hookUrl);
         }
     }
 
+    @DataBoundSetter
+    @Deprecated
     public void setOverrideHookUrl(boolean overrideHookUrl) {
-        this.overrideHookUrl = overrideHookUrl;
     }
 
     /**
@@ -123,8 +126,14 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         }
     }
 
-    public boolean isOverrideHookURL() {
+    @SuppressWarnings("unused")
+    public boolean isOverrideHookUrl() {
         return hookUrl != null;
+    }
+
+    @Deprecated
+    public boolean isOverrideHookURL() {
+        return isOverrideHookUrl();
     }
 
     /**
@@ -265,7 +274,16 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         return hookSecretConfig;
     }
 
+    @DataBoundSetter
     public void setHookSecretConfig(HookSecretConfig hookSecretConfig) {
         this.hookSecretConfig = hookSecretConfig;
+    }
+
+    private URL parseHookUrl(String hookUrl) {
+        try {
+            return new URL(hookUrl);
+        } catch (MalformedURLException e) {
+            return null;
+        }
     }
 }
