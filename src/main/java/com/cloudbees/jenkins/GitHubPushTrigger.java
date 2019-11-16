@@ -11,6 +11,9 @@ import hudson.model.Action;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.Project;
+import hudson.plugins.git.GitSCM;
+import hudson.plugins.git.extensions.impl.UserExclusion;
+import hudson.scm.SCM;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
@@ -23,6 +26,7 @@ import jenkins.model.ParameterizedJobMixIn;
 import jenkins.scm.api.SCMEvent;
 import jenkins.triggers.SCMTriggerItem;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
+
 import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
@@ -34,6 +38,7 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.Stapler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +70,7 @@ import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJo
  * @author Kohsuke Kawaguchi
  */
 public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigger {
+    private boolean useGitExcludedUsers;
 
     @DataBoundConstructor
     public GitHubPushTrigger() {
@@ -97,6 +103,22 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     public void onPost(final GitHubTriggerEvent event) {
         if (Objects.isNull(job)) {
             return; // nothing to do
+        }
+        if (useGitExcludedUsers) {
+            Set<String> excludedUsers = null;
+            if (job instanceof AbstractProject) {
+                SCM scm = ((AbstractProject<?, ?>) job).getScm();
+                if (scm instanceof GitSCM) {
+                    UserExclusion exclusions = ((GitSCM) scm).getExtensions().get(UserExclusion.class);
+                    if (exclusions != null) {
+                        excludedUsers = exclusions.getExcludedUsersNormalized();
+                    }
+                }
+            }
+
+            if (excludedUsers != null && excludedUsers.contains(event.getTriggeredByUser())) {
+                return; // user is excluded from triggering build
+            }
         }
 
         Job<?, ?> currentJob = notNull(job, "Job can't be null");
@@ -239,6 +261,15 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
+    }
+
+    public boolean isUseGitExcludedUsers() {
+        return useGitExcludedUsers;
+    }
+
+    @DataBoundSetter
+    public void setUseGitExcludedUsers(Boolean useGitExcludedUsers) {
+        this.useGitExcludedUsers = useGitExcludedUsers != null ? useGitExcludedUsers : false;
     }
 
     /**
