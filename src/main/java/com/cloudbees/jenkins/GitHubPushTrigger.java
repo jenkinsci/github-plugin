@@ -54,6 +54,7 @@ import java.text.DateFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -105,18 +106,24 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
             return; // nothing to do
         }
         if (useGitExcludedUsers) {
-            Set<String> excludedUsers = null;
+            Set<String> lowercaseExcludedUsers = new HashSet<>();
             if (job instanceof AbstractProject) {
                 SCM scm = ((AbstractProject<?, ?>) job).getScm();
                 if (scm instanceof GitSCM) {
                     UserExclusion exclusions = ((GitSCM) scm).getExtensions().get(UserExclusion.class);
                     if (exclusions != null) {
-                        excludedUsers = exclusions.getExcludedUsersNormalized();
+                        for (String userName: exclusions.getExcludedUsersNormalized()) {
+                            lowercaseExcludedUsers.add(userName.toLowerCase());
+                        }
                     }
                 }
             }
 
-            if (excludedUsers != null && excludedUsers.contains(event.getTriggeredByUser())) {
+            String lowercaseTriggeredByUser = null;
+            if (event.getTriggeredByUser() != null) {
+                lowercaseTriggeredByUser = event.getTriggeredByUser().toLowerCase();
+            }
+            if (lowercaseExcludedUsers != null && lowercaseExcludedUsers.contains(lowercaseTriggeredByUser)) {
                 return; // user is excluded from triggering build
             }
         }

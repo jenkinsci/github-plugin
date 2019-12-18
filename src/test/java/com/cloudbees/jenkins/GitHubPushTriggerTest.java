@@ -146,6 +146,33 @@ public class GitHubPushTriggerTest {
     }
 
     @Test
+    public void shouldSkipBuildIfExclusionEnabledWithMatchingUserCaseInsensitive() throws IOException {
+        SequentialExecutionQueue spiedQueue = addSpyToQueueField();
+
+        String matchingUserName = "userName".toLowerCase();
+        FreeStyleProject project = jRule.createFreeStyleProject();
+        GitHubPushTrigger trigger = new GitHubPushTrigger();
+        trigger.setUseGitExcludedUsers(true);
+        trigger.start(project, false);
+        project.addTrigger(trigger);
+        GitSCM scm = new GitSCM("https://localhost/dummy.git");
+        UserExclusion userExclusion = new UserExclusion("something" + System.lineSeparator() +
+                                                        matchingUserName.toUpperCase() + System.lineSeparator() +
+                                                        "somethingElse" + System.lineSeparator()); 
+        scm.getExtensions().add(userExclusion);
+        project.setScm(scm);
+        
+        GitHubTriggerEvent event = GitHubTriggerEvent.create()
+                                                     .withTimestamp(System.currentTimeMillis())
+                                                     .withOrigin("origin")
+                                                     .withTriggeredByUser(matchingUserName)
+                                                     .build();
+        trigger.onPost(event);
+        
+        verify(spiedQueue, times(0)).execute(Mockito.any(Runnable.class));
+    }
+
+    @Test
     public void shouldTriggerBuildIfExclusionEnabledWithNonMatchingUser() throws IOException {
         SequentialExecutionQueue spiedQueue = addSpyToQueueField();
         

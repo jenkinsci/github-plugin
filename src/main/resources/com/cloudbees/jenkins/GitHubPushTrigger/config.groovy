@@ -22,5 +22,5 @@ InlineWarning.setup({
 }
 
 f.entry() {
-    f.checkbox(title: _("Use Git excluded user list (\"Polling ignores commits from certain users\")"), field: "useGitExcludedUsers")
+    f.checkbox(title: _("Use Git excluded user list (\"Polling ignores commits from certain users\", comparison is case insensitive)"), field: "useGitExcludedUsers")
 }
