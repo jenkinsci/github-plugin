@@ -5,7 +5,6 @@ import com.cloudbees.jenkins.GitHubRepositoryName;
 import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.plugins.git.GitSCM;
-import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.jenkinsci.plugins.github.extension.GHSubscriberEvent;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.webhook.WebhookManager;
@@ -150,9 +149,6 @@ public class GitHubHookRegisterProblemMonitorTest {
         job.addTrigger(new GitHubPushTrigger());
         job.setScm(REPO_GIT_SCM);
 
-        GitHubServerConfig conf = new GitHubServerConfig(WebhookManagerTest.HOOK_ENDPOINT.toString());
-        conf.setManageHooks(true);
-
         WebhookManager.forHookUrl(WebhookManagerTest.HOOK_ENDPOINT)
                 .registerFor((Item) job).run();
 
@@ -161,9 +157,6 @@ public class GitHubHookRegisterProblemMonitorTest {
 
     @Test
     public void shouldReportAboutHookProblemOnUnregister() {
-        GitHubServerConfig conf = new GitHubServerConfig(WebhookManagerTest.HOOK_ENDPOINT.toString());
-        conf.setManageHooks(true);
-
         WebhookManager.forHookUrl(WebhookManagerTest.HOOK_ENDPOINT)
                 .unregisterFor(REPO, Collections.<GitHubRepositoryName>emptyList());
 
