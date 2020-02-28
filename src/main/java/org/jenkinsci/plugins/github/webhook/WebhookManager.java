@@ -142,7 +142,9 @@ public class WebhookManager {
     public void unregisterFor(GitHubRepositoryName name, List<GitHubRepositoryName> aliveRepos) {
         try {
             if (!(name.resolve(allowedToManageHooks()).iterator().hasNext())) {
-                LOGGER.debug("Skipped adding GitHub webhook for {} because not configured to Manage Hooks", name);
+                LOGGER.debug("Skipped removing GitHub webhook for {} because not configured to Manage Hooks", name);
+                GitHubHookRegisterProblemMonitor.get().registerProblem(name, new Exception(
+                        "Skipped removing GitHub webhook because not configured to Manage Hooks"));
                 return;
             }
 
@@ -184,6 +186,8 @@ public class WebhookManager {
                     if (!(name.resolve(allowedToManageHooks()).iterator().hasNext())) {
                         LOGGER.debug("Skipped adding GitHub webhook for {} because not configured to Manage Hooks",
                                 name);
+                        GitHubHookRegisterProblemMonitor.get().registerProblem(name, new Exception(
+                                "Skipped adding GitHub webhook because not configured to Manage Hooks"));
                         return null;
                     }
 
