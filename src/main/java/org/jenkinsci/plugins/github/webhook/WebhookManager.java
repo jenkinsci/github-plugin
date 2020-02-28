@@ -145,7 +145,12 @@ public class WebhookManager {
             GHRepository repo = from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull();
 
             if (!(name.resolve(allowedToManageHooks()).iterator().hasNext())) {
-                LOGGER.debug("Skipped removing GitHub webhook for {} because not configured to Manage Hooks", name);
+                if (repo == null) {
+                    LOGGER.debug("Skipped removing GitHub webhook for {} because not configured to Manage Hooks, "
+                            + "also there are no credentials with admin access to manage such hooks", name);
+                } else {
+                    LOGGER.debug("Skipped removing GitHub webhook for {} because not configured to Manage Hooks", name);
+                }
                 GitHubHookRegisterProblemMonitor.get().registerProblem(name, new Exception(
                         "Skipped removing GitHub webhook because not configured to Manage Hooks"));
                 return;
@@ -190,8 +195,14 @@ public class WebhookManager {
                             .firstMatch(withAdminAccess()).orNull();
 
                     if (!(name.resolve(allowedToManageHooks()).iterator().hasNext())) {
-                        LOGGER.debug("Skipped adding GitHub webhook for {} because not configured to Manage Hooks",
-                                name);
+                        if (repo == null) {
+                            LOGGER.debug("Skipped adding GitHub webhook for {} because not configured to Manage "
+                                    + "Hooks, also there are no credentials with admin access to manage such hooks",
+                                    name);
+                        } else {
+                            LOGGER.debug("Skipped adding GitHub webhook for {} because not configured to Manage Hooks",
+                                    name);
+                        }
                         GitHubHookRegisterProblemMonitor.get().registerProblem(name, new Exception(
                                 "Skipped adding GitHub webhook because not configured to Manage Hooks"));
                         return null;
