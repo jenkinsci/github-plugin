@@ -141,6 +141,11 @@ public class WebhookManager {
      */
     public void unregisterFor(GitHubRepositoryName name, List<GitHubRepositoryName> aliveRepos) {
         try {
+            if (!(name.resolve(allowedToManageHooks()).iterator().hasNext())) {
+                LOGGER.debug("Skipped adding GitHub webhook for {} because not configured to Manage Hooks", name);
+                return;
+            }
+
             GHRepository repo = checkNotNull(
                     from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull(),
                     "There are no credentials with admin access to manage hooks on %s", name
@@ -176,6 +181,12 @@ public class WebhookManager {
             @Override
             protected GHHook applyNullSafe(@Nonnull GitHubRepositoryName name) {
                 try {
+                    if (!(name.resolve(allowedToManageHooks()).iterator().hasNext())) {
+                        LOGGER.debug("Skipped adding GitHub webhook for {} because not configured to Manage Hooks",
+                                name);
+                        return null;
+                    }
+
                     GHRepository repo = checkNotNull(
                             from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull(),
                             "There are no credentials with admin access to manage hooks on %s", name
