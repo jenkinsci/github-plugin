@@ -142,9 +142,10 @@ public class WebhookManager {
     public void unregisterFor(GitHubRepositoryName name, List<GitHubRepositoryName> aliveRepos) {
         try {
             /* This is overcomplicated to satisfy unit tests that expect certain codepaths to be called */
-            GHRepository repo = from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull();
+            Iterable<GHRepository> manageableIterable = name.resolve(allowedToManageHooks());
+            GHRepository repo = from(manageableIterable).firstMatch(withAdminAccess()).orNull();
 
-            if (!(name.resolve(allowedToManageHooks()).iterator().hasNext())) {
+            if (!(manageableIterable.iterator().hasNext())) {
                 if (repo == null) {
                     LOGGER.debug("Skipped removing GitHub webhook for {} because not configured to Manage Hooks, "
                             + "also there are no credentials with admin access to manage such hooks", name);
@@ -191,10 +192,10 @@ public class WebhookManager {
             protected GHHook applyNullSafe(@Nonnull GitHubRepositoryName name) {
                 try {
                     /* This is overcomplicated to satisfy unit tests that expect certain codepaths to be called */
-                    GHRepository repo = from(name.resolve(allowedToManageHooks()))
-                            .firstMatch(withAdminAccess()).orNull();
+                    Iterable<GHRepository> manageableIterable = name.resolve(allowedToManageHooks());
+                    GHRepository repo = from(manageableIterable).firstMatch(withAdminAccess()).orNull();
 
-                    if (!(name.resolve(allowedToManageHooks()).iterator().hasNext())) {
+                    if (!(manageableIterable.iterator().hasNext())) {
                         if (repo == null) {
                             LOGGER.debug("Skipped adding GitHub webhook for {} because not configured to Manage "
                                     + "Hooks, also there are no credentials with admin access to manage such hooks",
