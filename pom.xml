@@ -47,7 +47,7 @@
     </issueManagement>
 
     <properties>
-        <jenkins.version>2.60.3</jenkins.version>
+        <jenkins.version>2.150.3</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <maven.javadoc.skip>true</maven.javadoc.skip>
         <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
@@ -95,7 +95,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>github-api</artifactId>
-            <version>1.90</version>
+            <version>1.109-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -143,7 +143,7 @@
         <dependency>
             <groupId>org.jenkins-ci.modules</groupId>
             <artifactId>instance-identity</artifactId>
-            <version>2.1</version><!-- Version matches https://mvnrepository.com/artifact/org.jenkins-ci.main/jenkins-war/2.60.3 -->
+            <version>2.2</version><!-- Version matches https://mvnrepository.com/artifact/org.jenkins-ci.main/jenkins-war/2.60.3 -->
             <scope>provided</scope><!-- https://wiki.jenkins.io/display/JENKINS/Instance+Identity "add a provided scope dependency to this module into your plugin" -->
         </dependency>
 
@@ -311,6 +311,16 @@
         </dependency>
 
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.jenkins-ci</groupId>
+                <artifactId>annotation-indexer</artifactId>
+                <version>1.12</version>
+            </dependency>    
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>
