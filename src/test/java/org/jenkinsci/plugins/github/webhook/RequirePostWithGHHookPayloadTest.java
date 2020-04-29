@@ -1,7 +1,5 @@
 package org.jenkinsci.plugins.github.webhook;
 
-import org.jenkinsci.plugins.github.GitHubPlugin;
-import org.jenkinsci.plugins.github.config.HookSecretConfig;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -146,7 +144,7 @@ public class RequirePostWithGHHookPayloadTest {
     @Test
     @Issue("JENKINS-37481")
     public void shouldIgnoreSignHeaderOnNotDefinedSignInConfig() throws Exception {
-        GitHubPlugin.configuration().setHookSecretConfig(new HookSecretConfig(null));
+        removeSecret();
         final String signature = "sha1=49d5f5cf800a81f257324912969a2d325d13d3fc";
 
         when(req.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);

@@ -36,8 +36,8 @@ f.section(title: descriptor.displayName) {
             }
         }
 
-        f.property(
-                field: "hookSecretConfig"
+        f.repeatableProperty(
+                field: "hookSecretConfigs"
         )
 
         f.entry(title: _("Additional actions"), help: descriptor.getHelpFile('additional')) {
