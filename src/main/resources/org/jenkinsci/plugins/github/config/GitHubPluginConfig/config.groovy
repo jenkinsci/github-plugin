@@ -36,9 +36,18 @@ f.section(title: descriptor.displayName) {
             }
         }
 
-        f.repeatableProperty(
-                field: "hookSecretConfigs"
-        )
+        f.entry(title: _("Shared secrets")) {
+            f.repeatableProperty(
+                field: "hookSecretConfigs",
+                add: _("Add shared secret")
+            ) {
+                f.entry(title: "") {
+                    div(align: "right") {
+                        f.repeatableDeleteButton()
+                    }
+                }
+            }
+        }
 
         f.entry(title: _("Additional actions"), help: descriptor.getHelpFile('additional')) {
             f.hetero_list(items: [],
