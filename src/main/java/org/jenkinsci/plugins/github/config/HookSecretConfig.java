@@ -43,6 +43,11 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
         return credentialsId;
     }
 
+    /**
+     * @param credentialsId a new ID
+     * @deprecated rather treat this field as final and use {@link GitHubPluginConfig#setHookSecretConfigs}
+     */
+    @Deprecated
     public void setCredentialsId(String credentialsId) {
         this.credentialsId = credentialsId;
     }

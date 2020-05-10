@@ -5,6 +5,7 @@ import com.google.common.base.Optional;
 import hudson.util.Secret;
 import org.jenkinsci.main.modules.instance_identity.InstanceIdentity;
 import org.jenkinsci.plugins.github.GitHubPlugin;
+import org.jenkinsci.plugins.github.config.HookSecretConfig;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.util.FluentIterableWrapper;
 import org.kohsuke.github.GHEvent;
@@ -25,6 +26,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPublicKey;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.cloudbees.jenkins.GitHubWebHook.X_INSTANCE_IDENTITY;
 import static com.google.common.base.Charsets.UTF_8;
@@ -139,16 +143,18 @@ public @interface RequirePostWithGHHookPayload {
          * @throws InvocationTargetException if any of preconditions is not satisfied
          */
         protected void shouldProvideValidSignature(StaplerRequest req, Object[] args) throws InvocationTargetException {
-            Secret secret = GitHubPlugin.configuration().getHookSecretConfig().getHookSecret();
+            List<Secret> secrets = GitHubPlugin.configuration().getHookSecretConfigs().stream().
+                    map(HookSecretConfig::getHookSecret).filter(Objects::nonNull).collect(Collectors.toList());
 
-            if (Optional.fromNullable(secret).isPresent()) {
+            if (!secrets.isEmpty()) {
                 Optional<String> signHeader = Optional.fromNullable(req.getHeader(SIGNATURE_HEADER));
                 isTrue(signHeader.isPresent(), "Signature was expected, but not provided");
 
                 String digest = substringAfter(signHeader.get(), SHA1_PREFIX);
                 LOGGER.trace("Trying to verify sign from header {}", signHeader.get());
                 isTrue(
-                        GHWebhookSignature.webhookSignature(payloadFrom(req, args), secret).matches(digest),
+                        secrets.stream().anyMatch(secret ->
+                                GHWebhookSignature.webhookSignature(payloadFrom(req, args), secret).matches(digest)),
                         String.format("Provided signature [%s] did not match to calculated", digest)
                 );
             }

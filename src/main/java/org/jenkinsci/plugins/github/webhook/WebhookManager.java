@@ -9,6 +9,7 @@ import hudson.util.Secret;
 import org.apache.commons.lang.Validate;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
+import org.jenkinsci.plugins.github.config.HookSecretConfig;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
@@ -25,6 +26,8 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.cloudbees.jenkins.GitHubRepositoryNameContributor.parseAssociatedNames;
@@ -319,10 +322,12 @@ public class WebhookManager {
                     config.put("url", url.toExternalForm());
                     config.put("content_type", "json");
 
-                    final Secret secret = GitHubPlugin.configuration().getHookSecretConfig().getHookSecret();
+                    // We need to pick a secret to use, so use the first one defined.
+                    final Optional<Secret> secret = GitHubPlugin.configuration().getHookSecretConfigs().stream().
+                            map(HookSecretConfig::getHookSecret).filter(Objects::nonNull).findFirst();
 
-                    if (secret != null) {
-                        config.put("secret", secret.getPlainText());
+                    if (secret.isPresent()) {
+                        config.put("secret", secret.get().getPlainText());
                     }
 
                     return repo.createHook("web", config, events, true);

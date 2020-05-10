@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecret;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -14,6 +15,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Test for storing hook secrets.
  */
+@SuppressWarnings("deprecation")
 public class HookSecretConfigTest {
 
     private static final String SECRET_INIT = "test";
@@ -26,13 +28,13 @@ public class HookSecretConfigTest {
     @Before
     public void setup() {
         storeSecret(SECRET_INIT);
-        hookSecretConfig = GitHubPlugin.configuration().getHookSecretConfig();
     }
 
     @Test
     public void shouldStoreNewSecrets() {
         storeSecret(SECRET_INIT);
 
+        hookSecretConfig = GitHubPlugin.configuration().getHookSecretConfig();
         assertNotNull("Secret is persistent", hookSecretConfig.getHookSecret());
         assertTrue("Secret correctly stored", SECRET_INIT.equals(hookSecretConfig.getHookSecret().getPlainText()));
     }
@@ -42,7 +44,8 @@ public class HookSecretConfigTest {
         final String newSecret = "test2";
         storeSecret(newSecret);
 
+        hookSecretConfig = GitHubPlugin.configuration().getHookSecretConfig();
         assertNotNull("Secret is persistent", hookSecretConfig.getHookSecret());
-        assertTrue("Secret correctly stored", newSecret.equals(hookSecretConfig.getHookSecret().getPlainText()));
+        assertEquals("Secret correctly stored", newSecret, hookSecretConfig.getHookSecret().getPlainText());
     }
 }
