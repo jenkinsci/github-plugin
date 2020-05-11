@@ -15,7 +15,7 @@
     <packaging>hpi</packaging>
 
     <name>GitHub plugin</name>
-    <url>https://github.com/jenkinsci/github</url>
+    <url>https://github.com/jenkinsci/github-plugin</url>
     <licenses>
         <license>
             <name>MIT License</name>
