@@ -21,6 +21,7 @@ public class ConfigAsCodeTest {
     @Rule
     public JenkinsConfiguredWithCodeRule r = new JenkinsConfiguredWithCodeRule();
 
+    @SuppressWarnings("deprecation")
     @Test
     @ConfiguredWithCode("configuration-as-code.yml")
     public void shouldSupportConfigurationAsCode() throws Exception {

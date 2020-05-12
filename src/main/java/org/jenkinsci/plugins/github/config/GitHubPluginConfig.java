@@ -5,6 +5,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import hudson.Extension;
+import hudson.Util;
 import hudson.XmlFile;
 import hudson.model.Descriptor;
 import hudson.model.Item;
@@ -68,7 +69,9 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     private List<GitHubServerConfig> configs = new ArrayList<>();
     private URL hookUrl;
-    private HookSecretConfig hookSecretConfig = new HookSecretConfig(null);
+    @Deprecated
+    private transient HookSecretConfig hookSecretConfig;
+    private List<HookSecretConfig> hookSecretConfigs;
 
     /**
      * Used to get current instance identity.
@@ -84,6 +87,16 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     public GitHubPluginConfig(List<GitHubServerConfig> configs) {
         this.configs = configs;
+    }
+
+    private Object readResolve() {
+        if (hookSecretConfig != null) {
+            if (Util.fixEmpty(hookSecretConfig.getCredentialsId()) != null) {
+                setHookSecretConfig(hookSecretConfig);
+            }
+            hookSecretConfig = null;
+        }
+        return this;
     }
 
     @SuppressWarnings("unused")
@@ -176,6 +189,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+        hookSecretConfigs = null; // form binding might omit empty lists
         try {
             req.bindJSON(this, json);
         } catch (Exception e) {
@@ -270,13 +284,29 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         }
     }
 
+    @Deprecated
     public HookSecretConfig getHookSecretConfig() {
-        return hookSecretConfig;
+        return hookSecretConfigs != null && !hookSecretConfigs.isEmpty()
+                ? hookSecretConfigs.get(0)
+                : new HookSecretConfig(null);
+    }
+
+    @Deprecated
+    public void setHookSecretConfig(HookSecretConfig hookSecretConfig) {
+        setHookSecretConfigs(hookSecretConfig.getCredentialsId() != null
+                ? Collections.singletonList(hookSecretConfig)
+                : null);
+    }
+
+    public List<HookSecretConfig> getHookSecretConfigs() {
+        return hookSecretConfigs != null
+                ? Collections.unmodifiableList(new ArrayList<>(hookSecretConfigs))
+                : Collections.emptyList();
     }
 
     @DataBoundSetter
-    public void setHookSecretConfig(HookSecretConfig hookSecretConfig) {
-        this.hookSecretConfig = hookSecretConfig;
+    public void setHookSecretConfigs(List<HookSecretConfig> hookSecretConfigs) {
+        this.hookSecretConfigs = hookSecretConfigs != null ? new ArrayList<>(hookSecretConfigs) : null;
     }
 
     private URL parseHookUrl(String hookUrl) {

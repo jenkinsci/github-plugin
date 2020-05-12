@@ -7,11 +7,13 @@ import hudson.security.ACL;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
+import org.jenkinsci.plugins.github.config.HookSecretConfig;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.UUID;
 
 /**
@@ -51,8 +53,8 @@ public class HookSecretHelper {
                 }
             }
         });
-        
-        config.getHookSecretConfig().setCredentialsId(credentials.getId());
+
+        config.setHookSecretConfigs(Collections.singletonList(new HookSecretConfig(credentials.getId())));
     }
     
     /**
@@ -69,7 +71,7 @@ public class HookSecretHelper {
      * @param config where to remove
      */
     public static void removeSecretIn(GitHubPluginConfig config) {
-        config.getHookSecretConfig().setCredentialsId(null);
+        config.setHookSecretConfigs(null);
     }
 
     /**

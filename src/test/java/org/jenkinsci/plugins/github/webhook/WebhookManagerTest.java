@@ -14,6 +14,7 @@ import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
 import org.kohsuke.github.GHEvent;
@@ -178,6 +179,21 @@ public class WebhookManagerTest {
         verify(manager, never()).deleteWebhook();
         verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class));
     }
+
+    @Test
+    @Issue( "JENKINS-62116" )
+    public void shouldNotReplaceAlreadyRegisteredHookWithMoreEvents() throws IOException {
+        doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
+        when(repo.hasAdminAccess()).thenReturn(true);
+
+        GHHook hook = hook(HOOK_ENDPOINT, PUSH, CREATE);
+        when(repo.getHooks()).thenReturn(newArrayList(hook));
+
+        manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
+        verify(manager, never()).deleteWebhook();
+        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class));
+    }
+
 
     @Test
     public void shouldNotAddPushEventByDefaultForProjectWithoutTrigger() throws IOException {

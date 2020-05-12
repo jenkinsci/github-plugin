@@ -10,6 +10,7 @@ import hudson.util.Secret;
 import org.apache.commons.lang.Validate;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
+import org.jenkinsci.plugins.github.config.HookSecretConfig;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.util.FluentIterableWrapper;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
@@ -27,13 +28,14 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.cloudbees.jenkins.GitHubRepositoryNameContributor.parseAssociatedNames;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Predicates.or;
 import static java.lang.String.format;
-import static org.apache.commons.collections.CollectionUtils.isEqualCollection;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.extractEvents;
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
@@ -209,7 +211,7 @@ public class WebhookManager {
                     Set<GHEvent> alreadyRegistered = from(hooks)
                             .transformAndConcat(eventsFromHook()).toSet();
 
-                    if (hooks.size() == 1 && isEqualCollection(alreadyRegistered, events)) {
+                    if (hooks.size() == 1 && alreadyRegistered.containsAll(events)) {
                         LOGGER.debug("Hook already registered for events {}", events);
                         return null;
                     }
@@ -339,10 +341,12 @@ public class WebhookManager {
                     config.put("url", url.toExternalForm());
                     config.put("content_type", "json");
 
-                    final Secret secret = GitHubPlugin.configuration().getHookSecretConfig().getHookSecret();
+                    // We need to pick a secret to use, so use the first one defined.
+                    final Optional<Secret> secret = GitHubPlugin.configuration().getHookSecretConfigs().stream().
+                            map(HookSecretConfig::getHookSecret).filter(Objects::nonNull).findFirst();
 
-                    if (secret != null) {
-                        config.put("secret", secret.getPlainText());
+                    if (secret.isPresent()) {
+                        config.put("secret", secret.get().getPlainText());
                     }
 
                     return repo.createHook("web", config, events, true);
