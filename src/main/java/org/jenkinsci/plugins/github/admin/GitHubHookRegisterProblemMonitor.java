@@ -86,12 +86,12 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
     }
 
     /**
-     * Used by {@link #registerProblem(GitHubRepositoryName, Throwable)}
+     * Registers problems.
      *
      * @param repo    full named GitHub repo, if null nothing will be done
      * @param message message to show in the interface. Will be used default if blank
      */
-    private void registerProblem(GitHubRepositoryName repo, String message) {
+    public void registerProblem(GitHubRepositoryName repo, String message) {
         if (repo == null) {
             return;
         }

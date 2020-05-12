@@ -86,7 +86,7 @@ public class WebhookManagerTest {
     @Test
     public void shouldDoNothingOnNoAdminRights() throws Exception {
         manager.unregisterFor(nonactive, newArrayList(active));
-        verify(manager, times(1)).withAdminAccess();
+        verify(manager, never()).withAdminAccess();
         verify(manager, never()).fetchHooks();
     }
 

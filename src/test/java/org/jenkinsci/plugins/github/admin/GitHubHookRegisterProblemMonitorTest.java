@@ -82,7 +82,7 @@ public class GitHubHookRegisterProblemMonitorTest {
 
     @Test
     public void shouldNotAddNullExc() throws Exception {
-        monitor.registerProblem(REPO, null);
+        monitor.registerProblem(REPO, (Throwable) null);
         assertThat("should be no problems", monitor.getProblems().keySet(), empty());
     }
 
