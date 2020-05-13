@@ -2,8 +2,8 @@ unclassified:
 
   githubpluginconfig:
     hookUrl: "http://some.com/github-webhook/secret-path"
-    hookSecretConfig:
-      credentialsId: "hook_secret_cred_id"
+    hookSecretConfigs:
+      - credentialsId: "hook_secret_cred_id"
     configs:
       - credentialsId: "public_cred_id"
         name: "Public GitHub"
