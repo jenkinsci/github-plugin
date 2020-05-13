@@ -227,7 +227,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     /**
      * @return cached GH client or null
      */
-    protected GitHub getCachedClient() {
+    protected synchronized GitHub getCachedClient() {
         return cachedClient;
     }
 
