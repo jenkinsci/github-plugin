@@ -168,18 +168,13 @@ public class WebhookManager {
     private GHRepository repoWithWebhookAccess(GitHubRepositoryName name) {
         FluentIterableWrapper<GHRepository> reposAllowedtoManageWebhooks = from(name.resolve(allowedToManageHooks()));
         if (!reposAllowedtoManageWebhooks.first().isPresent()) {
-            String msg = String.format("There are no github repos configured to allow webhook management for: %s",
-                    name);
-            LOGGER.info(msg);
-            GitHubHookRegisterProblemMonitor.get().registerProblem(name, msg);
+            LOGGER.debug("There are no github repos configured to allow webhook management for: {}", name);
             return null;
         }
         com.google.common.base.Optional<GHRepository> repoWithAdminAccess = reposAllowedtoManageWebhooks
                 .firstMatch(withAdminAccess());
         if (!repoWithAdminAccess.isPresent()) {
-            String msg = String.format("None of the github repos configured have admin access for: %s", name);
-            LOGGER.info(msg);
-            GitHubHookRegisterProblemMonitor.get().registerProblem(name, msg);
+            LOGGER.debug("None of the github repos configured have admin access for: {}", name);
             return null;
         }
         GHRepository repo = repoWithAdminAccess.get();

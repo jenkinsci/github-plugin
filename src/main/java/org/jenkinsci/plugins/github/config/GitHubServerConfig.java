@@ -227,7 +227,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     /**
      * @return cached GH client or null
      */
-    private GitHub getCachedClient() {
+    protected GitHub getCachedClient() {
         return cachedClient;
     }
 
@@ -236,7 +236,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      *
      * @param cachedClient updated client. Maybe null to invalidate cache
      */
-    private synchronized void setCachedClient(GitHub cachedClient) {
+    protected synchronized void setCachedClient(GitHub cachedClient) {
         this.cachedClient = cachedClient;
     }
 

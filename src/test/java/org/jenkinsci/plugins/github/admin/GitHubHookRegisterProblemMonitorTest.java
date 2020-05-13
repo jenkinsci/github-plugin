@@ -6,6 +6,8 @@ import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.plugins.git.GitSCM;
 import org.jenkinsci.plugins.github.extension.GHSubscriberEvent;
+import org.jenkinsci.plugins.github.GitHubPlugin;
+import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.webhook.WebhookManager;
 import org.jenkinsci.plugins.github.webhook.WebhookManagerTest;
@@ -13,13 +15,19 @@ import org.jenkinsci.plugins.github.webhook.subscriber.PingGHEventSubscriber;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.recipes.LocalData;
 import org.kohsuke.github.GHEvent;
+import org.kohsuke.github.GHRepository;
+import org.kohsuke.github.GitHub;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 
 import static com.cloudbees.jenkins.GitHubRepositoryName.create;
@@ -32,14 +40,17 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * @author lanwen (Merkushev Kirill)
  */
 @Issue("JENKINS-24690")
+@RunWith(MockitoJUnitRunner.class)
 public class GitHubHookRegisterProblemMonitorTest {
     private static final GitHubRepositoryName REPO = new GitHubRepositoryName("host", "user", "repo");
-    private static final GitSCM REPO_GIT_SCM = new GitSCM("git://host/user/repo.git");
+    private static final String REPO_GIT_URI = "host/user/repo.git";
+    private static final GitSCM REPO_GIT_SCM = new GitSCM("git://"+REPO_GIT_URI);
 
     private static final GitHubRepositoryName REPO_FROM_PING_PAYLOAD = create("https://github.com/lanwen/test");
 
@@ -55,9 +66,26 @@ public class GitHubHookRegisterProblemMonitorTest {
     @Rule
     public JenkinsRule jRule = new JenkinsRule();
 
+    @Mock
+    private GitHub github;
+    @Mock
+    private GHRepository ghRepository;
+
+    class GitHubServerConfigForTest extends GitHubServerConfig {
+        public GitHubServerConfigForTest(String credentialsId) {
+            super(credentialsId);
+            this.setCachedClient(github);
+        }
+    }
+
     @Before
     public void setUp() throws Exception {
         jRule.getInstance().getInjector().injectMembers(this);
+        GitHubServerConfig config = new GitHubServerConfigForTest("");
+        config.setApiUrl("http://" + REPO_GIT_URI);
+        GitHubPlugin.configuration().setConfigs(Arrays.asList(config));
+        when(github.getRepository("user/repo")).thenReturn(ghRepository);
+        when(ghRepository.hasAdminAccess()).thenReturn(true);
     }
 
     @Test
@@ -149,6 +177,8 @@ public class GitHubHookRegisterProblemMonitorTest {
         job.addTrigger(new GitHubPushTrigger());
         job.setScm(REPO_GIT_SCM);
 
+        when(github.getRepository("user/repo"))
+                .thenThrow(new RuntimeException("shouldReportAboutHookProblemOnRegister"));
         WebhookManager.forHookUrl(WebhookManagerTest.HOOK_ENDPOINT)
                 .registerFor((Item) job).run();
 
@@ -156,11 +186,33 @@ public class GitHubHookRegisterProblemMonitorTest {
     }
 
     @Test
-    public void shouldReportAboutHookProblemOnUnregister() {
+    public void shouldNotReportAboutHookProblemOnRegister() throws IOException {
+        FreeStyleProject job = jRule.createFreeStyleProject();
+        job.addTrigger(new GitHubPushTrigger());
+        job.setScm(REPO_GIT_SCM);
+
+        WebhookManager.forHookUrl(WebhookManagerTest.HOOK_ENDPOINT)
+                .registerFor((Item) job).run();
+
+        assertThat("should reg problem", monitor.isProblemWith(REPO), is(false));
+    }
+
+    @Test
+    public void shouldReportAboutHookProblemOnUnregister() throws IOException {
+        when(github.getRepository("user/repo"))
+                .thenThrow(new RuntimeException("shouldReportAboutHookProblemOnUnregister"));
         WebhookManager.forHookUrl(WebhookManagerTest.HOOK_ENDPOINT)
                 .unregisterFor(REPO, Collections.<GitHubRepositoryName>emptyList());
 
         assertThat("should reg problem", monitor.isProblemWith(REPO), is(true));
+    }
+
+    @Test
+    public void shouldNotReportAboutHookAuthProblemOnUnregister() {
+        WebhookManager.forHookUrl(WebhookManagerTest.HOOK_ENDPOINT)
+                .unregisterFor(REPO, Collections.<GitHubRepositoryName>emptyList());
+
+        assertThat("should not reg problem", monitor.isProblemWith(REPO), is(false));
     }
 
     @Test
