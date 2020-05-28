@@ -143,8 +143,23 @@ public class WebhookManager {
      */
     public void unregisterFor(GitHubRepositoryName name, List<GitHubRepositoryName> aliveRepos) {
         try {
-            GHRepository repo = checkNotNull(
-                    from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull(),
+            /* This is overcomplicated to satisfy unit tests that expect certain codepaths to be called */
+            Iterable<GHRepository> manageableIterable = name.resolve(allowedToManageHooks());
+            GHRepository repo = from(manageableIterable).firstMatch(withAdminAccess()).orNull();
+
+            if (!(manageableIterable.iterator().hasNext())) {
+                if (repo == null) {
+                    LOGGER.debug("Skipped removing GitHub webhook for {} because not configured to Manage Hooks, "
+                            + "also there are no credentials with admin access to manage such hooks", name);
+                } else {
+                    LOGGER.debug("Skipped removing GitHub webhook for {} because not configured to Manage Hooks", name);
+                }
+                GitHubHookRegisterProblemMonitor.get().registerProblem(name, new Exception(
+                        "Skipped removing GitHub webhook because not configured to Manage Hooks"));
+                return;
+            }
+
+            repo = checkNotNull(repo,
                     "There are no credentials with admin access to manage hooks on %s", name
             );
 
@@ -178,8 +193,25 @@ public class WebhookManager {
             @Override
             protected GHHook applyNullSafe(@Nonnull GitHubRepositoryName name) {
                 try {
-                    GHRepository repo = checkNotNull(
-                            from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull(),
+                    /* This is overcomplicated to satisfy unit tests that expect certain codepaths to be called */
+                    Iterable<GHRepository> manageableIterable = name.resolve(allowedToManageHooks());
+                    GHRepository repo = from(manageableIterable).firstMatch(withAdminAccess()).orNull();
+
+                    if (!(manageableIterable.iterator().hasNext())) {
+                        if (repo == null) {
+                            LOGGER.debug("Skipped adding GitHub webhook for {} because not configured to Manage "
+                                    + "Hooks, also there are no credentials with admin access to manage such hooks",
+                                    name);
+                        } else {
+                            LOGGER.debug("Skipped adding GitHub webhook for {} because not configured to Manage Hooks",
+                                    name);
+                        }
+                        GitHubHookRegisterProblemMonitor.get().registerProblem(name, new Exception(
+                                "Skipped adding GitHub webhook because not configured to Manage Hooks"));
+                        return null;
+                    }
+
+                    repo = checkNotNull(repo,
                             "There are no credentials with admin access to manage hooks on %s", name
                     );
 
