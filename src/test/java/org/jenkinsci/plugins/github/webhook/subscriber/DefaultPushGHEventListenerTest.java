@@ -62,6 +62,7 @@ public class DefaultPushGHEventListenerTest {
                 .withTimestamp(subscriberEvent.getTimestamp())
                 .withOrigin("shouldParsePushPayload")
                 .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
+                .withRef("refs/heads/master")
                 .build()
         ));
     }
@@ -85,6 +86,7 @@ public class DefaultPushGHEventListenerTest {
                 .withTimestamp(subscriberEvent.getTimestamp())
                 .withOrigin("shouldReceivePushHookOnWorkflow")
                 .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
+                .withRef("refs/heads/master")
                 .build()
         ));
     }

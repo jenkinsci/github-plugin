@@ -11,9 +11,9 @@ import hudson.model.Action;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.Project;
+import hudson.plugins.git.BranchSpec;
 import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.extensions.impl.UserExclusion;
-import hudson.scm.SCM;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
@@ -60,6 +60,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.regex.Matcher;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.Validate.notNull;
@@ -105,26 +106,30 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         if (Objects.isNull(job)) {
             return; // nothing to do
         }
-        if (useGitExcludedUsers) {
-            Set<String> lowercaseExcludedUsers = new HashSet<>();
-            if (job instanceof AbstractProject) {
-                SCM scm = ((AbstractProject<?, ?>) job).getScm();
-                if (scm instanceof GitSCM) {
-                    UserExclusion exclusions = ((GitSCM) scm).getExtensions().get(UserExclusion.class);
+        if (job instanceof AbstractProject && (((AbstractProject<?, ?>) job).getScm()) instanceof GitSCM) {
+            GitSCM scm = (GitSCM) (((AbstractProject<?, ?>) job).getScm());
+            if (!branchMatchesGitBranchToBeBuilt(scm, event.getRef())) {
+                return;
+            }
+
+            if (useGitExcludedUsers) {
+                Set<String> lowercaseExcludedUsers = new HashSet<>();
+                if (job instanceof AbstractProject) {
+                    UserExclusion exclusions = scm.getExtensions().get(UserExclusion.class);
                     if (exclusions != null) {
                         for (String userName: exclusions.getExcludedUsersNormalized()) {
                             lowercaseExcludedUsers.add(userName.toLowerCase());
                         }
                     }
                 }
-            }
 
-            String lowercaseTriggeredByUser = null;
-            if (event.getTriggeredByUser() != null) {
-                lowercaseTriggeredByUser = event.getTriggeredByUser().toLowerCase();
-            }
-            if (lowercaseExcludedUsers != null && lowercaseExcludedUsers.contains(lowercaseTriggeredByUser)) {
-                return; // user is excluded from triggering build
+                String lowercaseTriggeredByUser = null;
+                if (event.getTriggeredByUser() != null) {
+                    lowercaseTriggeredByUser = event.getTriggeredByUser().toLowerCase();
+                }
+                if (lowercaseExcludedUsers != null && lowercaseExcludedUsers.contains(lowercaseTriggeredByUser)) {
+                    return; // user is excluded from triggering build
+                }
             }
         }
 
@@ -195,6 +200,30 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                 }
             }
         });
+    }
+
+    private boolean branchMatchesGitBranchToBeBuilt(GitSCM scm, String ref) {
+        List< BranchSpec > branches = scm.getBranches();
+        for (BranchSpec branch: branches) {
+            if (!branch.matches(ref)) {
+                // code block copied from GitSCM plugin's GitSCM.compareRemoteRevisionWithImpl()
+                // convert head `refs/(heads|tags|whatever)/branch` into shortcut notation `remote/branch`
+                String name;
+                Matcher matcher = GitSCM.GIT_REF.matcher(ref);
+                if (matcher.matches()) {
+                    name = "origin" + ref.substring(matcher.group(1).length());
+                } else {
+                    name = "origin" + "/" + ref;
+                }
+
+                if (!branch.matches(name)) {
+                    continue;
+                }
+
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

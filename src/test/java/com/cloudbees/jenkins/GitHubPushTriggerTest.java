@@ -7,7 +7,9 @@ import static org.jenkinsci.plugins.github.webhook.subscriber.DefaultPushGHEvent
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -26,9 +28,13 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.mockito.Mockito;
 
 import com.cloudbees.jenkins.GitHubPushTrigger.DescriptorImpl;
+import com.google.common.collect.Lists;
 
 import hudson.model.FreeStyleProject;
+import hudson.plugins.git.BranchSpec;
 import hudson.plugins.git.GitSCM;
+import hudson.plugins.git.SubmoduleConfig;
+import hudson.plugins.git.extensions.GitSCMExtension;
 import hudson.plugins.git.extensions.impl.UserExclusion;
 import hudson.plugins.git.util.Build;
 import hudson.plugins.git.util.BuildData;
@@ -118,6 +124,16 @@ public class GitHubPushTriggerTest {
         return spiedQueue;
     }
 
+    private GitSCM createGitSCM(String repository) {
+        return new GitSCM(GitSCM.createRepoList(repository, null),
+                          Lists.newArrayList(new BranchSpec("*/master")),
+                          false,
+                          Collections.<SubmoduleConfig>emptyList(),
+                          null,
+                          null,
+                          Collections.<GitSCMExtension>emptyList());
+    }
+    
     @Test
     public void shouldSkipBuildIfExclusionEnabledWithMatchingUser() throws IOException {
         SequentialExecutionQueue spiedQueue = addSpyToQueueField();
@@ -128,10 +144,10 @@ public class GitHubPushTriggerTest {
         trigger.setUseGitExcludedUsers(true);
         trigger.start(project, false);
         project.addTrigger(trigger);
-        GitSCM scm = new GitSCM("https://localhost/dummy.git");
+        GitSCM scm = createGitSCM("https://localhost/dummy.git");
         UserExclusion userExclusion = new UserExclusion("something" + System.lineSeparator() +
                                                         matchingUserName + System.lineSeparator() +
-                                                        "somethingElse" + System.lineSeparator()); 
+                                                        "somethingElse" + System.lineSeparator());
         scm.getExtensions().add(userExclusion);
         project.setScm(scm);
         
@@ -139,6 +155,7 @@ public class GitHubPushTriggerTest {
                                                      .withTimestamp(System.currentTimeMillis())
                                                      .withOrigin("origin")
                                                      .withTriggeredByUser(matchingUserName)
+                                                     .withRef("refs/heads/master")
                                                      .build();
         trigger.onPost(event);
         
@@ -155,10 +172,10 @@ public class GitHubPushTriggerTest {
         trigger.setUseGitExcludedUsers(true);
         trigger.start(project, false);
         project.addTrigger(trigger);
-        GitSCM scm = new GitSCM("https://localhost/dummy.git");
+        GitSCM scm = createGitSCM("https://localhost/dummy.git");
         UserExclusion userExclusion = new UserExclusion("something" + System.lineSeparator() +
                                                         matchingUserName.toUpperCase() + System.lineSeparator() +
-                                                        "somethingElse" + System.lineSeparator()); 
+                                                        "somethingElse" + System.lineSeparator());
         scm.getExtensions().add(userExclusion);
         project.setScm(scm);
         
@@ -166,6 +183,7 @@ public class GitHubPushTriggerTest {
                                                      .withTimestamp(System.currentTimeMillis())
                                                      .withOrigin("origin")
                                                      .withTriggeredByUser(matchingUserName)
+                                                     .withRef("refs/heads/master")
                                                      .build();
         trigger.onPost(event);
         
@@ -181,10 +199,10 @@ public class GitHubPushTriggerTest {
         trigger.setUseGitExcludedUsers(true);
         trigger.start(project, false);
         project.addTrigger(trigger);
-        GitSCM scm = new GitSCM("https://localhost/dummy.git");
+        GitSCM scm = createGitSCM("https://localhost/dummy.git");
         UserExclusion userExclusion = new UserExclusion("something" + System.lineSeparator() +
                                                         "nonMatchingUserName" + System.lineSeparator() +
-                                                        "somethingElse" + System.lineSeparator()); 
+                                                        "somethingElse" + System.lineSeparator());
         scm.getExtensions().add(userExclusion);
         project.setScm(scm);
         
@@ -192,6 +210,7 @@ public class GitHubPushTriggerTest {
                                                      .withTimestamp(System.currentTimeMillis())
                                                      .withOrigin("origin")
                                                      .withTriggeredByUser("userName")
+                                                     .withRef("refs/heads/master")
                                                      .build();
         trigger.onPost(event);
         
@@ -208,10 +227,10 @@ public class GitHubPushTriggerTest {
         trigger.setUseGitExcludedUsers(false);
         trigger.start(project, false);
         project.addTrigger(trigger);
-        GitSCM scm = new GitSCM("https://localhost/dummy.git");
+        GitSCM scm = createGitSCM("https://localhost/dummy.git");
         UserExclusion userExclusion = new UserExclusion("something" + System.lineSeparator() +
                                                         matchingUserName + System.lineSeparator() +
-                                                        "somethingElse" + System.lineSeparator()); 
+                                                        "somethingElse" + System.lineSeparator());
         scm.getExtensions().add(userExclusion);
         project.setScm(scm);
         
@@ -219,6 +238,7 @@ public class GitHubPushTriggerTest {
                                                      .withTimestamp(System.currentTimeMillis())
                                                      .withOrigin("origin")
                                                      .withTriggeredByUser(matchingUserName)
+                                                     .withRef("refs/heads/master")
                                                      .build();
         trigger.onPost(event);
         
@@ -234,10 +254,10 @@ public class GitHubPushTriggerTest {
         trigger.setUseGitExcludedUsers(false);
         trigger.start(project, false);
         project.addTrigger(trigger);
-        GitSCM scm = new GitSCM("https://localhost/dummy.git");
+        GitSCM scm = createGitSCM("https://localhost/dummy.git");
         UserExclusion userExclusion = new UserExclusion("something" + System.lineSeparator() +
                                                         "nonMatchingUserName" + System.lineSeparator() +
-                                                        "somethingElse" + System.lineSeparator()); 
+                                                        "somethingElse" + System.lineSeparator());
         scm.getExtensions().add(userExclusion);
         project.setScm(scm);
         
@@ -245,9 +265,60 @@ public class GitHubPushTriggerTest {
                                                      .withTimestamp(System.currentTimeMillis())
                                                      .withOrigin("origin")
                                                      .withTriggeredByUser("userName")
+                                                     .withRef("refs/heads/master")
                                                      .build();
         trigger.onPost(event);
         
         verify(spiedQueue).execute(Mockito.any(Runnable.class));
+    }
+
+    @Test
+    public void shouldTriggerBuildIfBranchNameMatches() throws IOException {
+        SequentialExecutionQueue spiedQueue = addSpyToQueueField();
+        
+        FreeStyleProject project = jRule.createFreeStyleProject();
+        GitHubPushTrigger trigger = new GitHubPushTrigger();
+        trigger.setUseGitExcludedUsers(true);
+        trigger.start(project, false);
+        project.addTrigger(trigger);
+        GitSCM scm = createGitSCM("https://localhost/dummy.git");
+        List< BranchSpec > branches = scm.getBranches();
+        branches.clear();
+        branches.add(new BranchSpec("*/master"));
+        branches.add(new BranchSpec("*/develop"));
+        project.setScm(scm);
+        
+        GitHubTriggerEvent event = GitHubTriggerEvent.create()
+                                                     .withTimestamp(System.currentTimeMillis())
+                                                     .withOrigin("origin")
+                                                     .withTriggeredByUser("userName")
+                                                     .withRef("refs/heads/master")
+                                                     .build();
+        trigger.onPost(event);
+        
+        verify(spiedQueue).execute(Mockito.any(Runnable.class));
+    }
+
+    @Test
+    public void shouldSkipBuildIfBranchNameDoesntMatch() throws IOException {
+        SequentialExecutionQueue spiedQueue = addSpyToQueueField();
+        
+        FreeStyleProject project = jRule.createFreeStyleProject();
+        GitHubPushTrigger trigger = new GitHubPushTrigger();
+        trigger.setUseGitExcludedUsers(true);
+        trigger.start(project, false);
+        project.addTrigger(trigger);
+        GitSCM scm = createGitSCM("https://localhost/dummy.git");
+        project.setScm(scm);
+        
+        GitHubTriggerEvent event = GitHubTriggerEvent.create()
+                                                     .withTimestamp(System.currentTimeMillis())
+                                                     .withOrigin("origin")
+                                                     .withTriggeredByUser("userName")
+                                                     .withRef("refs/heads/featureBranch")
+                                                     .build();
+        trigger.onPost(event);
+        
+        verify(spiedQueue, times(0)).execute(Mockito.any(Runnable.class));
     }
 }

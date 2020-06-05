@@ -112,6 +112,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                                         .withTimestamp(event.getTimestamp())
                                         .withOrigin(event.getOrigin())
                                         .withTriggeredByUser(pusherName)
+                                        .withRef(push.getRef())
                                         .build()
                                 );
                             } else {
