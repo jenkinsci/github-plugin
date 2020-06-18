@@ -11,6 +11,7 @@ import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.config.HookSecretConfig;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
+import org.jenkinsci.plugins.github.util.FluentIterableWrapper;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
 import org.kohsuke.github.GHEvent;
@@ -31,7 +32,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static com.cloudbees.jenkins.GitHubRepositoryNameContributor.parseAssociatedNames;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Predicates.or;
 import static java.lang.String.format;
@@ -143,10 +143,10 @@ public class WebhookManager {
      */
     public void unregisterFor(GitHubRepositoryName name, List<GitHubRepositoryName> aliveRepos) {
         try {
-            GHRepository repo = checkNotNull(
-                    from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull(),
-                    "There are no credentials with admin access to manage hooks on %s", name
-            );
+            GHRepository repo = repoWithWebhookAccess(name);
+            if (repo == null) {
+                return;
+            }
 
             LOGGER.debug("Check {} for redundant hooks...", repo);
 
@@ -165,6 +165,22 @@ public class WebhookManager {
         }
     }
 
+    private GHRepository repoWithWebhookAccess(GitHubRepositoryName name) {
+        FluentIterableWrapper<GHRepository> reposAllowedtoManageWebhooks = from(name.resolve(allowedToManageHooks()));
+        if (!reposAllowedtoManageWebhooks.first().isPresent()) {
+            LOGGER.debug("There are no github repos configured to allow webhook management for: {}", name);
+            return null;
+        }
+        com.google.common.base.Optional<GHRepository> repoWithAdminAccess = reposAllowedtoManageWebhooks
+                .firstMatch(withAdminAccess());
+        if (!repoWithAdminAccess.isPresent()) {
+            LOGGER.debug("None of the github repos configured have admin access for: {}", name);
+            return null;
+        }
+        GHRepository repo = repoWithAdminAccess.get();
+        return repo;
+    }
+
     /**
      * Main logic of {@link #registerFor(Item)}.
      * Updates hooks with replacing old ones with merged new ones
@@ -178,10 +194,10 @@ public class WebhookManager {
             @Override
             protected GHHook applyNullSafe(@Nonnull GitHubRepositoryName name) {
                 try {
-                    GHRepository repo = checkNotNull(
-                            from(name.resolve(allowedToManageHooks())).firstMatch(withAdminAccess()).orNull(),
-                            "There are no credentials with admin access to manage hooks on %s", name
-                    );
+                    GHRepository repo = repoWithWebhookAccess(name);
+                    if (repo == null) {
+                        return null;
+                    }
 
                     Validate.notEmpty(events, "Events list for hook can't be empty");
 
