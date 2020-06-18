@@ -4,7 +4,8 @@ import com.cloudbees.jenkins.GitHubWebHook;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.hash.Hashing;
-import com.squareup.okhttp.Cache;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import okhttp3.Cache;
 import org.apache.commons.io.FileUtils;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
@@ -94,6 +95,7 @@ public final class GitHubClientCacheOps {
      *
      * @param configs active server configs to exclude caches from cleanup
      */
+    @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE")
     public static void clearRedundantCaches(List<GitHubServerConfig> configs) {
         Path baseCacheDir = getBaseCacheDir();
 
@@ -170,7 +172,7 @@ public final class GitHubClientCacheOps {
     private static class CacheToName extends NullSafeFunction<Cache, String> {
         @Override
         protected String applyNullSafe(@Nonnull Cache cache) {
-            return cache.getDirectory().getName();
+            return cache.directory().getName();
         }
     }
 

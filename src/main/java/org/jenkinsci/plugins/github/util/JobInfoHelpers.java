@@ -9,11 +9,13 @@ import hudson.model.BuildableItem;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.triggers.Trigger;
+import hudson.triggers.TriggerDescriptor;
 import jenkins.model.ParameterizedJobMixIn;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 
 import javax.annotation.CheckForNull;
 import java.util.Collection;
+import java.util.Map;
 
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
@@ -111,7 +113,8 @@ public final class JobInfoHelpers {
         if (item instanceof ParameterizedJobMixIn.ParameterizedJob) {
             ParameterizedJobMixIn.ParameterizedJob pJob = (ParameterizedJobMixIn.ParameterizedJob) item;
 
-            for (Trigger candidate : pJob.getTriggers().values()) {
+            Map<TriggerDescriptor, Trigger<?>> triggerMap = pJob.getTriggers();
+            for (Trigger candidate : triggerMap.values()) {
                 if (tClass.isInstance(candidate)) {
                     return tClass.cast(candidate);
                 }

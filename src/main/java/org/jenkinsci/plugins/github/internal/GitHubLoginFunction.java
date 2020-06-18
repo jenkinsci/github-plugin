@@ -1,9 +1,8 @@
 package org.jenkinsci.plugins.github.internal;
 
 import com.cloudbees.jenkins.GitHubWebHook;
-import com.squareup.okhttp.Cache;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.OkUrlFactory;
+import okhttp3.Cache;
+import okhttp3.OkHttpClient;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
@@ -11,15 +10,14 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
-import org.kohsuke.github.HttpConnector;
 import org.kohsuke.github.RateLimitHandler;
+import org.kohsuke.github.extras.okhttp3.OkHttpConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
@@ -46,6 +44,7 @@ import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.toCache
 @Restricted(NoExternalUse.class)
 public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, GitHub> {
 
+    private static final OkHttpClient BASECLIENT = new OkHttpClient();
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHubLoginFunction.class);
 
     /**
@@ -107,31 +106,15 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
      * @return connector to be used as backend for client
      */
     private OkHttpConnector connector(GitHubServerConfig config) {
-        OkHttpClient client = new OkHttpClient().setProxy(getProxy(defaultIfBlank(config.getApiUrl(), GITHUB_URL)));
+        OkHttpClient.Builder builder = BASECLIENT.newBuilder()
+            .proxy(getProxy(defaultIfBlank(config.getApiUrl(), GITHUB_URL)));
+
 
         if (config.getClientCacheSize() > 0) {
             Cache cache = toCacheDir().apply(config);
-            client.setCache(cache);
+            builder.cache(cache);
         }
 
-        return new OkHttpConnector(new OkUrlFactory(client));
-    }
-
-    /**
-     * Copy-paste due to class loading issues
-     *
-     * @see org.kohsuke.github.extras.OkHttpConnector
-     */
-    private static class OkHttpConnector implements HttpConnector {
-        private final OkUrlFactory urlFactory;
-
-        private OkHttpConnector(OkUrlFactory urlFactory) {
-            this.urlFactory = urlFactory;
-        }
-
-        @Override
-        public HttpURLConnection connect(URL url) throws IOException {
-            return urlFactory.open(url);
-        }
+        return new OkHttpConnector(builder.build());
     }
 }
