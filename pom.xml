@@ -55,7 +55,7 @@
         <concurrency>1</concurrency>
         <java.level>8</java.level>
         <workflow.version>1.14.2</workflow.version>
-        <configuration-as-code.version>1.32</configuration-as-code.version>
+        <configuration-as-code.version>1.36</configuration-as-code.version>
     </properties>
 
     <repositories>
@@ -201,10 +201,9 @@
         </dependency>
 
         <dependency>
-            <groupId>io.jenkins</groupId>
-            <artifactId>configuration-as-code</artifactId>
+            <groupId>io.jenkins.configuration-as-code</groupId>
+            <artifactId>test-harness</artifactId>
             <version>${configuration-as-code.version}</version>
-            <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
 
