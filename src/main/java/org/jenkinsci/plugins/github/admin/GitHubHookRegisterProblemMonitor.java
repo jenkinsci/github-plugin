@@ -253,5 +253,11 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
         public String getDisplayName() {
             return Messages.hooks_problem_administrative_monitor_displayname();
         }
+
+        // TODO: Override `getCategory` instead using `Category.TROUBLESHOOTING` when minimum core version is 2.226+,
+        // TODO: see https://github.com/jenkinsci/jenkins/commit/6de7e5fc7f6fb2e2e4cb342461788f97e3dfd8f6.
+        protected String getCategoryName() {
+            return "TROUBLESHOOTING";
+        }
     }
 }
