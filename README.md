@@ -36,11 +36,13 @@ repositories](https://help.github.com/post-receive-hooks/). This trigger
 only kicks git-plugin internal polling algo for every incoming event
 against matched repo.
 
-Old name
+> This plugin was previously named as "Build when a change is pushed to GitHub"
 
-Previously named as "Build when a change is pushed to GitHub"
+## Usage
 
-To be able to use this feature:
+To be able to use this feature different mode are available : 
+* manual mode : the url have to be added manually in each project
+* automatic mode : Jenkins register automatically the webhook for every project
 
 ### Manual Mode
 
@@ -73,24 +75,24 @@ Login and Password to token**
 
 ![](/docs/images/manage-token.png)
 
-Two-Factor Authentication
-
-Auto-creating token doesn't work with [GitHub
-2FA](https://help.github.com/articles/about-two-factor-authentication/)
-
-You can create **"Secret text"** credentials with token in corresponding
-domain with login and password directly, or from username and password
-credentials.
+> *Two-Factor Authentication*
+> 
+> Auto-creating token doesn't work with [GitHub
+> 2FA](https://help.github.com/articles/about-two-factor-authentication/)
+> 
+> You can create **"Secret text"** credentials with token in corresponding
+> domain with login and password directly, or from username and password
+> credentials.
 
 **Step 2.2.** Select previously created "Secret Text" credentials with
 GitHub OAuth token.
 
-Required scopes for token
+*Required scopes for token*
 
 To be able manage hooks your token should have **admin:org\_hook**
 scope.
 
-GitHub Enterprise
+*GitHub Enterprise*
 
 You can also redefine GitHub url by clicking on **Custom GitHub API
 URL** checkbox.  
@@ -110,7 +112,7 @@ for all your repositories. The server side of this URL is smart enough
 to figure out which projects need to be triggered, based on the
 submission.
 
-#### Security Implications
+## Security Implications
 
 This plugin requires that you have an HTTP URL reachable from GitHub,
 which means it's reachable from the whole internet. So it is implemented
@@ -118,7 +120,7 @@ carefully with the possible malicious fake post-receive POSTS in mind.
 To cope with this, upon receiving a POST, Jenkins will talk to GitHub to
 ensure the push was actually made.
 
-#### Jenkins inside a firewall
+## Jenkins inside a firewall
 
 In case your Jenkins run inside the firewall and not directly reachable
 from the internet, this plugin lets you specify an arbitrary endpoint
@@ -126,7 +128,7 @@ URL as an override in the automatic mode. The plugin will assume that
 you've set up reverse proxy or some other means so that the POST from
 GitHub will be routed to the Jenkins.
 
-#### Trouble-shooting hooks
+## Trouble-shooting hooks
 
 If you set this up but build aren't triggered, check the following
 things:
@@ -146,7 +148,7 @@ things:
 -   Click "Test hook" button from the GitHub UI and see if Jenkins
     receive a payload.
 
-#### Using cache to GitHub requests
+## Using cache to GitHub requests
 
 Each **GitHub Server Config** creates own GitHub client to interact with
 api. By default it uses cache (with **20MB** limit) to speedup process
@@ -183,7 +185,7 @@ Additional info:
 
 ## Pipeline examples
 
-#### Setting commit status
+### Setting commit status
 
 This code will set commit status for custom repo with configured context
 and message (you can also define same way backref)
