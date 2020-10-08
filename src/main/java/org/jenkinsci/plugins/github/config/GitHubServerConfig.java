@@ -7,7 +7,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
-import com.thoughtworks.xstream.annotations.XStreamAlias;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.Util;
@@ -59,7 +58,6 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
  * @author lanwen (Merkushev Kirill)
  * @since 1.13.0
  */
-@XStreamAlias("github-server-config")
 public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHubServerConfig.class);
 
