@@ -99,7 +99,7 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
     }
 
     @Extension
-    @Symbol("githubProjectProperties")
+    @Symbol("githubProjectProperty")
     public static final class DescriptorImpl extends JobPropertyDescriptor {
         /**
          * Used to hide property configuration under checkbox,
