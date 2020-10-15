@@ -82,6 +82,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     private transient InstanceIdentity identity;
 
     public GitHubPluginConfig() {
+        getConfigFile().getXStream().alias("github-server-config", GitHubServerConfig.class);
         load();
     }
 

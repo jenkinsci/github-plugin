@@ -5,13 +5,13 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.2</version>
+        <version>4.10</version>
         <relativePath />
     </parent>
 
     <groupId>com.coravy.hudson.plugins.github</groupId>
     <artifactId>github</artifactId>
-    <version>	1.32.0-SNAPSHOT</version>
+    <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
 
     <name>GitHub plugin</name>
@@ -36,10 +36,10 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/jenkinsci/github-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:jenkinsci/github-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/github-plugin</url>
-        <tag>HEAD</tag>
+        <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
+        <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
+        <url>https://github.com/${gitHubRepo}</url>
+        <tag>${scmTag}</tag>
     </scm>
     <issueManagement>
         <system>JIRA</system>
@@ -47,6 +47,9 @@
     </issueManagement>
 
     <properties>
+        <revision>1.32.0</revision>
+        <changelist>-SNAPSHOT</changelist>
+        <gitHubRepo>jenkinsci/github-plugin</gitHubRepo>
         <jenkins.version>2.164.3</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <maven.javadoc.skip>true</maven.javadoc.skip>
