@@ -36,6 +36,7 @@ import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.processE
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isAlive;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isBuildable;
+import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isNotChild;
 import static org.jenkinsci.plugins.github.webhook.WebhookManager.forHookUrl;
 
 
@@ -104,6 +105,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
         return from(getJenkinsInstance().getAllItems(Item.class))
                 .filter(isBuildable())
                 .filter(isAlive())
+                .filter(isNotChild())
                 .transform(reRegisterHookForJob())
                 .toList();
     }

@@ -141,5 +141,19 @@ public final class JobInfoHelpers {
             }
         };
     }
+
+    /**
+     * Can be useful to ignore child jobs on reregistering hooks
+     *
+     * @return predicate with true on apply if item is not a child of WorkflowMultiBranchProject
+     */
+    public static <ITEM extends Item> Predicate<ITEM> isNotChild() {
+        return new Predicate<ITEM>() {
+            public boolean apply(ITEM item) {
+                return !(item.getParent().getClass().getName().equals("org.jenkinsci.plugins.workflow.multibranch"
+                                                                 + ".WorkflowMultiBranchProject"));
+            }
+        };
+    }
 }
 
