@@ -11,6 +11,7 @@ import hudson.model.Job;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
 import jenkins.model.ParameterizedJobMixIn;
+import jenkins.scm.api.SCMSourceOwner;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 
 import javax.annotation.CheckForNull;
@@ -147,11 +148,10 @@ public final class JobInfoHelpers {
      *
      * @return predicate with true on apply if item is not a child of WorkflowMultiBranchProject
      */
-    public static <ITEM extends Item> Predicate<ITEM> isNotChild() {
+    public static <ITEM extends Item> Predicate<ITEM> isNotSCMSourceOwner() {
         return new Predicate<ITEM>() {
             public boolean apply(ITEM item) {
-                return !(item.getParent().getClass().getName().equals("org.jenkinsci.plugins.workflow.multibranch"
-                                                                 + ".WorkflowMultiBranchProject"));
+                return !(item.getParent() instanceof SCMSourceOwner);
             }
         };
     }
