@@ -116,7 +116,9 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
         }
 
         @Override
-        public JobProperty<?> newInstance(@Nonnull StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
+        public JobProperty<?> newInstance(@Nonnull StaplerRequest req,
+		                                  JSONObject formData) throws Descriptor.FormException {
+
             GithubProjectProperty tpp = req.bindJSON(
                     GithubProjectProperty.class,
                     formData.getJSONObject(GITHUB_PROJECT_BLOCK_NAME)
