@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.github.extension;
+package org.jenkinsci.plugins.github.webhook;
 
 import hudson.util.Secret;
 import org.junit.ClassRule;
@@ -14,7 +14,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author martinmine
  */
-public class CryptoUtilTest {
+public class GHWebhookSignatureTest {
 
     private static final String SIGNATURE = "85d155c55ed286a300bd1cf124de08d87e914f3a";
     private static final String PAYLOAD = "foo";
