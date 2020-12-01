@@ -20,13 +20,17 @@ public class GHWebhookSignatureTest {
     private static final String PAYLOAD = "foo";
     private static final String SECRET = "bar";
 
+    // Taken from real example of Pull Request update webhook payload
+    private static final String UNICODE_PAYLOAD = "{\"description\":\"foo\\u00e2\\u0084\\u00a2\"}";
+    private static final String UNICODE_SIGNATURE = "10e3cb05d27049775aeca89d84d9e6123d5ab006";
+
     @ClassRule
     public static JenkinsRule jRule = new JenkinsRule();
 
     @Test
     public void shouldComputeSHA1Signature() throws Exception {
         assertThat("signature is valid", webhookSignature(
-                PAYLOAD, 
+                PAYLOAD,
                 Secret.fromString(SECRET)
         ).sha1(), equalTo(SIGNATURE));
     }
@@ -34,8 +38,16 @@ public class GHWebhookSignatureTest {
     @Test
     public void shouldMatchSignature() throws Exception {
         assertThat("signature should match", webhookSignature(
-                PAYLOAD, 
+                PAYLOAD,
                 Secret.fromString(SECRET)
         ).matches(SIGNATURE), equalTo(true));
+    }
+
+    @Test
+    public void shouldComputeSHA1SignatureWithUnicodePayload() throws Exception {
+        assertThat("signature is valid for unicode payload", webhookSignature(
+                UNICODE_PAYLOAD,
+                Secret.fromString(SECRET)
+        ).sha1(), equalTo(UNICODE_SIGNATURE));
     }
 }
