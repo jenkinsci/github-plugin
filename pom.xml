@@ -50,7 +50,7 @@
         <revision>1.33.0</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/github-plugin</gitHubRepo>
-        <jenkins.version>2.164.3</jenkins.version>
+        <jenkins.version>2.222.4</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <maven.javadoc.skip>true</maven.javadoc.skip>
         <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
@@ -181,7 +181,6 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>matrix-auth</artifactId>
-            <version>1.1</version>
             <scope>test</scope>
         </dependency>
 
@@ -276,16 +275,9 @@
         </dependency>
 
         <dependency>
-            <groupId>xml-apis</groupId>
-            <artifactId>xml-apis</artifactId>
-            <version>1.4.01</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>3.3.0</version>
+            <version>4.3.3</version>
             <scope>test</scope>
         </dependency>
 
@@ -295,8 +287,8 @@
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.164.x</artifactId>
-                <version>10</version>
+                <artifactId>bom-2.222.x</artifactId>
+                <version>20</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>

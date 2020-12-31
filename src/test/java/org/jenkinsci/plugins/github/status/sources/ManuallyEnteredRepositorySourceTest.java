@@ -6,17 +6,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kohsuke.github.GHRepository;
 import org.mockito.Answers;
-import org.mockito.Matchers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.PrintStream;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
@@ -33,12 +32,11 @@ public class ManuallyEnteredRepositorySourceTest {
 
     @Test
     public void nullName() {
-        ManuallyEnteredRepositorySource instance = Mockito.spy(new ManuallyEnteredRepositorySource("https://github.com/jenkinsci/jenkins"));
-        doReturn(null).when(instance).createName(Matchers.anyString());
+        ManuallyEnteredRepositorySource instance = spy(new ManuallyEnteredRepositorySource("a"));
         doReturn(logger).when(listener).getLogger();
         List<GHRepository> repos = instance.repos(run, listener);
         assertThat("size", repos, hasSize(0));
         verify(listener).getLogger();
-        verify(logger).printf(eq("Unable to match %s with a GitHub repository.%n"), eq("https://github.com/jenkinsci/jenkins"));
+        verify(logger).printf(eq("Unable to match %s with a GitHub repository.%n"), eq("a"));
     }
 }
