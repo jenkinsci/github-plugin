@@ -182,7 +182,7 @@ public final class GitHubClientCacheOps {
     private static class NotInCachesFilter implements DirectoryStream.Filter<Path> {
         private final Set<String> activeCacheNames;
 
-        public NotInCachesFilter(Set<String> activeCacheNames) {
+        NotInCachesFilter(Set<String> activeCacheNames) {
             this.activeCacheNames = activeCacheNames;
         }
 
