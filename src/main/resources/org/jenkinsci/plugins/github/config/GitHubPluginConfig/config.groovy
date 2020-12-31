@@ -4,6 +4,7 @@ import com.cloudbees.jenkins.GitHubPushTrigger
 import lib.FormTagLib
 
 def f = namespace(FormTagLib);
+def g = namespace("/lib/matrixauth")
 
 f.section(title: descriptor.displayName) {
     f.entry(title: _("GitHub Servers"),
@@ -24,7 +25,7 @@ f.section(title: descriptor.displayName) {
         
         if (GitHubPushTrigger.ALLOW_HOOKURL_OVERRIDE) {
             f.entry(title: _("Override Hook URL")) {
-                table(width: "100%", style: "margin-left: 7px;") {
+                g.blockWrapper {
                     f.optionalBlock(title: _("Specify another hook URL for GitHub configuration"),
                             inline: true,
                             checked: instance.isOverrideHookUrl()) {
