@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.10</version>
+        <version>4.15</version>
         <relativePath />
     </parent>
 
@@ -58,7 +58,10 @@
         <concurrency>1</concurrency>
         <java.level>8</java.level>
         <workflow.version>1.14.2</workflow.version>
-        <configuration-as-code.version>1.32</configuration-as-code.version>
+        <tagNameFormat>v@{project.version}</tagNameFormat>
+        <spotbugs.threshold>Low</spotbugs.threshold>
+        <spotbugs.effort>Max</spotbugs.effort>
+        <spotbugs.failOnError>false</spotbugs.failOnError>
     </properties>
 
     <repositories>
@@ -79,7 +82,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.9</version>    
+            <version>3.11</version>
         </dependency>
 
         <dependency>
@@ -91,43 +94,31 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>git</artifactId>
-            <version>3.4.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>scm-api</artifactId>
-            <version>2.2.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>credentials</artifactId>
-            <version>2.1.13</version>
         </dependency>
 
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>plain-credentials</artifactId>
-            <version>1.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>structs</artifactId>
-            <version>1.17</version>
         </dependency>
 
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>token-macro</artifactId>
-            <version>1.12.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>display-url-api</artifactId>
-            <version>2.0</version>
         </dependency>
 
         <dependency>
@@ -149,7 +140,6 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>apache-httpcomponents-client-4-api</artifactId>
-            <version>4.5.3-2.1</version>
             <scope>test</scope>
         </dependency>
 
@@ -177,7 +167,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13</version>
             <scope>test</scope>
         </dependency>
 
@@ -199,22 +188,18 @@
         <dependency>
             <groupId>io.jenkins</groupId>
             <artifactId>configuration-as-code</artifactId>
-            <version>${configuration-as-code.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
-            <groupId>io.jenkins</groupId>
-            <artifactId>configuration-as-code</artifactId>
-            <version>${configuration-as-code.version}</version>
-            <classifier>tests</classifier>
+            <groupId>io.jenkins.configuration-as-code</groupId>
+            <artifactId>test-harness</artifactId>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-cps</artifactId>
-            <version>${workflow.version}</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -224,11 +209,15 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-durable-task-step</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-job</artifactId>
-            <version>${workflow.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -305,6 +294,13 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>io.jenkins.tools.bom</groupId>
+                <artifactId>bom-2.164.x</artifactId>
+                <version>10</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+            <dependency>
                 <groupId>org.jenkins-ci</groupId>
                 <artifactId>annotation-indexer</artifactId>
                 <version>1.12</version>
@@ -317,7 +313,7 @@
             <plugin>
                 <groupId>nl.geodienstencentrum.maven</groupId>
                 <artifactId>sass-maven-plugin</artifactId>
-                <version>2.14</version>
+                <version>3.7.2</version>
                 <executions>
                     <execution>
                         <goals>
@@ -353,38 +349,6 @@
                     <suppressionsLocation>
                         src/test/resources/checkstyle/checkstyle-suppressions.xml
                     </suppressionsLocation>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>${findbugs-maven-plugin.version}</version>
-                <configuration>
-                    <effort>Max</effort>
-                    <threshold>Low</threshold>
-                    <xmlOutput>true</xmlOutput>
-                    <failOnError>false</failOnError>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-release-plugin</artifactId>
-                <configuration>
-                    <tagNameFormat>v@{project.version}</tagNameFormat>
-                    <mavenExecutorId>forked-path</mavenExecutorId>
-                    <useReleaseProfile>false</useReleaseProfile>
-                    <preparationGoals>clean install</preparationGoals>
-                    <goals>deploy</goals>
-                    <arguments>${arguments}</arguments>
-                    <releaseProfiles>jenkins-release,${releaseProfiles}</releaseProfiles>
                 </configuration>
             </plugin>
         </plugins>
