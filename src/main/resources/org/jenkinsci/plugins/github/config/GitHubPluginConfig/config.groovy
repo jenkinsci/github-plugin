@@ -4,7 +4,7 @@ import com.cloudbees.jenkins.GitHubPushTrigger
 import lib.FormTagLib
 
 def f = namespace(FormTagLib);
-def g = namespace("/lib/matrixauth")
+def g = namespace("/lib/github")
 
 f.section(title: descriptor.displayName) {
     f.entry(title: _("GitHub Servers"),
