@@ -2,7 +2,6 @@ package org.jenkinsci.plugins.github.webhook;
 
 import hudson.util.Secret;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,10 +54,7 @@ public class GHWebhookSignature {
             final SecretKeySpec keySpec = new SecretKeySpec(secret.getPlainText().getBytes(UTF_8), HMAC_SHA1_ALGORITHM);
             final Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
             mac.init(keySpec);
-
-            final String unescapedPayload = StringEscapeUtils.unescapeJava(payload);
-            final String convertedUnicode = new String(unescapedPayload.getBytes("latin1"), UTF_8);
-            final byte[] rawHMACBytes = mac.doFinal(convertedUnicode.getBytes(UTF_8));
+            final byte[] rawHMACBytes = mac.doFinal(payload.getBytes(UTF_8));
 
             return Hex.encodeHexString(rawHMACBytes);
         } catch (Exception e) {
