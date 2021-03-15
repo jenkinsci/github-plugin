@@ -21,8 +21,8 @@ The Github plugin decorates Jenkins "Changes" pages to create links to
 your Github commit and issue pages. It adds a sidebar link that links
 back to the Github project page.
 
-![](/docs/images/changes.png)
-![](/docs/images/changes-2.png)
+![](/docs/images/image-1.png)
+![](/docs/images/image-2.png)
 
 When creating a job, specify that is connects to git. Under "Github
 project", put in: git@github.com:*Person*/*Project*.git Under "Source
@@ -65,7 +65,7 @@ GitHub OAuth token so that Jenkins can login as you to do this.
 
 **Step 1.** Go to the global configuration and add GitHub Server Config.
 
-![](/docs/images/ghserver-config.png)
+![](/docs/images/image-3.png)
 
 **Step 2.1.** Create your personal access token in GitHub.
 
@@ -73,7 +73,7 @@ Plugin can help you to do it with all required scopes. Go to
 **Advanced** -\> **Manage Additional GitHub Actions** -\> **Convert
 Login and Password to token**
 
-![](/docs/images/manage-token.png)
+![](/docs/images/image-4.png)
 
 > *Two-Factor Authentication*
 > 
@@ -103,9 +103,10 @@ only credentials that matched by predefined domains.
 ![](/docs/images/secret-text.png)
 
 **Step 3.** Once that configuration is done, go to the project config of
-each job you want triggered automatically and simply check "Build when a
-change is pushed to GitHub" under "Build Triggers". With this, every new
+each job you want triggered automatically and simply check "GitHub hook trigger for GITScm polling" under "Build Triggers". With this, every new
 push to the repository automatically triggers a new build.
+
+![](/docs/images/image-5.png)
 
 Note that there's only one URL and it receives all post-receive POSTs
 for all your repositories. The server side of this URL is smart enough
