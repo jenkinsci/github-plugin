@@ -85,7 +85,8 @@ Login and Password to token**
 > credentials.
 
 **Step 2.2.** Select previously created "Secret Text" credentials with
-GitHub OAuth token.
+GitHub OAuth token. Username/Passwowrd credentials cannot be used for
+auto configuration of GitHub security policy effecive since Feb 21.
 
 *Required scopes for token*
 
@@ -103,7 +104,8 @@ only credentials that matched by predefined domains.
 ![](/docs/images/secret-text.png)
 
 **Step 3.** Once that configuration is done, go to the project config of
-each job you want triggered automatically and simply check "GitHub hook trigger for GITScm polling" under "Build Triggers". With this, every new
+each job you want triggered automatically and simply check "GitHub hook 
+trigger for GITScm polling" under "Build Triggers". With this, every new
 push to the repository automatically triggers a new build.
 
 ![](/docs/images/image-5.png)
