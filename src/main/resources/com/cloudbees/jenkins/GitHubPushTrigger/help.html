@@ -1,2 +1,6 @@
-If Jenkins will receive PUSH GitHub hook from repo defined in Git SCM section it
-will trigger Git SCM polling logic. So polling logic in fact belongs to Git SCM.
+When Jenkins receives a GitHub push hook, GitHub Plugin checks to see
+whether the hook came from a GitHub repository which matches the Git repository defined in SCM/Git section of this job.
+If they match and this option is enabled, GitHub Plugin triggers a one-time polling on GITScm.
+When GITScm polls GitHub, it finds that there is a change and initiates a build.
+The last sentence describes the behavior of Git plugin,
+thus the polling and initiating the build is not a part of GitHub plugin.
