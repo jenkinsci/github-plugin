@@ -14,6 +14,7 @@ import javax.annotation.Nonnull;
 import static hudson.model.Result.FAILURE;
 import static hudson.model.Result.SUCCESS;
 import static hudson.model.Result.UNSTABLE;
+import static hudson.model.Result.ABORTED;
 import static hudson.model.Result.fromString;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
@@ -69,7 +70,7 @@ public class BetterThanOrEqualBuildResult extends ConditionalResult {
     @Extension
     public static class BetterThanOrEqualBuildResultDescriptor extends ConditionalResultDescriptor {
 
-        private static final Result[] SUPPORTED_RESULTS = {SUCCESS, UNSTABLE, FAILURE};
+        private static final Result[] SUPPORTED_RESULTS = {SUCCESS, UNSTABLE, FAILURE, ABORTED};
 
         @Override
         public String getDisplayName() {
