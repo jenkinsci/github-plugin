@@ -2,6 +2,8 @@ package com.cloudbees.jenkins.GitHubPushTrigger
 
 import com.cloudbees.jenkins.GitHubPushTrigger
 
+def f = namespace(lib.FormTagLib);
+
 tr {
     td(colspan: 4) {
         div(id: 'gh-hooks-warn')
@@ -17,4 +19,8 @@ InlineWarning.setup({
     input: 'input[name="${GitHubPushTrigger.class.getName().replace(".", "-")}"]'
 }).start();
 """)
+}
+
+f.entry() {
+    f.checkbox(title: _("Use Git excluded user list (\"Polling ignores commits from certain users\", comparison is case insensitive)"), field: "useGitExcludedUsers")
 }
