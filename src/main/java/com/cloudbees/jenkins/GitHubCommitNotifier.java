@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.util.Collections;
 
 import static com.cloudbees.jenkins.Messages.GitHubCommitNotifier_DisplayName;
-import static com.google.common.base.Objects.firstNonNull;
 import static hudson.model.Result.FAILURE;
 import static hudson.model.Result.SUCCESS;
 import static hudson.model.Result.UNSTABLE;
@@ -125,7 +124,7 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
         setter.setContextSource(new DefaultCommitContextSource());
 
 
-        String content = firstNonNull(statusMessage, DEFAULT_MESSAGE).getContent();
+        String content = (statusMessage != null ? statusMessage : DEFAULT_MESSAGE).getContent();
 
         if (isNotBlank(content)) {
             setter.setStatusResultSource(new ConditionalStatusResultSource(
