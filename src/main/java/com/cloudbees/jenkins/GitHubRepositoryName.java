@@ -83,7 +83,7 @@ public class GitHubRepositoryName {
                 return ret;
             }
         }
-        LOGGER.warn("Could not match URL {}", url);
+        LOGGER.debug("Could not match URL {}", url);
         return null;
     }
 
