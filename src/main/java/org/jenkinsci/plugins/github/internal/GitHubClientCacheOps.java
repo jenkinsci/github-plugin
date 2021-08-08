@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
 import java.util.List;
@@ -161,8 +162,8 @@ public final class GitHubClientCacheOps {
          */
         private static String hashed(GitHubServerConfig config) {
             return Hashing.murmur3_32().newHasher()
-                    .putString(trimToEmpty(config.getApiUrl()))
-                    .putString(trimToEmpty(config.getCredentialsId())).hash().toString();
+                    .putString(trimToEmpty(config.getApiUrl()), StandardCharsets.UTF_8)
+                    .putString(trimToEmpty(config.getCredentialsId()), StandardCharsets.UTF_8).hash().toString();
         }
     }
 
