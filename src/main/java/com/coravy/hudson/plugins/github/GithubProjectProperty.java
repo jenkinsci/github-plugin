@@ -1,7 +1,7 @@
 package com.coravy.hudson.plugins.github;
 
-import com.cloudbees.jenkins.GitHubPushTrigger;
 import hudson.Extension;
+import hudson.model.Descriptor;
 import hudson.model.Job;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
@@ -13,6 +13,7 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.jenkinsci.Symbol;
 import java.util.logging.Logger;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -98,6 +99,7 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
     }
 
     @Extension
+    @Symbol("githubProjectProperty")
     public static final class DescriptorImpl extends JobPropertyDescriptor {
         /**
          * Used to hide property configuration under checkbox,
@@ -114,7 +116,9 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
         }
 
         @Override
-        public JobProperty<?> newInstance(@Nonnull StaplerRequest req, JSONObject formData) throws FormException {
+        public JobProperty<?> newInstance(@Nonnull StaplerRequest req,
+                                          JSONObject formData) throws Descriptor.FormException {
+
             GithubProjectProperty tpp = req.bindJSON(
                     GithubProjectProperty.class,
                     formData.getJSONObject(GITHUB_PROJECT_BLOCK_NAME)
@@ -135,5 +139,5 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
 
     }
 
-    private static final Logger LOGGER = Logger.getLogger(GitHubPushTrigger.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(GithubProjectProperty.class.getName());
 }
