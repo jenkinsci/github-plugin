@@ -27,7 +27,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 import java.io.IOException;
 import java.util.Collections;
 
-import static com.google.common.base.Objects.firstNonNull;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.jenkinsci.plugins.github.status.sources.misc.AnyBuildResult.onAnyResult;
 
@@ -89,7 +88,7 @@ public class GitHubSetCommitStatusBuilder extends Builder implements SimpleBuild
                 Collections.<ConditionalResult>singletonList(
                         onAnyResult(
                                 GHCommitState.PENDING,
-                                defaultIfEmpty(firstNonNull(statusMessage, DEFAULT_MESSAGE).getContent(),
+                                defaultIfEmpty((statusMessage != null ? statusMessage : DEFAULT_MESSAGE).getContent(),
                                         Messages.CommitNotifier_Pending(build.getDisplayName()))
                         )
                 )));
