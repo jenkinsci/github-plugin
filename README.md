@@ -204,7 +204,7 @@ void setBuildStatus(String message, String state) {
 setBuildStatus("Build complete", "SUCCESS");
 ```
 
-More complex example (can be used with multiply scm sources in pipeline)
+More complex example (can be used with multiple scm sources in pipeline)
 
 ```groovy
 def getRepoURL() {
