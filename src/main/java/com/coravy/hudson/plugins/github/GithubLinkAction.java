@@ -29,7 +29,7 @@ public final class GithubLinkAction implements Action {
 
     @Override
     public String getIconFileName() {
-        return "/plugin/github/logov3.png";
+        return "/plugin/github/img/logo.svg";
     }
 
     @Override
