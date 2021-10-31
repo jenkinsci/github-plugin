@@ -77,5 +77,5 @@ public class GithubLinkAnnotator extends ChangeLogAnnotator {
 
     private static final LinkMarkup[] MARKUPS = new LinkMarkup[]{new LinkMarkup(
             "(?:C|c)lose(?:s?)\\s(?<!\\:)(?:#)NUM", // "Closes #123"
-            "issues/$1/find")};
+            "issues/$1")};
 }
