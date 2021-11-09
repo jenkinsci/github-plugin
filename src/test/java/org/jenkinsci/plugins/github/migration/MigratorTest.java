@@ -82,7 +82,7 @@ public class MigratorTest {
     @Test
     @LocalData
     public void shouldLoadDataAfterStart() throws Exception {
-        assertThat("should load 3 configs", GitHubPlugin.configuration().getConfigs(), hasSize(2));
+        assertThat("should load 2 configs", GitHubPlugin.configuration().getConfigs(), hasSize(2));
         assertThat("migrate custom url", GitHubPlugin.configuration().getConfigs(), hasItems(
                 withApiUrl(is(CUSTOM_GH_URL)),
                 withApiUrl(is(GITHUB_URL))
