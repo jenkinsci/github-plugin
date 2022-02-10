@@ -11,7 +11,7 @@ import org.kohsuke.stapler.InjectedParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.slf4j.Logger;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import javax.servlet.ServletException;
 import java.io.IOException;
 import java.lang.annotation.Documented;
@@ -85,7 +85,7 @@ public @interface GHEventPayload {
         protected static Function<StaplerRequest, String> fromForm() {
             return new NullSafeFunction<StaplerRequest, String>() {
                 @Override
-                protected String applyNullSafe(@Nonnull StaplerRequest request) {
+                protected String applyNullSafe(@NonNull StaplerRequest request) {
                     return request.getParameter("payload");
                 }
             };
@@ -99,7 +99,7 @@ public @interface GHEventPayload {
         protected static Function<StaplerRequest, String> fromApplicationJson() {
             return new NullSafeFunction<StaplerRequest, String>() {
                 @Override
-                protected String applyNullSafe(@Nonnull StaplerRequest request) {
+                protected String applyNullSafe(@NonNull StaplerRequest request) {
                     try {
                         return IOUtils.toString(request.getInputStream(), Charsets.UTF_8);
                     } catch (IOException e) {

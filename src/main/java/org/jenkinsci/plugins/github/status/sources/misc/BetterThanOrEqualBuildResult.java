@@ -9,7 +9,7 @@ import org.kohsuke.github.GHCommitState;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import static hudson.model.Result.FAILURE;
 import static hudson.model.Result.SUCCESS;
@@ -45,7 +45,7 @@ public class BetterThanOrEqualBuildResult extends ConditionalResult {
      * @return matches if run result better than or equal to selected
      */
     @Override
-    public boolean matches(@Nonnull Run<?, ?> run) {
+    public boolean matches(@NonNull Run<?, ?> run) {
         return defaultIfNull(run.getResult(), Result.NOT_BUILT).isBetterOrEqualTo(fromString(trimToEmpty(result)));
     }
 

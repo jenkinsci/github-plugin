@@ -17,8 +17,8 @@ import org.kohsuke.github.GitHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -222,7 +222,7 @@ public class GitHubRepositoryName {
     private static Function<GitHub, GHRepository> toGHRepository(final GitHubRepositoryName repoName) {
         return new NullSafeFunction<GitHub, GHRepository>() {
             @Override
-            protected GHRepository applyNullSafe(@Nonnull GitHub gitHub) {
+            protected GHRepository applyNullSafe(@NonNull GitHub gitHub) {
                 try {
                     return gitHub.getRepository(format("%s/%s", repoName.getUserName(), repoName.getRepositoryName()));
                 } catch (IOException e) {

@@ -32,7 +32,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collections;
 
@@ -92,17 +91,17 @@ public class GitHubCommitNotifier extends Notifier implements SimpleBuildStep {
     /**
      * @since 1.10
      */
-    @Nonnull
+    @NonNull
     public String getResultOnFailure() {
         return resultOnFailure != null ? resultOnFailure : getDefaultResultOnFailure().toString();
     }
 
-    @Nonnull
+    @NonNull
     public static Result getDefaultResultOnFailure() {
         return FAILURE;
     }
 
-    @Nonnull
+    @NonNull
     /*package*/ Result getEffectiveResultOnFailure() {
         return Result.fromString(trimToEmpty(resultOnFailure));
     }

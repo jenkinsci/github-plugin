@@ -13,7 +13,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Collection;
 import java.util.List;
 
@@ -37,7 +37,7 @@ public class AnyDefinedRepositorySource extends GitHubReposSource {
      * @return all repositories which can be found by repo-contributors
      */
     @Override
-    public List<GHRepository> repos(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
+    public List<GHRepository> repos(@NonNull Run<?, ?> run, @NonNull TaskListener listener) {
         final Collection<GitHubRepositoryName> names = GitHubRepositoryNameContributor
                 .parseAssociatedNames(run.getParent());
 
@@ -45,7 +45,7 @@ public class AnyDefinedRepositorySource extends GitHubReposSource {
 
         return from(names).transformAndConcat(new NullSafeFunction<GitHubRepositoryName, Iterable<GHRepository>>() {
             @Override
-            protected Iterable<GHRepository> applyNullSafe(@Nonnull GitHubRepositoryName name) {
+            protected Iterable<GHRepository> applyNullSafe(@NonNull GitHubRepositoryName name) {
                 return name.resolve();
             }
         }).toList();

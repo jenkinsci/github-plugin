@@ -10,7 +10,7 @@ import org.jenkinsci.plugins.github.extension.status.GitHubStatusResultSource;
 import org.kohsuke.github.GHCommitState;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 
 import static hudson.model.Result.FAILURE;
@@ -34,7 +34,7 @@ public class DefaultStatusResultSource extends GitHubStatusResultSource {
     }
 
     @Override
-    public StatusResult get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) throws IOException,
+    public StatusResult get(@NonNull Run<?, ?> run, @NonNull TaskListener listener) throws IOException,
             InterruptedException {
 
         // We do not use `build.getDurationString()` because it appends 'and counting' (build is still running)

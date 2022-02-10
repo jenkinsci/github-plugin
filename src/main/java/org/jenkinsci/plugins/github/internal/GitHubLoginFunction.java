@@ -15,8 +15,8 @@ import org.kohsuke.github.extras.okhttp3.OkHttpConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.Proxy;
@@ -57,7 +57,7 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
      */
     @Override
     @CheckForNull
-    protected GitHub applyNullSafe(@Nonnull GitHubServerConfig github) {
+    protected GitHub applyNullSafe(@NonNull GitHubServerConfig github) {
         String accessToken = tokenFor(github.getCredentialsId());
 
         GitHubBuilder builder = new GitHubBuilder()
@@ -83,7 +83,7 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
      *
      * @return proxy to use it in connector. Should not be null as it can lead to unexpected behaviour
      */
-    @Nonnull
+    @NonNull
     private Proxy getProxy(String apiUrl) {
         Jenkins jenkins = GitHubWebHook.getJenkinsInstance();
 

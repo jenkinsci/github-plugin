@@ -38,7 +38,7 @@ import org.kohsuke.stapler.Stapler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -182,7 +182,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     /**
      * Returns the file that records the last/current polling activity.
      */
-    private File getLogFileForJob(@Nonnull Job job) throws IOException {
+    private File getLogFileForJob(@NonNull Job job) throws IOException {
         return new File(job.getRootDir(), "github-polling.log");
     }
 

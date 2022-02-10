@@ -5,7 +5,7 @@ import hudson.model.AbstractDescribableImpl;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Extension point to provide context of the state. For example `integration-tests` or `build`
@@ -22,5 +22,5 @@ public abstract class GitHubStatusContextSource extends AbstractDescribableImpl<
      *
      * @return simple short string to represent context of this state
      */
-    public abstract String context(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener);
+    public abstract String context(@NonNull Run<?, ?> run, @NonNull TaskListener listener);
 }

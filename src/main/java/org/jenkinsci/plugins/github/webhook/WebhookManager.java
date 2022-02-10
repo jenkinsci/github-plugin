@@ -21,7 +21,7 @@ import org.kohsuke.github.GHRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
@@ -192,7 +192,7 @@ public class WebhookManager {
     protected Function<GitHubRepositoryName, GHHook> createHookSubscribedTo(final List<GHEvent> events) {
         return new NullSafeFunction<GitHubRepositoryName, GHHook>() {
             @Override
-            protected GHHook applyNullSafe(@Nonnull GitHubRepositoryName name) {
+            protected GHHook applyNullSafe(@NonNull GitHubRepositoryName name) {
                 try {
                     GHRepository repo = repoWithWebhookAccess(name);
                     if (repo == null) {
@@ -239,7 +239,7 @@ public class WebhookManager {
     protected Predicate<GHHook> log(final String format) {
         return new NullSafePredicate<GHHook>() {
             @Override
-            protected boolean applyNullSafe(@Nonnull GHHook input) {
+            protected boolean applyNullSafe(@NonNull GHHook input) {
                 LOGGER.debug(format("%s {} (events: {})", format), input.getUrl(), input.getEvents());
                 return true;
             }
@@ -254,7 +254,7 @@ public class WebhookManager {
     protected Predicate<GHRepository> withAdminAccess() {
         return new NullSafePredicate<GHRepository>() {
             @Override
-            protected boolean applyNullSafe(@Nonnull GHRepository repo) {
+            protected boolean applyNullSafe(@NonNull GHRepository repo) {
                 return repo.hasAdminAccess();
             }
         };
@@ -269,7 +269,7 @@ public class WebhookManager {
      */
     protected Predicate<GHHook> serviceWebhookFor(final URL url) {
         return new NullSafePredicate<GHHook>() {
-            protected boolean applyNullSafe(@Nonnull GHHook hook) {
+            protected boolean applyNullSafe(@NonNull GHHook hook) {
                 return hook.getName().equals("jenkins")
                         && hook.getConfig().get("jenkins_hook_url").equals(url.toExternalForm());
             }
@@ -285,7 +285,7 @@ public class WebhookManager {
      */
     protected Predicate<GHHook> webhookFor(final URL url) {
         return new NullSafePredicate<GHHook>() {
-            protected boolean applyNullSafe(@Nonnull GHHook hook) {
+            protected boolean applyNullSafe(@NonNull GHHook hook) {
                 return hook.getName().equals("web")
                         && hook.getConfig().get("url").equals(url.toExternalForm());
             }
@@ -298,7 +298,7 @@ public class WebhookManager {
     protected Function<GHHook, Iterable<GHEvent>> eventsFromHook() {
         return new NullSafeFunction<GHHook, Iterable<GHEvent>>() {
             @Override
-            protected Iterable<GHEvent> applyNullSafe(@Nonnull GHHook input) {
+            protected Iterable<GHEvent> applyNullSafe(@NonNull GHHook input) {
                 return input.getEvents();
             }
         };
@@ -314,7 +314,7 @@ public class WebhookManager {
     protected Function<GHRepository, List<GHHook>> fetchHooks() {
         return new NullSafeFunction<GHRepository, List<GHHook>>() {
             @Override
-            protected List<GHHook> applyNullSafe(@Nonnull GHRepository repo) {
+            protected List<GHHook> applyNullSafe(@NonNull GHRepository repo) {
                 try {
                     return repo.getHooks();
                 } catch (IOException e) {
@@ -332,7 +332,7 @@ public class WebhookManager {
      */
     protected Function<GHRepository, GHHook> createWebhook(final URL url, final Set<GHEvent> events) {
         return new NullSafeFunction<GHRepository, GHHook>() {
-            protected GHHook applyNullSafe(@Nonnull GHRepository repo) {
+            protected GHHook applyNullSafe(@NonNull GHRepository repo) {
                 try {
                     final HashMap<String, String> config = new HashMap<>();
                     config.put("url", url.toExternalForm());
@@ -359,7 +359,7 @@ public class WebhookManager {
      */
     protected Predicate<GHHook> deleteWebhook() {
         return new NullSafePredicate<GHHook>() {
-            protected boolean applyNullSafe(@Nonnull GHHook hook) {
+            protected boolean applyNullSafe(@NonNull GHHook hook) {
                 try {
                     hook.delete();
                     return true;

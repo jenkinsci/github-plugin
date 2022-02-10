@@ -28,8 +28,8 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -190,8 +190,8 @@ public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredent
      * @return personal token with requested scope
      * @throws IOException when can't create token with given creds
      */
-    public GHAuthorization createToken(@Nonnull String username,
-                                       @Nonnull String password,
+    public GHAuthorization createToken(@NonNull String username,
+                                       @NonNull String password,
                                        @Nullable String apiUrl) throws IOException {
         GitHub gitHub = new GitHubBuilder()
                 .withEndpoint(defaultIfBlank(apiUrl, GITHUB_URL))
@@ -236,7 +236,7 @@ public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredent
      *
      * @return saved creds
      */
-    private StandardCredentials createCredentials(@Nonnull String serverAPIUrl,
+    private StandardCredentials createCredentials(@NonNull String serverAPIUrl,
                                                   final StandardCredentials credentials) {
         URI serverUri = URI.create(defaultIfBlank(serverAPIUrl, GITHUB_URL));
 

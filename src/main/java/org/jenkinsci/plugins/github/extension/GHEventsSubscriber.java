@@ -8,7 +8,7 @@ import hudson.model.Item;
 import hudson.model.Job;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import javax.annotation.CheckForNull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import jenkins.model.Jenkins;
 import jenkins.scm.api.SCMEvent;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
@@ -18,8 +18,9 @@ import org.kohsuke.stapler.Stapler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
+
 import java.util.Collections;
 import java.util.Set;
 
@@ -156,7 +157,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
     public static Function<GHEventsSubscriber, Set<GHEvent>> extractEvents() {
         return new NullSafeFunction<GHEventsSubscriber, Set<GHEvent>>() {
             @Override
-            protected Set<GHEvent> applyNullSafe(@Nonnull GHEventsSubscriber subscriber) {
+            protected Set<GHEvent> applyNullSafe(@NonNull GHEventsSubscriber subscriber) {
                 return defaultIfNull(subscriber.events(), Collections.<GHEvent>emptySet());
             }
         };
@@ -188,7 +189,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
     public static Predicate<GHEventsSubscriber> isApplicableFor(final Item item) {
         return new NullSafePredicate<GHEventsSubscriber>() {
             @Override
-            protected boolean applyNullSafe(@Nonnull GHEventsSubscriber subscriber) {
+            protected boolean applyNullSafe(@NonNull GHEventsSubscriber subscriber) {
                 return subscriber.safeIsApplicable(item);
             }
         };
@@ -204,7 +205,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
     public static Predicate<GHEventsSubscriber> isInterestedIn(final GHEvent event) {
         return new NullSafePredicate<GHEventsSubscriber>() {
             @Override
-            protected boolean applyNullSafe(@Nonnull GHEventsSubscriber subscriber) {
+            protected boolean applyNullSafe(@NonNull GHEventsSubscriber subscriber) {
                 return defaultIfNull(subscriber.events(), emptySet()).contains(event);
             }
         };
@@ -235,7 +236,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
     public static Function<GHEventsSubscriber, Void> processEvent(final GHSubscriberEvent event) {
         return new NullSafeFunction<GHEventsSubscriber, Void>() {
             @Override
-            protected Void applyNullSafe(@Nonnull GHEventsSubscriber subscriber) {
+            protected Void applyNullSafe(@NonNull GHEventsSubscriber subscriber) {
                 try {
                     subscriber.onEvent(event);
                 } catch (Throwable t) {

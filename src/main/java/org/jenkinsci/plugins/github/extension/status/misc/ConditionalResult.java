@@ -10,7 +10,7 @@ import jenkins.model.Jenkins;
 import org.kohsuke.github.GHCommitState;
 import org.kohsuke.stapler.DataBoundSetter;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * This extension point allows to define when and what to send as state and message.
@@ -56,7 +56,7 @@ public abstract class ConditionalResult extends AbstractDescribableImpl<Conditio
      *
      * @return true if matches
      */
-    public abstract boolean matches(@Nonnull Run<?, ?> run);
+    public abstract boolean matches(@NonNull Run<?, ?> run);
 
     /**
      * Should be extended to and marked as {@link hudson.Extension} to be in list

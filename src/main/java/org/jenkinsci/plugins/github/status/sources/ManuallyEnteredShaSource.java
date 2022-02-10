@@ -8,7 +8,7 @@ import org.jenkinsci.plugins.github.common.ExpandableMessage;
 import org.jenkinsci.plugins.github.extension.status.GitHubCommitShaSource;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 
 /**
@@ -34,7 +34,7 @@ public class ManuallyEnteredShaSource extends GitHubCommitShaSource {
      * Expands env vars and token macro in entered sha
      */
     @Override
-    public String get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) throws IOException, InterruptedException {
+    public String get(@NonNull Run<?, ?> run, @NonNull TaskListener listener) throws IOException, InterruptedException {
         return new ExpandableMessage(sha).expandAll(run, listener);
     }
 

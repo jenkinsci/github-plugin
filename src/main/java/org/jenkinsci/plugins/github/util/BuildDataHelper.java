@@ -7,7 +7,7 @@ import hudson.plugins.git.util.Build;
 import hudson.plugins.git.util.BuildData;
 import org.eclipse.jgit.lib.ObjectId;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -73,8 +73,8 @@ public final class BuildDataHelper {
      * @return SHA1 of the las
      * @throws IOException Cannot get the info about commit ID
      */
-    @Nonnull
-    public static ObjectId getCommitSHA1(@Nonnull Run<?, ?> build) throws IOException {
+    @NonNull
+    public static ObjectId getCommitSHA1(@NonNull Run<?, ?> build) throws IOException {
         List<BuildData> buildDataList = build.getActions(BuildData.class);
 
         Job<?, ?> parent = build.getParent();

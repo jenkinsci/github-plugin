@@ -6,7 +6,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.kohsuke.github.GHRepository;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.List;
 
 /**
@@ -23,5 +23,5 @@ public abstract class GitHubReposSource extends AbstractDescribableImpl<GitHubRe
      *
      * @return resolved list of GitHub repositories
      */
-    public abstract List<GHRepository> repos(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener);
+    public abstract List<GHRepository> repos(@NonNull Run<?, ?> run, @NonNull TaskListener listener);
 }

@@ -6,7 +6,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.kohsuke.github.GHCommitState;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 
 /**
@@ -24,7 +24,7 @@ public abstract class GitHubStatusResultSource extends AbstractDescribableImpl<G
      *
      * @return bean with state and already expanded message
      */
-    public abstract StatusResult get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener)
+    public abstract StatusResult get(@NonNull Run<?, ?> run, @NonNull TaskListener listener)
             throws IOException, InterruptedException;
 
     /**
