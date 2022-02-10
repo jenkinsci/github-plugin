@@ -3,8 +3,8 @@ package org.jenkinsci.plugins.github.extension;
 import jenkins.scm.api.SCMEvent;
 import org.kohsuke.github.GHEvent;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * An event for a {@link GHEventsSubscriber}.
@@ -24,7 +24,7 @@ public class GHSubscriberEvent extends SCMEvent<String> {
      * @param ghEvent the type of event received from GitHub.
      * @param payload the event payload.
      */
-    public GHSubscriberEvent(@CheckForNull String origin, @Nonnull GHEvent ghEvent, @Nonnull String payload) {
+    public GHSubscriberEvent(@CheckForNull String origin, @NonNull GHEvent ghEvent, @NonNull String payload) {
         super(Type.UPDATED, payload, origin);
         this.ghEvent = ghEvent;
     }

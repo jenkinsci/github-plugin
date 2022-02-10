@@ -10,7 +10,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Allows to manually enter context
@@ -36,7 +36,7 @@ public class ManuallyEnteredCommitContextSource extends GitHubStatusContextSourc
      * Just returns what user entered. Expands env vars and token macro
      */
     @Override
-    public String context(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
+    public String context(@NonNull Run<?, ?> run, @NonNull TaskListener listener) {
         try {
             return new ExpandableMessage(context).expandAll(run, listener);
         } catch (Exception e) {

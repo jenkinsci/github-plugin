@@ -2,7 +2,7 @@ package org.jenkinsci.plugins.github.util.misc;
 
 import com.google.common.base.Function;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -21,5 +21,5 @@ public abstract class NullSafeFunction<F, T> implements Function<F, T> {
     /**
      * This method will be called inside of {@link #apply(Object)}
      */
-    protected abstract T applyNullSafe(@Nonnull F input);
+    protected abstract T applyNullSafe(@NonNull F input);
 }

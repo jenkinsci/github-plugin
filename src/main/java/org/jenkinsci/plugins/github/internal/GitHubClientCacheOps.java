@@ -4,6 +4,7 @@ import com.cloudbees.jenkins.GitHubWebHook;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.hash.Hashing;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import okhttp3.Cache;
 import org.apache.commons.io.FileUtils;
@@ -14,7 +15,6 @@ import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -135,7 +135,7 @@ public final class GitHubClientCacheOps {
      */
     private static class WithEnabledCache extends NullSafePredicate<GitHubServerConfig> {
         @Override
-        protected boolean applyNullSafe(@Nonnull GitHubServerConfig config) {
+        protected boolean applyNullSafe(@NonNull GitHubServerConfig config) {
             return config.getClientCacheSize() > 0;
         }
     }
@@ -148,7 +148,7 @@ public final class GitHubClientCacheOps {
         public static final int MB = 1024 * 1024;
 
         @Override
-        protected Cache applyNullSafe(@Nonnull GitHubServerConfig config) {
+        protected Cache applyNullSafe(@NonNull GitHubServerConfig config) {
             checkArgument(config.getClientCacheSize() > 0, "Cache can't be with size <= 0");
 
             Path cacheDir = getBaseCacheDir().resolve(hashed(config));
@@ -172,7 +172,7 @@ public final class GitHubClientCacheOps {
      */
     private static class CacheToName extends NullSafeFunction<Cache, String> {
         @Override
-        protected String applyNullSafe(@Nonnull Cache cache) {
+        protected String applyNullSafe(@NonNull Cache cache) {
             return cache.directory().getName();
         }
     }

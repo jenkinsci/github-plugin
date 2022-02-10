@@ -7,7 +7,7 @@ import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.CheckForNull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import java.io.IOException;
 
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;

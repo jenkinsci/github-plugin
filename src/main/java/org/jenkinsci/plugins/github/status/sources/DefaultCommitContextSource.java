@@ -7,7 +7,7 @@ import hudson.model.TaskListener;
 import org.jenkinsci.plugins.github.extension.status.GitHubStatusContextSource;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import static com.coravy.hudson.plugins.github.GithubProjectProperty.displayNameFor;
 
@@ -28,7 +28,7 @@ public class DefaultCommitContextSource extends GitHubStatusContextSource {
      * @see com.coravy.hudson.plugins.github.GithubProjectProperty#displayNameFor(hudson.model.Job)
      */
     @Override
-    public String context(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
+    public String context(@NonNull Run<?, ?> run, @NonNull TaskListener listener) {
         return displayNameFor(run.getParent());
     }
 

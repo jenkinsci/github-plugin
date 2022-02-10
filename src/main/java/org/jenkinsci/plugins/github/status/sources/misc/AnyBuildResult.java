@@ -6,7 +6,7 @@ import org.jenkinsci.plugins.github.extension.status.misc.ConditionalResult;
 import org.kohsuke.github.GHCommitState;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Allows to set state in any case
@@ -24,7 +24,7 @@ public class AnyBuildResult extends ConditionalResult {
      * @return true in any case
      */
     @Override
-    public boolean matches(@Nonnull Run<?, ?> run) {
+    public boolean matches(@NonNull Run<?, ?> run) {
         return true;
     }
 

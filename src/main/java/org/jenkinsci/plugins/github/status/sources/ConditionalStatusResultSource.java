@@ -11,7 +11,7 @@ import org.jenkinsci.plugins.github.extension.status.misc.ConditionalResult;
 import org.kohsuke.github.GHCommitState;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -34,7 +34,7 @@ public class ConditionalStatusResultSource extends GitHubStatusResultSource {
         this.results = results;
     }
 
-    @Nonnull
+    @NonNull
     public List<ConditionalResult> getResults() {
         return defaultIfNull(results, Collections.<ConditionalResult>emptyList());
     }
@@ -46,7 +46,7 @@ public class ConditionalStatusResultSource extends GitHubStatusResultSource {
      * @return first matched result or pending state with warn msg
      */
     @Override
-    public StatusResult get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener)
+    public StatusResult get(@NonNull Run<?, ?> run, @NonNull TaskListener listener)
             throws IOException, InterruptedException {
 
         for (ConditionalResult conditionalResult : getResults()) {

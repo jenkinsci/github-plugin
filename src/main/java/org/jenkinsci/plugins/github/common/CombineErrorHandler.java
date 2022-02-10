@@ -5,7 +5,7 @@ import hudson.model.TaskListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,7 +53,7 @@ public class CombineErrorHandler implements ErrorHandler {
      * @return true if exception handled or rethrows it
      */
     @Override
-    public boolean handle(Exception e, @Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
+    public boolean handle(Exception e, @NonNull Run<?, ?> run, @NonNull TaskListener listener) {
         LOG.debug("Exception in {} will be processed with {} handlers",
                 run.getParent().getName(), handlers.size(), e);
         try {

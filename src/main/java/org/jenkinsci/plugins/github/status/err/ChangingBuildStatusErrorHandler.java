@@ -9,7 +9,7 @@ import hudson.util.ListBoxModel;
 import org.jenkinsci.plugins.github.extension.status.StatusErrorHandler;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import static hudson.model.Result.FAILURE;
 import static hudson.model.Result.UNSTABLE;
@@ -40,7 +40,7 @@ public class ChangingBuildStatusErrorHandler extends StatusErrorHandler {
      * @return true as of it terminating handler
      */
     @Override
-    public boolean handle(Exception e, @Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
+    public boolean handle(Exception e, @NonNull Run<?, ?> run, @NonNull TaskListener listener) {
         Result toSet = Result.fromString(trimToEmpty(result));
 
         listener.error("[GitHub Commit Status Setter] - %s, setting build result to %s", e.getMessage(), toSet);

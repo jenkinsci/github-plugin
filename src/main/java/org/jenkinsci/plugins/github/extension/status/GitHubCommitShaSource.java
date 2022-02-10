@@ -5,7 +5,7 @@ import hudson.model.AbstractDescribableImpl;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 
 /**
@@ -23,6 +23,6 @@ public abstract class GitHubCommitShaSource extends AbstractDescribableImpl<GitH
      *
      * @return plain sha to set state
      */
-    public abstract String get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener)
+    public abstract String get(@NonNull Run<?, ?> run, @NonNull TaskListener listener)
             throws IOException, InterruptedException;
 }

@@ -7,7 +7,7 @@ import hudson.model.TaskListener;
 import org.jenkinsci.plugins.github.extension.status.StatusErrorHandler;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Just logs message to the build console and do nothing after it
@@ -25,7 +25,7 @@ public class ShallowAnyErrorHandler extends StatusErrorHandler {
      * @return true as of its terminating handler
      */
     @Override
-    public boolean handle(Exception e, @Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
+    public boolean handle(Exception e, @NonNull Run<?, ?> run, @NonNull TaskListener listener) {
         listener.error("[GitHub Commit Status Setter] Failed to update commit state on GitHub. "
                 + "Ignoring exception [%s]", e.getMessage());
         return true;

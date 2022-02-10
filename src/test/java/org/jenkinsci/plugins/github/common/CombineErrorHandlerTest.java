@@ -13,8 +13,9 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.annotation.Nonnull;
 import java.util.Collections;
+
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.is;
@@ -70,7 +71,7 @@ public class CombineErrorHandlerTest {
                 .withHandlers(Collections.singletonList(
                         new ErrorHandler() {
                             @Override
-                            public boolean handle(Exception e, @Nonnull Run<?, ?> run, @Nonnull TaskListener listener) {
+                            public boolean handle(Exception e, @NonNull Run<?, ?> run, @NonNull TaskListener listener) {
                                 throw new RuntimeException("wow");
                             }
                         }
