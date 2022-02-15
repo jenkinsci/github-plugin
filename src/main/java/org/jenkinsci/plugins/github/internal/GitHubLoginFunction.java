@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.github.internal;
 
 import com.cloudbees.jenkins.GitHubWebHook;
+import io.jenkins.plugins.okhttp.api.JenkinsOkHttpClient;
 import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import jenkins.model.Jenkins;
@@ -44,7 +45,7 @@ import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.toCache
 @Restricted(NoExternalUse.class)
 public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, GitHub> {
 
-    private static final OkHttpClient BASECLIENT = new OkHttpClient();
+    private static final OkHttpClient BASECLIENT = JenkinsOkHttpClient.newClientBuilder(new OkHttpClient()).build();
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHubLoginFunction.class);
 
     /**
@@ -107,7 +108,7 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
      */
     private OkHttpConnector connector(GitHubServerConfig config) {
         OkHttpClient.Builder builder = BASECLIENT.newBuilder()
-            .proxy(getProxy(defaultIfBlank(config.getApiUrl(), GITHUB_URL)));
+            .proxy(getProxy(defaultIfBlank(config.getApiUrl(), GITHUB_URL)))
 
 
         if (config.getClientCacheSize() > 0) {
