@@ -36,7 +36,7 @@ repositories](https://help.github.com/post-receive-hooks/). This trigger
 only kicks git-plugin internal polling algo for every incoming event
 against matched repo.
 
-> This plugin was previously named as "Build when a change is pushed to GitHub"
+> This trigger was previously named as "Build when a change is pushed to GitHub"
 
 ## Usage
 
@@ -103,8 +103,8 @@ only credentials that matched by predefined domains.
 ![](/docs/images/secret-text.png)
 
 **Step 3.** Once that configuration is done, go to the project config of
-each job you want triggered automatically and simply check "Build when a
-change is pushed to GitHub" under "Build Triggers". With this, every new
+each job you want triggered automatically and simply check "GitHub hook trigger for GITScm polling" 
+under "Build Triggers". With this, every new
 push to the repository automatically triggers a new build.
 
 Note that there's only one URL and it receives all post-receive POSTs
