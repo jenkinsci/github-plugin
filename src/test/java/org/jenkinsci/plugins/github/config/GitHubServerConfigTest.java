@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import java.net.URI;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.GITHUB_URL;
@@ -75,7 +74,7 @@ public class GitHubServerConfigTest {
         GitHubServerConfig input = new GitHubServerConfig("");
         input.setApiUrl(CUSTOM_GH_SERVER);
         assertThat(input.getName(), is(nullValue()));
-        assertThat(input.getDisplayName(), containsString("http://some.com"));
+        assertThat(input.getDisplayName(), is("some (http://some.com)"));
     }
 
     @Test
