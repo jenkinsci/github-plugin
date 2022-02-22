@@ -108,7 +108,7 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
      */
     private OkHttpConnector connector(GitHubServerConfig config) {
         OkHttpClient.Builder builder = BASECLIENT.newBuilder()
-            .proxy(getProxy(defaultIfBlank(config.getApiUrl(), GITHUB_URL)))
+            .proxy(getProxy(defaultIfBlank(config.getApiUrl(), GITHUB_URL)));
 
 
         if (config.getClientCacheSize() > 0) {
