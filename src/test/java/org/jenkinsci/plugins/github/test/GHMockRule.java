@@ -12,7 +12,6 @@ import org.junit.runners.model.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import wiremock.org.eclipse.jetty.http.HttpStatus;
 
 import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -21,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static java.lang.String.format;
+import static java.net.HttpURLConnection.HTTP_CREATED;
 
 /**
  * Mocks GitHub on localhost with some predefined methods
@@ -133,7 +133,7 @@ public class GHMockRule implements TestRule {
                 service().stubFor(
                         post(urlPathMatching(
                                 format("/repos/%s/%s/statuses/.*", REPO.getUserName(), REPO.getRepositoryName()))
-                        ).willReturn(aResponse().withStatus(HttpStatus.CREATED_201)));
+                        ).willReturn(aResponse().withStatus(HTTP_CREATED)));
             }
         });
     }
