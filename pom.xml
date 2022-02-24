@@ -229,48 +229,9 @@
         <!--to mock github-->
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock</artifactId>
-            <version>1.57</version>
+            <artifactId>wiremock-jre8-standalone</artifactId>
+            <version>2.32.0</version>
             <scope>test</scope>
-            <classifier>standalone</classifier>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.eclipse.jetty</groupId>
-                    <artifactId>jetty</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.httpcomponents</groupId>
-                    <artifactId>httpclient</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>xmlunit</groupId>
-                    <artifactId>xmlunit</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.jayway.jsonpath</groupId>
-                    <artifactId>json-path</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>net.sf.jopt-simple</groupId>
-                    <artifactId>jopt-simple</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-annotations</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-databind</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>

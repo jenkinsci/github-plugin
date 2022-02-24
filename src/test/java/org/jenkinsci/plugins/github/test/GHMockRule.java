@@ -4,7 +4,6 @@ import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import hudson.model.Item;
-import hudson.model.Job;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -13,6 +12,7 @@ import org.junit.runners.model.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import wiremock.org.eclipse.jetty.http.HttpStatus;
 
 import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -21,7 +21,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static java.lang.String.format;
-import static wiremock.org.mortbay.jetty.HttpStatus.ORDINAL_201_Created;
 
 /**
  * Mocks GitHub on localhost with some predefined methods
@@ -134,7 +133,7 @@ public class GHMockRule implements TestRule {
                 service().stubFor(
                         post(urlPathMatching(
                                 format("/repos/%s/%s/statuses/.*", REPO.getUserName(), REPO.getRepositoryName()))
-                        ).willReturn(aResponse().withStatus(ORDINAL_201_Created)));
+                        ).willReturn(aResponse().withStatus(HttpStatus.CREATED_201)));
             }
         });
     }
