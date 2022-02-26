@@ -6,7 +6,7 @@ import hudson.init.Initializer;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.migration.Migrator;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -49,7 +49,7 @@ public class GitHubPlugin extends Plugin {
      *
      * @return configuration of plugin
      */
-    @Nonnull
+    @NonNull
     public static GitHubPluginConfig configuration() {
         return defaultIfNull(
                 GitHubPluginConfig.all().get(GitHubPluginConfig.class),

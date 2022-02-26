@@ -11,7 +11,7 @@ import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,11 +35,11 @@ public class ManuallyEnteredRepositorySource extends GitHubReposSource {
     }
 
     @Override
-    public List<GHRepository> repos(@Nonnull Run<?, ?> run, @Nonnull final TaskListener listener) {
+    public List<GHRepository> repos(@NonNull Run<?, ?> run, @NonNull final TaskListener listener) {
         List<String> urls = Collections.singletonList(url);
         return from(urls).transformAndConcat(new NullSafeFunction<String, Iterable<GHRepository>>() {
             @Override
-            protected Iterable<GHRepository> applyNullSafe(@Nonnull String url) {
+            protected Iterable<GHRepository> applyNullSafe(@NonNull String url) {
                 GitHubRepositoryName name = createName(url);
                 if (name != null) {
                     return name.resolve();

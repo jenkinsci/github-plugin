@@ -25,7 +25,7 @@ import org.kohsuke.stapler.Stapler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.net.URL;
 import java.util.List;
 
@@ -116,7 +116,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
      */
     @SuppressWarnings("unused")
     @RequirePostWithGHHookPayload
-    public void doIndex(@Nonnull @GHEventHeader GHEvent event, @Nonnull @GHEventPayload String payload) {
+    public void doIndex(@NonNull @GHEventHeader GHEvent event, @NonNull @GHEventPayload String payload) {
         GHSubscriberEvent subscriberEvent =
                 new GHSubscriberEvent(SCMEvent.originOf(Stapler.getCurrentRequest()), event, payload);
         from(GHEventsSubscriber.all())
@@ -149,7 +149,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
         return Jenkins.getInstance().getExtensionList(RootAction.class).get(GitHubWebHook.class);
     }
 
-    @Nonnull
+    @NonNull
     public static Jenkins getJenkinsInstance() throws IllegalStateException {
         Jenkins instance = Jenkins.getInstance();
         Validate.validState(instance != null, "Jenkins has not been started, or was already shut down");

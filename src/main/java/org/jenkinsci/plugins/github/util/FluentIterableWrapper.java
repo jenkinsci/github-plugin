@@ -26,9 +26,10 @@ import com.google.common.collect.Lists;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import javax.annotation.CheckReturnValue;
 import java.util.Iterator;
 import java.util.List;
+
+import edu.umd.cs.findbugs.annotations.CheckReturnValue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

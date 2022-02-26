@@ -9,7 +9,7 @@ import org.jenkinsci.plugins.github.extension.status.GitHubCommitShaSource;
 import org.jenkinsci.plugins.github.util.BuildDataHelper;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.io.IOException;
 
 /**
@@ -28,7 +28,7 @@ public class BuildDataRevisionShaSource extends GitHubCommitShaSource {
      * @return sha from git's scm build data action
      */
     @Override
-    public String get(@Nonnull Run<?, ?> run, @Nonnull TaskListener listener) throws IOException {
+    public String get(@NonNull Run<?, ?> run, @NonNull TaskListener listener) throws IOException {
         return ObjectId.toString(BuildDataHelper.getCommitSHA1(run));
     }
 

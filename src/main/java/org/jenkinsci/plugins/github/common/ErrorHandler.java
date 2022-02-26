@@ -3,7 +3,7 @@ package org.jenkinsci.plugins.github.common;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * So you can implement bunch of {@link ErrorHandler}s and log, rethrow, ignore exception.
@@ -26,5 +26,5 @@ public interface ErrorHandler {
      * @return true if exception handled successfully
      * @throws Exception you can rethrow exception of any type
      */
-    boolean handle(Exception e, @Nonnull Run<?, ?> run, @Nonnull TaskListener listener) throws Exception;
+    boolean handle(Exception e, @NonNull Run<?, ?> run, @NonNull TaskListener listener) throws Exception;
 }

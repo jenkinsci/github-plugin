@@ -13,7 +13,7 @@ import hudson.triggers.TriggerDescriptor;
 import jenkins.model.ParameterizedJobMixIn;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 
-import javax.annotation.CheckForNull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import java.util.Collection;
 import java.util.Map;
 

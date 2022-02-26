@@ -20,7 +20,7 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -166,7 +166,7 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
     @ValidateRepoName
     @RequireAdminRights
     @RespondWithRedirect
-    public void doIgnore(@Nonnull @GHRepoName GitHubRepositoryName repo) {
+    public void doIgnore(@NonNull @GHRepoName GitHubRepositoryName repo) {
         if (!ignored.contains(repo)) {
             ignored.add(repo);
         }
@@ -183,7 +183,7 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
     @ValidateRepoName
     @RequireAdminRights
     @RespondWithRedirect
-    public void doDisignore(@Nonnull @GHRepoName GitHubRepositoryName repo) {
+    public void doDisignore(@NonNull @GHRepoName GitHubRepositoryName repo) {
         ignored.remove(repo);
     }
 

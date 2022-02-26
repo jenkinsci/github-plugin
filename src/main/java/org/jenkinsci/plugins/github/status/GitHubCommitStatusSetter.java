@@ -28,7 +28,7 @@ import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -129,8 +129,8 @@ public class GitHubCommitStatusSetter extends Notifier implements SimpleBuildSte
      * Gets info from the providers and updates commit status
      */
     @Override
-    public void perform(@Nonnull Run<?, ?> run, @Nonnull FilePath workspace, @Nonnull Launcher launcher,
-                        @Nonnull TaskListener listener) {
+    public void perform(@NonNull Run<?, ?> run, @NonNull FilePath workspace, @NonNull Launcher launcher,
+                        @NonNull TaskListener listener) {
         try {
             String sha = getCommitShaSource().get(run, listener);
             List<GHRepository> repos = getReposSource().repos(run, listener);

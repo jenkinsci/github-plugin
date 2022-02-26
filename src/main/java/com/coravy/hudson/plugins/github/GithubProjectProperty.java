@@ -11,8 +11,8 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.jenkinsci.Symbol;
 import java.util.logging.Logger;
 
@@ -89,7 +89,7 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
      * @return display name or full job name if field is not defined
      * @since 1.14.1
      */
-    public static String displayNameFor(@Nonnull Job<?, ?> job) {
+    public static String displayNameFor(@NonNull Job<?, ?> job) {
         GithubProjectProperty ghProp = job.getProperty(GithubProjectProperty.class);
         if (ghProp != null && isNotBlank(ghProp.getDisplayName())) {
             return ghProp.getDisplayName();
@@ -116,7 +116,7 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
         }
 
         @Override
-        public JobProperty<?> newInstance(@Nonnull StaplerRequest req,
+        public JobProperty<?> newInstance(@NonNull StaplerRequest req,
                                           JSONObject formData) throws Descriptor.FormException {
 
             GithubProjectProperty tpp = req.bindJSON(

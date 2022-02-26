@@ -2,7 +2,7 @@ package org.jenkinsci.plugins.github.util.misc;
 
 import com.google.common.base.Predicate;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -22,5 +22,5 @@ public abstract class NullSafePredicate<T> implements Predicate<T> {
     /**
      * This method will be called inside of {@link #apply(Object)}
      */
-    protected abstract boolean applyNullSafe(@Nonnull T input);
+    protected abstract boolean applyNullSafe(@NonNull T input);
 }

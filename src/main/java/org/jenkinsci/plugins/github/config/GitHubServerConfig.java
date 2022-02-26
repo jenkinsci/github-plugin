@@ -7,6 +7,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.Util;
@@ -21,8 +22,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 import jenkins.model.Jenkins;
 import jenkins.scm.api.SCMName;
 import org.apache.commons.lang3.StringUtils;
@@ -268,7 +267,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      *
      * @return token from creds or default non empty string
      */
-    @Nonnull
+    @NonNull
     public static String tokenFor(String credentialsId) {
         return secretFor(credentialsId).or(new Supplier<Secret>() {
             @Override
@@ -285,7 +284,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      *
      * @return secret from creds or empty optional
      */
-    @Nonnull
+    @NonNull
     public static Optional<Secret> secretFor(String credentialsId) {
         List<StringCredentials> creds = filter(
                 lookupCredentials(StringCredentials.class,
@@ -297,7 +296,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
         return FluentIterableWrapper.from(creds)
                 .transform(new NullSafeFunction<StringCredentials, Secret>() {
                     @Override
-                    protected Secret applyNullSafe(@Nonnull StringCredentials input) {
+                    protected Secret applyNullSafe(@NonNull StringCredentials input) {
                         return input.getSecret();
                     }
                 }).first();
@@ -318,7 +317,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     public static Predicate<GitHubServerConfig> withHost(final String host) {
         return new NullSafePredicate<GitHubServerConfig>() {
             @Override
-            protected boolean applyNullSafe(@Nonnull GitHubServerConfig github) {
+            protected boolean applyNullSafe(@NonNull GitHubServerConfig github) {
                 return defaultIfEmpty(github.getApiUrl(), GITHUB_URL).contains(host);
             }
         };
@@ -413,7 +412,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      */
     private static class ClientCacheFunction extends NullSafeFunction<GitHubServerConfig, GitHub> {
         @Override
-        protected GitHub applyNullSafe(@Nonnull GitHubServerConfig github) {
+        protected GitHub applyNullSafe(@NonNull GitHubServerConfig github) {
             if (github.getCachedClient() == null) {
                 github.setCachedClient(new GitHubLoginFunction().apply(github));
             }
