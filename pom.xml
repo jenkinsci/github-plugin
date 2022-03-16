@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.33</version>
+        <version>4.37</version>
         <relativePath />
     </parent>
 
@@ -50,7 +50,7 @@
         <revision>1.34.4</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/github-plugin</gitHubRepo>
-        <jenkins.version>2.277.1</jenkins.version>
+        <jenkins.version>2.332.1</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <maven.javadoc.skip>true</maven.javadoc.skip>
         <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
@@ -82,7 +82,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.11</version>
+            <version>3.12.0</version>
         </dependency>
         <dependency>
             <groupId>io.jenkins.plugins</groupId>
@@ -198,19 +198,19 @@
             <groupId>io.jenkins.configuration-as-code</groupId>
             <artifactId>test-harness</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <!-- TODO: RequireUpperBoundDeps with com.squareup.okio:okio:2.10.0 -->
+                    <groupId>org.jetbrains</groupId>
+                    <artifactId>annotations</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-cps</artifactId>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <!-- TODO: Remove this exclusion after upgrading to a more recent workflow-* versions -->
-                    <groupId>org.jenkins-ci.ui</groupId>
-                    <artifactId>jquery-detached</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
@@ -252,8 +252,8 @@
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.277.x</artifactId>
-                <version>984.vb5eaac999a7e</version>
+                <artifactId>bom-2.332.x</artifactId>
+                <version>1181.v04b_21d4b_0d6c</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
