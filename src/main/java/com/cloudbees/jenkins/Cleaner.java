@@ -34,7 +34,7 @@ public class Cleaner extends PeriodicWork {
      * This queue is thread-safe, so any thread can write or
      * fetch names to this queue without additional sync
      */
-    private final Queue<GitHubRepositoryName> cleanQueue = new ConcurrentLinkedQueue<GitHubRepositoryName>();
+    private final Queue<GitHubRepositoryName> cleanQueue = new ConcurrentLinkedQueue<>();
 
     /**
      * Called when a {@link GitHubPushTrigger} is about to be removed.
@@ -61,8 +61,7 @@ public class Cleaner extends PeriodicWork {
 
         URL url = GitHubPlugin.configuration().getHookUrl();
 
-        List<Item> items = Jenkins.getInstance().getAllItems(Item.class);
-        List<GitHubRepositoryName> aliveRepos = from(items)
+        List<GitHubRepositoryName> aliveRepos = from(Jenkins.get().allItems(Item.class))
                 .filter(isAlive())  // live repos
                 .transformAndConcat(associatedNames()).toList();
 
