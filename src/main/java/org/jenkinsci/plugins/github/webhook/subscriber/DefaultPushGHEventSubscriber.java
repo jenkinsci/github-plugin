@@ -36,6 +36,7 @@ import static org.kohsuke.github.GHEvent.PUSH;
  */
 @Extension
 @SuppressWarnings("unused")
+@SuppressWarnings("deprecation")
 public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPushGHEventSubscriber.class);
 
@@ -92,7 +93,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
         }
 
         final GitHubRepositoryName changedRepository = fromEventRepository;
-
+        LOGGER.info("changedRepository: " + changedRepository.toString());
         if (changedRepository != null) {
             // run in high privilege to see all the projects anonymous users don't see.
             // this is safe because when we actually schedule a build, it's a build that can
@@ -117,6 +118,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                             } else {
                                 LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
                                         fullDisplayName);
+                                LOGGER.debug(GitHubRepositoryNameContributor.parseAssociatedNames(job).toString());
                             }
                         }
                     }
