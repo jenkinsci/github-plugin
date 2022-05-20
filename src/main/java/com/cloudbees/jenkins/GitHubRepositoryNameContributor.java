@@ -112,9 +112,11 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
 
     public static Collection<GitHubRepositoryName> parseAssociatedNames(Item item) {
         Set<GitHubRepositoryName> names = new HashSet<GitHubRepositoryName>();
+        LOGGER.debug("names before: " + names.toString());
         for (GitHubRepositoryNameContributor c : all()) {
             c.parseAssociatedNames(item, names);
         }
+        LOGGER.debug("names after: " + names.toString());
         return names;
     }
 
