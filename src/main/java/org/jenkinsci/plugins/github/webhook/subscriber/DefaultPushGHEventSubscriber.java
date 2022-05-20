@@ -36,7 +36,7 @@ import static org.kohsuke.github.GHEvent.PUSH;
  */
 @Extension
 @SuppressWarnings("unused")
-@SuppressWarnings("deprecation")
+
 public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPushGHEventSubscriber.class);
 
