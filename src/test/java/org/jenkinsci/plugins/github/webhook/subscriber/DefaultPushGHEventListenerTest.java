@@ -3,7 +3,10 @@ package org.jenkinsci.plugins.github.webhook.subscriber;
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
 import com.cloudbees.jenkins.GitHubTriggerEvent;
+import com.cloudbees.jenkins.GitHubWebHook;
+
 import hudson.ExtensionList;
+import hudson.model.EnvironmentContributor;
 import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.plugins.git.GitSCM;
@@ -75,14 +78,31 @@ public class DefaultPushGHEventListenerTest {
         Jenkins jenkins = mock(Jenkins.class);
         when(jenkins.getAllItems(Item.class)).thenReturn(Collections.singletonList(prj));
 
-        ExtensionList<GitHubRepositoryNameContributor> extensionList = mock(ExtensionList.class);
-        List<GitHubRepositoryNameContributor> gitHubRepositoryNameContributorList =
+        {
+            ExtensionList<GitHubRepositoryNameContributor> extensionList = mock(ExtensionList.class);
+            List<GitHubRepositoryNameContributor> gitHubRepositoryNameContributorList =
                 Collections.singletonList(new GitHubRepositoryNameContributor.FromSCM());
-        when(extensionList.iterator()).thenReturn(gitHubRepositoryNameContributorList.iterator());
-        when(jenkins.getExtensionList(GitHubRepositoryNameContributor.class)).thenReturn(extensionList);
+            when(extensionList.iterator()).thenReturn(gitHubRepositoryNameContributorList.iterator());
+            when(jenkins.getExtensionList(GitHubRepositoryNameContributor.class)).thenReturn(extensionList);
+        }
+
+        {
+            ExtensionList<EnvironmentContributor> extensionList = mock(ExtensionList.class);
+            List<EnvironmentContributor> environmentContributorList = Collections.emptyList();
+            when(extensionList.iterator()).thenReturn(environmentContributorList.iterator());
+            when(jenkins.getExtensionList(EnvironmentContributor.class)).thenReturn(extensionList);
+        }
+
+        {
+            ExtensionList<GitHubWebHook.Listener> extensionList = mock(ExtensionList.class);
+            List<GitHubWebHook.Listener> listenerList = Collections.emptyList();
+            when(extensionList.iterator()).thenReturn(listenerList.iterator());
+            when(jenkins.getExtensionList(GitHubWebHook.Listener.class)).thenReturn(extensionList);
+        }
 
         try (MockedStatic<Jenkins> mockedJenkins = mockStatic(Jenkins.class)) {
             mockedJenkins.when(Jenkins::getInstance).thenReturn(jenkins);
+            mockedJenkins.when(Jenkins::getInstanceOrNull).thenReturn(jenkins);
             new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
         }
 
