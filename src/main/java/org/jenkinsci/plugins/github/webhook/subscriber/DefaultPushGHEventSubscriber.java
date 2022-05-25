@@ -22,6 +22,7 @@ import org.kohsuke.github.GitHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.immutableEnumSet;
@@ -66,6 +67,9 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      * @param event   only PUSH event
      */
     @Override
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+        value = "SIC_INNER_SHOULD_BE_STATIC_ANON", justification = "anonymous inner class is acceptable"
+    )
     protected void onEvent(final GHSubscriberEvent event) {
         GHEventPayload.Push push;
         try {
@@ -77,7 +81,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
         URL repoUrl = push.getRepository().getUrl();
         final String pusherName = push.getPusher().getName();
         final String ref = push.getRef();
-        LOGGER.info("Received PushEvent for {} from {}", repoUrl, event.getOrigin());
+        LOGGER.info("Received PushEvent for {} {} from {}", repoUrl, ref, event.getOrigin());
         GitHubRepositoryName fromEventRepository = GitHubRepositoryName.create(repoUrl.toExternalForm());
 
         if (fromEventRepository == null) {
@@ -94,12 +98,8 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
         }
 
         final GitHubRepositoryName changedRepository = fromEventRepository;
-
         if (changedRepository != null) {
-            // run in high privilege to see all the projects anonymous users don't see.
-            // this is safe because when we actually schedule a build, it's a build that can
-            // happen at some random time anyway.
-            Runnable body = new Runnable() {
+            final Runnable body = new Runnable() {
                 @Override
                 public void run() {
                     Jenkins j = Jenkins.getInstanceOrNull();
@@ -114,32 +114,48 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                         }
                         String fullDisplayName = job.getFullDisplayName();
                         LOGGER.debug("Considering to poke {}", fullDisplayName);
-                        if (!GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
-                            LOGGER.debug("Skipped {} because it doesn't have a matching repository.", fullDisplayName);
+                        final Collection<GitHubRepositoryName> names =
+                            GitHubRepositoryNameContributor.parseAssociatedNames(job);
+                        if (!names.contains(changedRepository)) {
+                            LOGGER.debug(
+                                "Skipped {} because {} doesn't have a matching repository for {}.",
+                                fullDisplayName, names, changedRepository);
                             continue;
                         }
-                        boolean foundBranch = false;
-                        for (GitHubBranch branch : GitHubRepositoryNameContributor.parseAssociatedBranches(job)) {
-                            if (branch.matches(changedRepository, ref)) {
-                                foundBranch = true;
-                                break;
+                        try {
+                            final Collection<GitHubBranch> branchSpecs =
+                                GitHubRepositoryNameContributor.parseAssociatedBranches(job);
+                            if (!branchSpecs.isEmpty()) {
+                                boolean foundBranch = false;
+                                for (GitHubBranch branch : branchSpecs) {
+                                    if (branch.matches(changedRepository, ref)) {
+                                        foundBranch = true;
+                                        break;
+                                    }
+                                }
+                                if (!foundBranch) {
+                                    LOGGER.debug("Skipped {} because it doesn't have a matching branch specifier.",
+                                        job.getFullDisplayName());
+                                    continue;
+                                }
                             }
-                        }
-                        if (!foundBranch) {
-                            LOGGER.debug("Skipped {} because it doesn't have a matching branch specifier.",
-                                job.getFullDisplayName());
-                            continue;
+                        } catch (Exception e) {
+                            LOGGER.error("parseAssociatedBranches threw exception", e);
                         }
                         LOGGER.info("Poked {}", fullDisplayName);
                         trigger.onPost(GitHubTriggerEvent.create()
                                 .withTimestamp(event.getTimestamp())
                                 .withOrigin(event.getOrigin())
                                 .withTriggeredByUser(pusherName)
+                                .withTriggeredByRef(ref)
                                 .build()
                         );
                     }
                 }
             };
+            // run in high privilege to see all the projects anonymous users don't see.
+            // this is safe because when we actually schedule a build, it's a build that can
+            // happen at some random time anyway.
             ACL.impersonate(ACL.SYSTEM, body);
 
             for (GitHubWebHook.Listener listener : ExtensionList.lookup(GitHubWebHook.Listener.class)) {

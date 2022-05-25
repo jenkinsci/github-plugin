@@ -42,6 +42,7 @@ public class DefaultPushGHEventListenerTest {
 
     public static final GitSCM GIT_SCM_FROM_RESOURCE = new GitSCM("ssh://git@github.com/lanwen/test.git");
     public static final String TRIGGERED_BY_USER_FROM_RESOURCE = "lanwen";
+    public static final String TRIGGERED_BY_REF_FROM_RESOURCE = "refs/heads/master";    
 
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
@@ -110,6 +111,7 @@ public class DefaultPushGHEventListenerTest {
                 .withTimestamp(subscriberEvent.getTimestamp())
                 .withOrigin("shouldParsePushPayload")
                 .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
+                .withTriggeredByRef(TRIGGERED_BY_REF_FROM_RESOURCE)
                 .build()
         ));
     }
@@ -133,6 +135,7 @@ public class DefaultPushGHEventListenerTest {
                 .withTimestamp(subscriberEvent.getTimestamp())
                 .withOrigin("shouldReceivePushHookOnWorkflow")
                 .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
+                .withTriggeredByRef(TRIGGERED_BY_REF_FROM_RESOURCE)
                 .build()
         ));
     }

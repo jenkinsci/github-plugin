@@ -84,10 +84,11 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     /**
      * Called when a POST is made.
      */
-    public void onPost(String triggeredByUser) {
+    public void onPost(String triggeredByUser, String triggeredByRef) {
         onPost(GitHubTriggerEvent.create()
                 .withOrigin(SCMEvent.originOf(Stapler.getCurrentRequest2()))
                 .withTriggeredByUser(triggeredByUser)
+                .withTriggeredByRef(triggeredByRef)
                 .build()
         );
     }
@@ -103,6 +104,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         Job<?, ?> currentJob = notNull(job, "Job can't be null");
 
         final String pushBy = event.getTriggeredByUser();
+        final String ref = event.getTriggeredByRef();
         DescriptorImpl d = getDescriptor();
         d.checkThreadPoolSizeAndUpdateIfNecessary();
         d.queue.execute(new Runnable() {
@@ -151,10 +153,10 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                 if (runPolling()) {
                     GitHubPushCause cause;
                     try {
-                        cause = new GitHubPushCause(getLogFileForJob(currentJob), pushBy);
+                        cause = new GitHubPushCause(getLogFileForJob(currentJob), pushBy, ref);
                     } catch (IOException e) {
                         LOGGER.warn("Failed to parse the polling log", e);
-                        cause = new GitHubPushCause(pushBy);
+                        cause = new GitHubPushCause(pushBy, ref);
                     }
 
                     if (asParameterizedJobMixIn(currentJob).scheduleBuild(cause)) {

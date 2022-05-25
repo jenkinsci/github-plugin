@@ -22,11 +22,16 @@ public class GitHubTriggerEvent {
      * The user that the event was provided by.
      */
     private final String triggeredByUser;
+    /**
+     * The target ref that the push event was for.
+     */
+    private final String triggeredByRef;
 
-    private GitHubTriggerEvent(long timestamp, String origin, String triggeredByUser) {
+    private GitHubTriggerEvent(long timestamp, String origin, String triggeredByUser, String triggeredByRef) {
         this.timestamp = timestamp;
         this.origin = origin;
         this.triggeredByUser = triggeredByUser;
+        this.triggeredByRef = triggeredByRef;
     }
 
     public static Builder create() {
@@ -43,6 +48,10 @@ public class GitHubTriggerEvent {
 
     public String getTriggeredByUser() {
         return triggeredByUser;
+    }
+
+    public String getTriggeredByRef() {
+        return triggeredByRef;
     }
 
     @Override
@@ -62,7 +71,10 @@ public class GitHubTriggerEvent {
         if (origin != null ? !origin.equals(that.origin) : that.origin != null) {
             return false;
         }
-        return triggeredByUser != null ? triggeredByUser.equals(that.triggeredByUser) : that.triggeredByUser == null;
+        if (triggeredByUser != null ? !triggeredByUser.equals(that.triggeredByUser) : that.triggeredByUser != null) {
+            return false;
+        }
+        return triggeredByRef != null ? triggeredByRef.equals(that.triggeredByRef) : that.triggeredByRef == null;
     }
 
     @Override
@@ -70,6 +82,7 @@ public class GitHubTriggerEvent {
         int result = (int) (timestamp ^ (timestamp >>> 32));
         result = 31 * result + (origin != null ? origin.hashCode() : 0);
         result = 31 * result + (triggeredByUser != null ? triggeredByUser.hashCode() : 0);
+        result = 31 * result + (triggeredByRef != null ? triggeredByRef.hashCode() : 0);
         return result;
     }
 
@@ -79,6 +92,7 @@ public class GitHubTriggerEvent {
                 + "timestamp=" + timestamp
                 + ", origin='" + origin + '\''
                 + ", triggeredByUser='" + triggeredByUser + '\''
+                + ", triggeredByRef='" + triggeredByRef + '\''
                 + '}';
     }
 
@@ -89,6 +103,7 @@ public class GitHubTriggerEvent {
         private long timestamp;
         private String origin;
         private String triggeredByUser;
+        private String triggeredByRef;
 
         private Builder() {
             timestamp = System.currentTimeMillis();
@@ -109,8 +124,13 @@ public class GitHubTriggerEvent {
             return this;
         }
 
+        public Builder withTriggeredByRef(String triggeredByRef) {
+            this.triggeredByRef = triggeredByRef;
+            return this;
+        }
+
         public GitHubTriggerEvent build() {
-            return new GitHubTriggerEvent(timestamp, origin, triggeredByUser);
+            return new GitHubTriggerEvent(timestamp, origin, triggeredByUser, triggeredByRef);
         }
 
         @Override
@@ -119,6 +139,7 @@ public class GitHubTriggerEvent {
                     + "timestamp=" + timestamp
                     + ", origin='" + origin + '\''
                     + ", triggeredByUser='" + triggeredByUser + '\''
+                    + ", triggeredByRef='" + triggeredByRef + '\''
                     + '}';
         }
     }
