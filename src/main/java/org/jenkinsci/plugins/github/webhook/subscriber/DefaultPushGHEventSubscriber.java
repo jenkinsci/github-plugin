@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.webhook.subscriber;
 
+import com.cloudbees.jenkins.GitHubBranch;
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
@@ -75,6 +76,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
         }
         URL repoUrl = push.getRepository().getUrl();
         final String pusherName = push.getPusher().getName();
+        final String ref = push.getRef();
         LOGGER.info("Received PushEvent for {} from {}", repoUrl, event.getOrigin());
         GitHubRepositoryName fromEventRepository = GitHubRepositoryName.create(repoUrl.toExternalForm());
 
@@ -97,31 +99,48 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
             // run in high privilege to see all the projects anonymous users don't see.
             // this is safe because when we actually schedule a build, it's a build that can
             // happen at some random time anyway.
-            ACL.impersonate(ACL.SYSTEM, new Runnable() {
+            Runnable body = new Runnable() {
                 @Override
                 public void run() {
-                    for (Item job : Jenkins.getInstance().getAllItems(Item.class)) {
+                    Jenkins j = Jenkins.getInstanceOrNull();
+                    if (j == null) {
+                        return;
+                    }
+
+                    for (Item job : j.getAllItems(Item.class)) {
                         GitHubPushTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
-                        if (trigger != null) {
-                            String fullDisplayName = job.getFullDisplayName();
-                            LOGGER.debug("Considering to poke {}", fullDisplayName);
-                            if (GitHubRepositoryNameContributor.parseAssociatedNames(job)
-                                    .contains(changedRepository)) {
-                                LOGGER.info("Poked {}", fullDisplayName);
-                                trigger.onPost(GitHubTriggerEvent.create()
-                                        .withTimestamp(event.getTimestamp())
-                                        .withOrigin(event.getOrigin())
-                                        .withTriggeredByUser(pusherName)
-                                        .build()
-                                );
-                            } else {
-                                LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
-                                        fullDisplayName);
+                        if (trigger == null) {
+                            continue;
+                        }
+                        String fullDisplayName = job.getFullDisplayName();
+                        LOGGER.debug("Considering to poke {}", fullDisplayName);
+                        if (!GitHubRepositoryNameContributor.parseAssociatedNames(job).contains(changedRepository)) {
+                            LOGGER.debug("Skipped {} because it doesn't have a matching repository.", fullDisplayName);
+                            continue;
+                        }
+                        boolean foundBranch = false;
+                        for (GitHubBranch branch : GitHubRepositoryNameContributor.parseAssociatedBranches(job)) {
+                            if (branch.matches(changedRepository, ref)) {
+                                foundBranch = true;
+                                break;
                             }
                         }
+                        if (!foundBranch) {
+                            LOGGER.debug("Skipped {} because it doesn't have a matching branch specifier.",
+                                job.getFullDisplayName());
+                            continue;
+                        }
+                        LOGGER.info("Poked {}", fullDisplayName);
+                        trigger.onPost(GitHubTriggerEvent.create()
+                                .withTimestamp(event.getTimestamp())
+                                .withOrigin(event.getOrigin())
+                                .withTriggeredByUser(pusherName)
+                                .build()
+                        );
                     }
                 }
-            });
+            };
+            ACL.impersonate(ACL.SYSTEM, body);
 
             for (GitHubWebHook.Listener listener : ExtensionList.lookup(GitHubWebHook.Listener.class)) {
                 listener.onPushRepositoryChanged(pusherName, changedRepository);

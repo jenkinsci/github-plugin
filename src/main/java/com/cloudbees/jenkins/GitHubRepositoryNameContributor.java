@@ -10,6 +10,7 @@ import hudson.model.EnvironmentContributor;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.TaskListener;
+import hudson.plugins.git.BranchSpec;
 import hudson.plugins.git.GitSCM;
 import hudson.scm.SCM;
 import jenkins.model.Jenkins;
@@ -90,6 +91,38 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
         }
     }
 
+    /**
+     * Looks at the definition of {@link Item} and list up its branches, then puts them into
+     * the collection.
+     */
+    public /*abstract*/ void parseAssociatedBranches(Item item, Collection<GitHubBranch> result) {
+        if (Util.isOverridden(
+                GitHubRepositoryNameContributor.class,
+                getClass(),
+                "parseAssociatedBranches",
+                Job.class,
+                Collection.class
+        )) {
+            // if this impl is legacy, it cannot contribute to non-jobs, so not an error
+            if (item instanceof Job) {
+                parseAssociatedBranches((Job<?, ?>) item, result);
+            }
+        } else  if (Util.isOverridden(
+                GitHubRepositoryNameContributor.class,
+                getClass(),
+                "parseAssociatedBranches",
+                AbstractProject.class,
+            Collection.class
+        )) {
+            // if this impl is legacy, it cannot contribute to non-projects, so not an error
+            if (item instanceof AbstractProject) {
+                parseAssociatedBranches((AbstractProject<?, ?>) item, result);
+            }
+        } else {
+            throw new AbstractMethodError("you must override the new overload of parseAssociatedBranches");
+        }
+    };
+
     public static ExtensionList<GitHubRepositoryNameContributor> all() {
         return Jenkins.getInstance().getExtensionList(GitHubRepositoryNameContributor.class);
     }
@@ -118,6 +151,14 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
         return names;
     }
 
+    public static Collection<GitHubBranch> parseAssociatedBranches(Item item) {
+        Set<GitHubBranch> names = new HashSet<GitHubBranch>();
+        for (GitHubRepositoryNameContributor c : all()) {
+            c.parseAssociatedBranches(item, names);
+        }
+        return names;
+    }
+
     /**
      * Default implementation that looks at SCMs
      */
@@ -130,6 +171,16 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
             if (triggerItem != null) {
                 for (SCM scm : triggerItem.getSCMs()) {
                     addRepositories(scm, envVars, result);
+                }
+            }
+        }
+
+        @Override
+        public void parseAssociatedBranches(Item item, Collection<GitHubBranch> result) {
+            SCMTriggerItem triggerItem = SCMTriggerItems.asSCMTriggerItem(item);
+            if (triggerItem != null) {
+                for (SCM scm : triggerItem.getSCMs()) {
+                    addBranches(scm, result);
                 }
             }
         }
@@ -156,6 +207,18 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
                         if (repo != null) {
                             r.add(repo);
                         }
+                    }
+                }
+            }
+        }
+
+        protected static void addBranches(SCM scm, Collection<GitHubBranch> r) {
+            if (scm instanceof GitSCM) {
+                GitSCM git = (GitSCM) scm;
+                for (BranchSpec branch : git.getBranches()) {
+                    GitHubBranch gitHubBranch = GitHubBranch.create(branch);
+                    if (gitHubBranch != null) {
+                        r.add(gitHubBranch);
                     }
                 }
             }

@@ -195,6 +195,14 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         return Collections.emptySet();
     }
 
+    /**
+     * @deprecated
+     *      Use {@link GitHubRepositoryNameContributor#parseAssociatedBranches(AbstractProject)}
+     */
+    public Set<GitHubBranch> getGitHubBranches() {
+        return Collections.emptySet();
+    }
+
     @Override
     public void start(Job<?, ?> project, boolean newInstance) {
         super.start(project, newInstance);
