@@ -112,7 +112,7 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
                 getClass(),
                 "parseAssociatedBranches",
                 AbstractProject.class,
-            Collection.class
+                Collection.class
         )) {
             // if this impl is legacy, it cannot contribute to non-projects, so not an error
             if (item instanceof AbstractProject) {
@@ -149,6 +149,22 @@ public abstract class GitHubRepositoryNameContributor implements ExtensionPoint 
             c.parseAssociatedNames(item, names);
         }
         return names;
+    }
+
+    /**
+     * @deprecated Use {@link #parseAssociatedBranches(Job)}
+     */
+    @Deprecated
+    public static Collection<GitHubBranch> parseAssociatedBranches(AbstractProject<?, ?> job) {
+        return parseAssociatedBranches((Item) job);
+    }
+
+    /**
+     * @deprecated Use {@link #parseAssociatedBranches(Item)}
+     */
+    @Deprecated
+    public static Collection<GitHubBranch> parseAssociatedBranches(Job<?, ?> job) {
+        return parseAssociatedBranches((Item) job);
     }
 
     public static Collection<GitHubBranch> parseAssociatedBranches(Item item) {
