@@ -236,7 +236,7 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
         public String getIconFileName() {
             return monitor.getProblems().isEmpty() && monitor.ignored.isEmpty()
                     ? null
-                    : "/plugin/github/img/logo.svg";
+                    : "symbol-logo-github plugin-github";
         }
 
         @Override
