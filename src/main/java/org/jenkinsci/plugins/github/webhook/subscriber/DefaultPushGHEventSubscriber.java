@@ -134,7 +134,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                                     }
                                 }
                                 if (!foundBranch) {
-                                    LOGGER.debug("Skipped {} because it doesn't have a matching branch specifier.",
+                                    LOGGER.info("Skipped {} because it doesn't have a matching branch specifier.",
                                         job.getFullDisplayName());
                                     continue;
                                 }
