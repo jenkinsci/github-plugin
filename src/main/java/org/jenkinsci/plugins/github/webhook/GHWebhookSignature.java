@@ -2,12 +2,13 @@ package org.jenkinsci.plugins.github.webhook;
 
 import hudson.util.Secret;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+
+import java.security.MessageDigest;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -71,6 +72,12 @@ public class GHWebhookSignature {
     public boolean matches(String digest) {
         String computed = sha1();
         LOGGER.trace("Signature: calculated={} provided={}", computed, digest);
-        return StringUtils.equals(computed, digest);
+        if (digest == null && computed == null) {
+            return true;
+        } else if (digest == null || computed == null) {
+            return false;
+        } else {
+            return MessageDigest.isEqual(computed.getBytes(UTF_8), digest.getBytes(UTF_8));
+        }
     }
 }
