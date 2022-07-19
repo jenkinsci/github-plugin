@@ -11,7 +11,7 @@
 
     <groupId>com.coravy.hudson.plugins.github</groupId>
     <artifactId>github</artifactId>
-    <version>1.34.3.1</version>
+    <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
 
     <name>GitHub plugin</name>
@@ -39,7 +39,7 @@
         <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
         <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
         <url>https://github.com/${gitHubRepo}</url>
-        <tag>v1.34.3.1</tag>
+        <tag>${scmTag}</tag>
     </scm>
     <issueManagement>
         <system>JIRA</system>
@@ -47,7 +47,7 @@
     </issueManagement>
 
     <properties>
-        <revision>1.34.4</revision>
+        <revision>1.34.3.2</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/github-plugin</gitHubRepo>
         <jenkins.version>2.277.1</jenkins.version>
