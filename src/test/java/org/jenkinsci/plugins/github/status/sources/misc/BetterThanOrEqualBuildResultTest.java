@@ -16,7 +16,7 @@ import org.mockito.junit.MockitoRule;
 
 import static org.hamcrest.Matchers.is;
 import static org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult.betterThanOrEqualTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author lanwen (Merkushev Kirill)

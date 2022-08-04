@@ -12,7 +12,7 @@ import java.util.Collections;
 /**
  * Add the Github Logo/Icon to the sidebar.
  *
- * @author Stefan Saasen <stefan@coravy.com>
+ * @author <a href="mailto:stefan@coravy.com">Stefan Saasen</a>
  */
 public final class GithubLinkAction implements Action {
 

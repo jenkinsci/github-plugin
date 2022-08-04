@@ -214,7 +214,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
     }
 
     /**
-     * @param clientCacheSize capacity of cache for GitHub client in MB, set to <= 0 to turn off this feature
+     * @param clientCacheSize capacity of cache for GitHub client in MB, set to &lt;= 0 to turn off this feature
      */
     @DataBoundSetter
     public void setClientCacheSize(int clientCacheSize) {

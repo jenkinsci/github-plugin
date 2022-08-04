@@ -13,7 +13,11 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.both;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.*;
 
 public class ConfigAsCodeTest {

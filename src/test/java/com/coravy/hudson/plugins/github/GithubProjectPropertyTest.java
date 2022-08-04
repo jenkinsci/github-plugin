@@ -4,7 +4,9 @@ import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.structs.DescribableHelper;
 import org.junit.Ignore;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import org.junit.Rule;
 import org.jvnet.hudson.test.JenkinsRule;
 

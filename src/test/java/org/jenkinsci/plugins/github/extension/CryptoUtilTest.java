@@ -7,7 +7,7 @@ import org.jvnet.hudson.test.JenkinsRule;
 
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.jenkinsci.plugins.github.webhook.GHWebhookSignature.webhookSignature;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Tests for utility class that deals with crypto/hashing of data.

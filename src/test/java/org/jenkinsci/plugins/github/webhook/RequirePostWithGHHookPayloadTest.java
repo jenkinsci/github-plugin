@@ -10,7 +10,7 @@ import org.kohsuke.github.GHEvent;
 import org.kohsuke.stapler.StaplerRequest;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.lang.reflect.InvocationTargetException;
 

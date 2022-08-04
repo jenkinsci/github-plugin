@@ -6,12 +6,12 @@ import hudson.model.TaskListener;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 /**
@@ -34,7 +34,7 @@ public class ManuallyEnteredSourcesTest {
     @Test
     public void shouldExpandContext() throws Exception {
         when(run.getEnvironment(listener)).thenReturn(env);
-        when(env.expand(Matchers.anyString())).thenReturn(EXPANDED);
+        when(env.expand(ArgumentMatchers.anyString())).thenReturn(EXPANDED);
 
         String context = new ManuallyEnteredCommitContextSource("").context(run, listener);
         assertThat(context, equalTo(EXPANDED));
@@ -43,7 +43,7 @@ public class ManuallyEnteredSourcesTest {
     @Test
     public void shouldExpandSha() throws Exception {
         when(run.getEnvironment(listener)).thenReturn(env);
-        when(env.expand(Matchers.anyString())).thenReturn(EXPANDED);
+        when(env.expand(ArgumentMatchers.anyString())).thenReturn(EXPANDED);
 
         String context = new ManuallyEnteredShaSource("").get(run, listener);
         assertThat(context, equalTo(EXPANDED));
@@ -52,7 +52,7 @@ public class ManuallyEnteredSourcesTest {
     @Test
     public void shouldExpandBackref() throws Exception {
         when(run.getEnvironment(listener)).thenReturn(env);
-        when(env.expand(Matchers.anyString())).thenReturn(EXPANDED);
+        when(env.expand(ArgumentMatchers.anyString())).thenReturn(EXPANDED);
 
         String context = new ManuallyEnteredBackrefSource("").get(run, listener);
         assertThat(context, equalTo(EXPANDED));
