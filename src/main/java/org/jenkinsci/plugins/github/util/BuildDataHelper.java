@@ -15,7 +15,7 @@ import java.util.Set;
 /**
  * Stores common methods for {@link BuildData} handling.
  *
- * @author Oleg Nenashev <o.v.nenashev@gmail.com>
+ * @author <a href="mailto:o.v.nenashev@gmail.com">Oleg Nenashev</a>
  * @since 1.10
  */
 public final class BuildDataHelper {

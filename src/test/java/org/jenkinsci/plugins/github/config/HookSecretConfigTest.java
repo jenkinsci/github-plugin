@@ -36,7 +36,7 @@ public class HookSecretConfigTest {
 
         hookSecretConfig = GitHubPlugin.configuration().getHookSecretConfig();
         assertNotNull("Secret is persistent", hookSecretConfig.getHookSecret());
-        assertTrue("Secret correctly stored", SECRET_INIT.equals(hookSecretConfig.getHookSecret().getPlainText()));
+        assertEquals("Secret correctly stored", SECRET_INIT, hookSecretConfig.getHookSecret().getPlainText());
     }
 
     @Test

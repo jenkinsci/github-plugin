@@ -14,7 +14,7 @@ import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isAlive;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.isBuildable;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.triggerFrom;
 import static org.jenkinsci.plugins.github.util.JobInfoHelpers.withTrigger;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author lanwen (Merkushev Kirill)

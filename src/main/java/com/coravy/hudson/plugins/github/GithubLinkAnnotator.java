@@ -17,11 +17,11 @@ import java.util.regex.Pattern;
  * <p>
  * It's based on the TracLinkAnnotator.
  * <p>
- *
- * @author Stefan Saasen <stefan@coravy.com>
- * @todo Change the annotator to use GithubUrl instead of the String url.
+ * TODO Change the annotator to use GithubUrl instead of the String url.
  * Knowledge about the github url structure should be encapsulated in
  * GithubUrl.
+ *
+ * @author <a href="mailto:stefan@coravy.com">Stefan Saasen</a>
  */
 @Extension
 public class GithubLinkAnnotator extends ChangeLogAnnotator {

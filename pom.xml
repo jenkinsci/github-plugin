@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.40</version>
+        <version>4.45</version>
         <relativePath />
     </parent>
 
@@ -52,15 +52,7 @@
         <gitHubRepo>jenkinsci/github-plugin</gitHubRepo>
         <jenkins.version>2.346.1</jenkins.version>
         <release.skipTests>false</release.skipTests>
-        <maven.javadoc.skip>true</maven.javadoc.skip>
-        <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
-        <hamcrest.version>2.2</hamcrest.version>
-        <concurrency>1</concurrency>
-        <workflow.version>1.14.2</workflow.version>
         <tagNameFormat>v@{project.version}</tagNameFormat>
-        <spotbugs.threshold>Low</spotbugs.threshold>
-        <spotbugs.effort>Max</spotbugs.effort>
-        <spotbugs.failOnError>false</spotbugs.failOnError>
     </properties>
 
     <repositories>
@@ -147,36 +139,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest</artifactId>
-            <version>${hamcrest.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- This is needed in order to force junit4 and JTH tests to use newer hamcrest version -->
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-core</artifactId>
-            <version>${hamcrest.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-library</artifactId>
-            <version>${hamcrest.version}</version>
-            <scope>test</scope>
-        </dependency>
-      
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>1.10.19</version>
             <scope>test</scope>
         </dependency>
 

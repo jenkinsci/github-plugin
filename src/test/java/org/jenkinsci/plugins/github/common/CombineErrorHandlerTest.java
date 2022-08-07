@@ -11,7 +11,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 
@@ -20,7 +20,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.is;
 import static org.jenkinsci.plugins.github.common.CombineErrorHandler.errorHandling;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;

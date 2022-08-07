@@ -10,7 +10,7 @@ import static org.jenkinsci.plugins.github.config.GitHubServerConfig.GITHUB_URL;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.allowedToManageHooks;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.isUrlCustom;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.withHost;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author lanwen (Merkushev Kirill)

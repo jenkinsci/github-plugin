@@ -24,7 +24,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  * - URL to the GitHub project
  * - Build status context name
  *
- * @author Stefan Saasen <stefan@coravy.com>
+ * @author <a href="mailto:stefan@coravy.com">Stefan Saasen</a>
  */
 public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
 

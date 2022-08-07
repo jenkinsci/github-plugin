@@ -15,7 +15,7 @@ import static org.jenkinsci.plugins.github.test.GitHubRepoNameMatchers.repo;
 import static org.jenkinsci.plugins.github.test.GitHubRepoNameMatchers.withHost;
 import static org.jenkinsci.plugins.github.test.GitHubRepoNameMatchers.withRepoName;
 import static org.jenkinsci.plugins.github.test.GitHubRepoNameMatchers.withUserName;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Unit tests of {@link GitHubRepositoryName}
