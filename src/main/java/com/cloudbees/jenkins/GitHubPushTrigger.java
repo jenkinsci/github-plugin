@@ -263,7 +263,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         }
 
         public String getLog() throws IOException {
-            return Util.loadFile(getLogFileForJob(job));
+            return Util.loadFile(getLogFileForJob(Objects.requireNonNull(job)));
         }
 
         /**
@@ -276,7 +276,11 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                 justification =
                         "method signature does not permit plumbing through the return value")
         public void writeLogTo(XMLOutput out) throws IOException {
-            new AnnotatedLargeText<GitHubWebHookPollingAction>(getLogFileForJob(job), Charsets.UTF_8, true, this)
+            new AnnotatedLargeText<GitHubWebHookPollingAction>(
+                            getLogFileForJob(Objects.requireNonNull(job)),
+                            Charsets.UTF_8,
+                            true,
+                            this)
                     .writeHtmlTo(0, out.asWriter());
         }
     }
