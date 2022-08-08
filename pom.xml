@@ -78,7 +78,7 @@
         <dependency>
             <groupId>io.jenkins.plugins</groupId>
             <artifactId>okhttp-api</artifactId>
-            <version>4.9.2-20211102</version>
+            <version>4.9.3-108.v0feda04578cf</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
