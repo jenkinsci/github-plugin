@@ -14,7 +14,6 @@ import java.net.URL;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
 
 /**
  * Test Class for {@link GitHubPushTrigger}.

@@ -17,9 +17,9 @@ import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.test.GHMockRule;
 import org.jenkinsci.plugins.github.test.GHMockRule.FixedGHRepoNameTestContributor;
 import org.jenkinsci.plugins.github.test.InjectJenkinsMembersRule;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExternalResource;
 import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.Issue;
@@ -28,7 +28,7 @@ import org.jvnet.hudson.test.TestBuilder;
 import org.jvnet.hudson.test.TestExtension;
 import org.jvnet.hudson.test.recipes.LocalData;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link GitHubSetCommitStatusBuilder}.
  *
- * @author Oleg Nenashev <o.v.nenashev@gmail.com>
+ * @author <a href="mailto:o.v.nenashev@gmail.com">Oleg Nenashev</a>
  */
 @RunWith(MockitoJUnitRunner.class)
 public class GitHubSetCommitStatusBuilderTest {
@@ -72,15 +72,12 @@ public class GitHubSetCommitStatusBuilderTest {
             .stubRepo()
             .stubStatuses();
 
-    @Rule
-    public ExternalResource prep = new ExternalResource() {
-        @Override
-        protected void before() throws Throwable {
+    @Before
+    public void before() throws Throwable {
             when(data.getLastBuiltRevision()).thenReturn(rev);
             data.lastBuild = new hudson.plugins.git.util.Build(rev, rev, 0, Result.SUCCESS);
             when(rev.getSha1()).thenReturn(ObjectId.fromString(SOME_SHA));
-        }
-    };
+    }
 
     @Test
     @Issue("JENKINS-23641")

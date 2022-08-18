@@ -81,7 +81,7 @@ public @interface RequirePostWithGHHookPayload {
         }
 
         /**
-         * Duplicates {@link @org.kohsuke.stapler.interceptor.RequirePOST} precheck.
+         * Duplicates {@link org.kohsuke.stapler.interceptor.RequirePOST} precheck.
          * As of it can't guarantee order of multiply interceptor calls,
          * it should implement all features of required interceptors in one class
          *

@@ -7,16 +7,16 @@ import org.junit.runner.RunWith;
 import org.kohsuke.github.GHRepository;
 import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.PrintStream;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)

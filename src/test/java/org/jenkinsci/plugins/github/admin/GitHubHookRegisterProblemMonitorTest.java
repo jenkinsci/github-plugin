@@ -23,7 +23,7 @@ import org.kohsuke.github.GHEvent;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -39,7 +39,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 /**

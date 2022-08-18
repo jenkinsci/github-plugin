@@ -32,7 +32,7 @@ import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 /**
  * Administrative monitor to track problems of registering/removing hooks for GH.
- * Holds non-savable map of repo->message and persisted list of ignored projects.
+ * Holds non-savable map of repo-&gt;message and persisted list of ignored projects.
  * Anyone can register new problem with {@link #registerProblem(GitHubRepositoryName, Throwable)} and check
  * repo for problems with {@link #isProblemWith(GitHubRepositoryName)}
  *
@@ -64,7 +64,7 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
     }
 
     /**
-     * @return Immutable copy of map with repo->problem message content
+     * @return Immutable copy of map with repo-&gt;problem message content
      */
     public Map<GitHubRepositoryName, String> getProblems() {
         return ImmutableMap.copyOf(problems);
@@ -236,7 +236,7 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
         public String getIconFileName() {
             return monitor.getProblems().isEmpty() && monitor.ignored.isEmpty()
                     ? null
-                    : "/plugin/github/img/logo.svg";
+                    : "symbol-logo-github plugin-github";
         }
 
         @Override

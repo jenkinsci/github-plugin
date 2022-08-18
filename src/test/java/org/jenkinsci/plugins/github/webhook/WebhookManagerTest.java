@@ -20,9 +20,11 @@ import org.jvnet.hudson.test.WithoutJenkins;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.github.GHHook;
 import org.kohsuke.github.GHRepository;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -39,18 +41,18 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecretIn;
 import static org.jenkinsci.plugins.github.webhook.WebhookManager.forHookUrl;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.kohsuke.github.GHEvent.CREATE;
 import static org.kohsuke.github.GHEvent.PULL_REQUEST;
 import static org.kohsuke.github.GHEvent.PUSH;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anySetOf;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -82,6 +84,8 @@ public class WebhookManagerTest {
     @Mock
     private GHRepository repo;
 
+    @Captor
+    ArgumentCaptor<Map<String, String>> captor;
 
     @Test
     public void shouldDoNothingOnNoAdminRights() throws Exception {
@@ -133,7 +137,7 @@ public class WebhookManagerTest {
     @Test
     @WithoutJenkins
     public void shouldMatchWebHook() {
-        when(repo.hasAdminAccess()).thenReturn(false);
+        lenient().when(repo.hasAdminAccess()).thenReturn(false);
 
         GHHook hook = hook(HOOK_ENDPOINT, PUSH);
 
@@ -143,7 +147,7 @@ public class WebhookManagerTest {
     @Test
     @WithoutJenkins
     public void shouldNotMatchOtherUrlWebHook() {
-        when(repo.hasAdminAccess()).thenReturn(false);
+        lenient().when(repo.hasAdminAccess()).thenReturn(false);
 
         GHHook hook = hook(ANOTHER_HOOK_ENDPOINT, PUSH);
 
@@ -177,7 +181,7 @@ public class WebhookManagerTest {
 
         manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
         verify(manager, never()).deleteWebhook();
-        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class));
+        verify(manager, never()).createWebhook(any(URL.class), anySet());
     }
 
     @Test
@@ -191,7 +195,7 @@ public class WebhookManagerTest {
 
         manager.createHookSubscribedTo(copyOf(newArrayList(PUSH))).apply(nonactive);
         verify(manager, never()).deleteWebhook();
-        verify(manager, never()).createWebhook(any(URL.class), anySetOf(GHEvent.class));
+        verify(manager, never()).createWebhook(any(URL.class), anySet());
     }
 
 
@@ -201,7 +205,7 @@ public class WebhookManagerTest {
         project.setScm(GIT_SCM);
 
         manager.registerFor((Item)project).run();
-        verify(manager, never()).createHookSubscribedTo(anyListOf(GHEvent.class));
+        verify(manager, never()).createHookSubscribedTo(anyList());
     }
 
     @Test
@@ -255,10 +259,11 @@ public class WebhookManagerTest {
 
         verify(repo).createHook(
                 anyString(),
-                (Map<String, String>) argThat(hasEntry("secret", secretText)),
-                anySetOf(GHEvent.class),
+                captor.capture(),
+                anySet(),
                 anyBoolean()
         );
+        assertThat(captor.getValue(), hasEntry("secret", secretText));
 
     }
 
@@ -266,7 +271,7 @@ public class WebhookManagerTest {
         GHHook hook = mock(GHHook.class);
         when(hook.getName()).thenReturn("web");
         when(hook.getConfig()).thenReturn(ImmutableMap.of("url", endpoint.toExternalForm()));
-        when(hook.getEvents()).thenReturn(EnumSet.copyOf(asList(event, events)));
+        lenient().when(hook.getEvents()).thenReturn(EnumSet.copyOf(asList(event, events)));
         return hook;
     }
 

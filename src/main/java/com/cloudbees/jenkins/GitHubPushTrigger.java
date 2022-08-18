@@ -2,6 +2,7 @@ package com.cloudbees.jenkins;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.Util;
 import hudson.XmlFile;
@@ -262,7 +263,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
         }
 
         public String getLog() throws IOException {
-            return Util.loadFile(getLogFileForJob(job));
+            return Util.loadFile(getLogFileForJob(Objects.requireNonNull(job)));
         }
 
         /**
@@ -270,8 +271,16 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
          *
          * @since 1.350
          */
+        @SuppressFBWarnings(
+                value = "RV_RETURN_VALUE_IGNORED",
+                justification =
+                        "method signature does not permit plumbing through the return value")
         public void writeLogTo(XMLOutput out) throws IOException {
-            new AnnotatedLargeText<GitHubWebHookPollingAction>(getLogFileForJob(job), Charsets.UTF_8, true, this)
+            new AnnotatedLargeText<GitHubWebHookPollingAction>(
+                            getLogFileForJob(Objects.requireNonNull(job)),
+                            Charsets.UTF_8,
+                            true,
+                            this)
                     .writeHtmlTo(0, out.asWriter());
         }
     }

@@ -3,7 +3,7 @@ package com.coravy.hudson.plugins.github;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * @author Stefan Saasen <stefan@coravy.com>
+ * @author <a href="mailto:stefan@coravy.com">Stefan Saasen</a>
  */
 public final class GithubUrl {
 
