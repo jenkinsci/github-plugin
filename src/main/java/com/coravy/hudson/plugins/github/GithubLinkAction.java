@@ -29,7 +29,7 @@ public final class GithubLinkAction implements Action {
 
     @Override
     public String getIconFileName() {
-        return "symbol-logo-github plugin-github";
+        return "symbol-logo-github plugin-ionicons-api";
     }
 
     @Override
