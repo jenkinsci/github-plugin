@@ -174,7 +174,7 @@ public class WebhookManager {
         com.google.common.base.Optional<GHRepository> repoWithAdminAccess = reposAllowedtoManageWebhooks
                 .firstMatch(withAdminAccess());
         if (!repoWithAdminAccess.isPresent()) {
-            LOGGER.debug("None of the github repos configured have admin access for: {}", name);
+            LOGGER.info("None of the github repos configured have admin access for: {}", name);
             return null;
         }
         GHRepository repo = repoWithAdminAccess.get();
