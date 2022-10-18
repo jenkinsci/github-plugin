@@ -43,10 +43,6 @@ public class GitHubPlugin extends Plugin {
         new Migrator().migrate();
     }
 
-    @Override
-    public void start() throws Exception {
-    }
-
     /**
      * Shortcut method for getting instance of {@link GitHubPluginConfig}.
      *
