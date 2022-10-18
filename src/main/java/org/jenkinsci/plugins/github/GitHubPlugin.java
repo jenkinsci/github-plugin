@@ -7,6 +7,8 @@ import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.migration.Migrator;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.DoNotUse;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -23,6 +25,8 @@ public class GitHubPlugin extends Plugin {
      * Launched before plugin starts
      * Adds alias for {@link GitHubPlugin} to simplify resulting xml.
      */
+    @Initializer(before = InitMilestone.SYSTEM_CONFIG_LOADED)
+    @Restricted(DoNotUse.class)
     public static void addXStreamAliases() {
         Migrator.enableCompatibilityAliases();
         Migrator.enableAliases();
@@ -41,7 +45,6 @@ public class GitHubPlugin extends Plugin {
 
     @Override
     public void start() throws Exception {
-        addXStreamAliases();
     }
 
     /**
