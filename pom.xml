@@ -119,7 +119,7 @@
         <dependency>
             <groupId>org.jenkins-ci.modules</groupId>
             <artifactId>instance-identity</artifactId>
-            <version>116.vf8f487400980</version>
+            <version>142.v04572ca_5b_265</version>
         </dependency>
 
         <dependency>
