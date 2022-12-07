@@ -6,6 +6,7 @@ import hudson.Extension;
 import hudson.model.Descriptor;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import org.jenkinsci.plugins.github.common.ExpandableMessage;
 import org.jenkinsci.plugins.github.extension.status.GitHubReposSource;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.kohsuke.github.GHRepository;
@@ -36,7 +37,15 @@ public class ManuallyEnteredRepositorySource extends GitHubReposSource {
 
     @Override
     public List<GHRepository> repos(@NonNull Run<?, ?> run, @NonNull final TaskListener listener) {
-        List<String> urls = Collections.singletonList(url);
+        String expandedUrl = url;
+
+        try {
+            expandedUrl = new ExpandableMessage(context).expandAll(run, listener);
+        } catch (Exception e) {
+            LOG.debug("Can't expand context, using as is", e);
+        }
+
+        List<String> urls = Collections.singletonList(expandedUrl);
         return from(urls).transformAndConcat(new NullSafeFunction<String, Iterable<GHRepository>>() {
             @Override
             protected Iterable<GHRepository> applyNullSafe(@NonNull String url) {

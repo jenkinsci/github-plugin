@@ -21,6 +21,8 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ManuallyEnteredRepositorySourceTest {
+
+    public static final String EXPANDED = "expanded";
     @Mock(answer = Answers.RETURNS_MOCKS)
     private Run run;
 
@@ -39,4 +41,15 @@ public class ManuallyEnteredRepositorySourceTest {
         verify(listener).getLogger();
         verify(logger).printf(eq("Unable to match %s with a GitHub repository.%n"), eq("a"));
     }
+
+    @Test
+    public void shouldExpandRepositorySource() {
+        when(run.getEnvironment(listener)).thenReturn(env);
+        when(env.expand(ArgumentMatchers.anyString())).thenReturn(EXPANDED);
+
+        List<String> repos = new ManuallyEnteredRepositorySource("").repos(run, listener);
+        assertThat("size", repos.size(), 1);
+        assertThat("size", repos[0], EXPANDED);
+    }
+
 }
