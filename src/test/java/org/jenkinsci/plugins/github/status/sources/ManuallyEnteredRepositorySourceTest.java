@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.status.sources;
 
+import hudson.EnvVars;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.junit.Test;
@@ -12,6 +13,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.io.PrintStream;
 import java.util.List;
 
+import org.mockito.ArgumentMatchers;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.mockito.Mockito.doReturn;
@@ -31,6 +33,9 @@ public class ManuallyEnteredRepositorySourceTest {
 
     @Mock(answer = Answers.RETURNS_MOCKS)
     private PrintStream logger;
+
+    @Mock(answer = Answers.RETURNS_MOCKS)
+    private EnvVars env;
 
     @Test
     public void nullName() {

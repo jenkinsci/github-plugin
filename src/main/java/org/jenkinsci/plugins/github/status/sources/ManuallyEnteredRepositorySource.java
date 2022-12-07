@@ -11,6 +11,8 @@ import org.jenkinsci.plugins.github.extension.status.GitHubReposSource;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Collections;
@@ -19,6 +21,7 @@ import java.util.List;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 
 public class ManuallyEnteredRepositorySource extends GitHubReposSource {
+    private static final Logger LOG = LoggerFactory.getLogger(ManuallyEnteredRepositorySource.class);
     private String url;
 
     @DataBoundConstructor
@@ -40,7 +43,7 @@ public class ManuallyEnteredRepositorySource extends GitHubReposSource {
         String expandedUrl = url;
 
         try {
-            expandedUrl = new ExpandableMessage(context).expandAll(run, listener);
+            expandedUrl = new ExpandableMessage(url).expandAll(run, listener);
         } catch (Exception e) {
             LOG.debug("Can't expand context, using as is", e);
         }
