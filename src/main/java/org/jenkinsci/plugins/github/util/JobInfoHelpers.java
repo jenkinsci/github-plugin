@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.Map;
 
 import static org.jenkinsci.plugins.github.extension.GHEventsSubscriber.isApplicableFor;
-import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 
 /**
  * Utility class which holds converters or predicates (matchers) to filter or convert job lists
@@ -38,11 +37,7 @@ public final class JobInfoHelpers {
      * @return predicate with true on apply if job contains trigger of given class
      */
     public static <ITEM extends Item> Predicate<ITEM> withTrigger(final Class<? extends Trigger> clazz) {
-        return new Predicate<ITEM>() {
-            public boolean apply(Item item) {
-                return triggerFrom(item, clazz) != null;
-            }
-        };
+        return item -> triggerFrom(item, clazz) != null;
     }
 
     /**
@@ -51,22 +46,14 @@ public final class JobInfoHelpers {
      * @return predicate with true on apply if item is buildable
      */
     public static <ITEM extends Item> Predicate<ITEM> isBuildable() {
-        return new Predicate<ITEM>() {
-            public boolean apply(ITEM item) {
-                return item instanceof Job ? ((Job<?, ?>) item).isBuildable() : item instanceof BuildableItem;
-            }
-        };
+        return item -> item instanceof Job ? ((Job<?, ?>) item).isBuildable() : item instanceof BuildableItem;
     }
 
     /**
      * @return function which helps to convert job to repo names associated with this job
      */
     public static <ITEM extends Item> Function<ITEM, Collection<GitHubRepositoryName>> associatedNames() {
-        return new Function<ITEM, Collection<GitHubRepositoryName>>() {
-            public Collection<GitHubRepositoryName> apply(ITEM item) {
-                return GitHubRepositoryNameContributor.parseAssociatedNames(item);
-            }
-        };
+        return GitHubRepositoryNameContributor::parseAssociatedNames;
     }
 
     /**
@@ -76,12 +63,7 @@ public final class JobInfoHelpers {
      * @return predicate with true if item alive and should have hook
      */
     public static <ITEM extends Item> Predicate<ITEM> isAlive() {
-        return new Predicate<ITEM>() {
-            @Override
-            public boolean apply(ITEM item) {
-                return !from(GHEventsSubscriber.all()).filter(isApplicableFor(item)).toList().isEmpty();
-            }
-        };
+        return item ->  GHEventsSubscriber.all().stream().anyMatch(isApplicableFor(item));
     }
 
     /**
