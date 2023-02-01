@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.45</version>
+        <version>4.54</version>
         <relativePath />
     </parent>
 
@@ -50,7 +50,7 @@
         <revision>1.36.2</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/github-plugin</gitHubRepo>
-        <jenkins.version>2.357</jenkins.version>
+        <jenkins.version>2.361.4</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <tagNameFormat>v@{project.version}</tagNameFormat>
     </properties>
@@ -71,19 +71,16 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version>
+            <groupId>io.jenkins.plugins</groupId>
+            <artifactId>commons-lang3-api</artifactId>
         </dependency>
         <dependency>
             <groupId>io.jenkins.plugins</groupId>
             <artifactId>okhttp-api</artifactId>
-            <version>4.9.2-20211102</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>github-api</artifactId>
-            <version>1.114.2</version>
         </dependency>
 
         <dependency>
@@ -119,13 +116,6 @@
         <dependency>
             <groupId>org.jenkins-ci.modules</groupId>
             <artifactId>instance-identity</artifactId>
-            <version>116.vf8f487400980</version>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <!--TEST DEPS-->
@@ -160,13 +150,6 @@
             <groupId>io.jenkins.configuration-as-code</groupId>
             <artifactId>test-harness</artifactId>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <!-- TODO: RequireUpperBoundDeps with com.squareup.okio:okio:2.10.0 -->
-                    <groupId>org.jetbrains</groupId>
-                    <artifactId>annotations</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -197,14 +180,14 @@
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock-jre8-standalone</artifactId>
-            <version>2.33.2</version>
+            <version>2.35.0</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>5.1.1</version>
+            <version>5.3.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -214,8 +197,8 @@
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.346.x</artifactId>
-                <version>1438.v6a_2c29d73f82</version>
+                <artifactId>bom-2.361.x</artifactId>
+                <version>1798.vc671fe94856f</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
