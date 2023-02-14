@@ -1,9 +1,15 @@
 package org.jenkinsci.plugins.github.webhook.subscriber;
 
 import com.cloudbees.jenkins.GitHubPushTrigger;
+import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
 import com.cloudbees.jenkins.GitHubTriggerEvent;
+import hudson.ExtensionList;
 import hudson.model.FreeStyleProject;
+import hudson.model.Item;
 import hudson.plugins.git.GitSCM;
+import java.util.Collections;
+import java.util.List;
+import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.extension.GHSubscriberEvent;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
@@ -11,7 +17,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.WithoutJenkins;
 import org.kohsuke.github.GHEvent;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
@@ -19,8 +27,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author lanwen (Merkushev Kirill)
@@ -34,29 +44,47 @@ public class DefaultPushGHEventListenerTest {
     public JenkinsRule jenkins = new JenkinsRule();
 
     @Test
-    public void shouldBeNotApplicableForProjectWithoutTrigger() throws Exception {
-        FreeStyleProject prj = jenkins.createFreeStyleProject();
+    @WithoutJenkins
+    public void shouldBeNotApplicableForProjectWithoutTrigger() {
+        FreeStyleProject prj = mock(FreeStyleProject.class);
         assertThat(new DefaultPushGHEventSubscriber().isApplicable(prj), is(false));
     }
 
     @Test
-    public void shouldBeApplicableForProjectWithTrigger() throws Exception {
-        FreeStyleProject prj = jenkins.createFreeStyleProject();
-        prj.addTrigger(new GitHubPushTrigger());
+    @WithoutJenkins
+    public void shouldBeApplicableForProjectWithTrigger() {
+        FreeStyleProject prj = mock(FreeStyleProject.class);
+        when(prj.getTriggers()).thenReturn(
+                Collections.singletonMap(new GitHubPushTrigger.DescriptorImpl(), new GitHubPushTrigger()));
         assertThat(new DefaultPushGHEventSubscriber().isApplicable(prj), is(true));
     }
 
     @Test
-    public void shouldParsePushPayload() throws Exception {
+    @WithoutJenkins
+    public void shouldParsePushPayload() {
         GitHubPushTrigger trigger = mock(GitHubPushTrigger.class);
 
-        FreeStyleProject prj = jenkins.createFreeStyleProject();
-        prj.addTrigger(trigger);
-        prj.setScm(GIT_SCM_FROM_RESOURCE);
+        FreeStyleProject prj = mock(FreeStyleProject.class);
+        when(prj.getTriggers()).thenReturn(
+                Collections.singletonMap(new GitHubPushTrigger.DescriptorImpl(), trigger));
+        when(prj.getSCMs()).thenAnswer(unused -> Collections.singletonList(GIT_SCM_FROM_RESOURCE));
 
         GHSubscriberEvent subscriberEvent =
                 new GHSubscriberEvent("shouldParsePushPayload", GHEvent.PUSH, classpath("payloads/push.json"));
-        new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
+
+        Jenkins jenkins = mock(Jenkins.class);
+        when(jenkins.getAllItems(Item.class)).thenReturn(Collections.singletonList(prj));
+
+        ExtensionList<GitHubRepositoryNameContributor> extensionList = mock(ExtensionList.class);
+        List<GitHubRepositoryNameContributor> gitHubRepositoryNameContributorList =
+                Collections.singletonList(new GitHubRepositoryNameContributor.FromSCM());
+        when(extensionList.iterator()).thenReturn(gitHubRepositoryNameContributorList.iterator());
+        when(jenkins.getExtensionList(GitHubRepositoryNameContributor.class)).thenReturn(extensionList);
+
+        try (MockedStatic<Jenkins> mockedJenkins = mockStatic(Jenkins.class)) {
+            mockedJenkins.when(Jenkins::getInstance).thenReturn(jenkins);
+            new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
+        }
 
         verify(trigger).onPost(eq(GitHubTriggerEvent.create()
                 .withTimestamp(subscriberEvent.getTimestamp())
