@@ -4,6 +4,7 @@ import com.cloudbees.jenkins.GitHubWebHook;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import hudson.BulkChange;
 import hudson.Extension;
 import hudson.Util;
 import hudson.XmlFile;
@@ -190,17 +191,36 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-        hookSecretConfigs = null; // form binding might omit empty lists
         try {
-            req.bindJSON(this, json);
+            BulkChange bc = new BulkChange(this);
+            try {
+                if (json.has("configs")) {
+                    setConfigs(req.bindJSONToList(GitHubServerConfig.class, json.getJSONObject("configs")));
+                } else {
+                    setConfigs(Collections.emptyList());
+                }
+                if (json.has("hookSecretConfigs")) {
+                    setHookSecretConfigs(req.bindJSONToList(HookSecretConfig.class,
+                        json.getJSONObject("hookSecretConfigs")));
+                } else {
+                    setHookSecretConfigs(Collections.emptyList());
+                }
+                if (json.optBoolean("isOverrideHookUrl", false) && (json.has("hookUrl"))) {
+                    setHookUrl(json.optString("hookUrl"));
+                } else {
+                    setHookUrl(null);
+                }
+                req.bindJSON(this, json);
+                clearRedundantCaches(configs);
+            } finally {
+                bc.commit();
+            }
         } catch (Exception e) {
             LOGGER.debug("Problem while submitting form for GitHub Plugin ({})", e.getMessage(), e);
             LOGGER.trace("GH form data: {}", json.toString());
             throw new FormException(
                     format("Malformed GitHub Plugin configuration (%s)", e.getMessage()), e, "github-configuration");
         }
-        save();
-        clearRedundantCaches(configs);
         return true;
     }
 

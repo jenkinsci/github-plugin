@@ -3,7 +3,6 @@ package com.cloudbees.jenkins;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.jenkinsci.plugins.github.GitHubPlugin;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -14,17 +13,18 @@ import java.net.URL;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.startsWith;
 
 /**
  * Test Class for {@link GitHubPushTrigger}.
  *
  * @author Seiji Sogabe
  */
-@Ignore("Have troubles with memory consumption")
+//@Ignore("Have troubles with memory consumption")
 public class GlobalConfigSubmitTest {
 
-    public static final String OVERRIDE_HOOK_URL_CHECKBOX = "_.isOverrideHookUrl";
-    public static final String HOOK_URL_INPUT = "_.hookUrl";
+    public static final String OVERRIDE_HOOK_URL_CHECKBOX = "isOverrideHookUrl";
+    public static final String HOOK_URL_INPUT = "hookUrl";
 
     private static final String WEBHOOK_URL = "http://jenkinsci.example.com/jenkins/github-webhook/";
 
@@ -43,7 +43,7 @@ public class GlobalConfigSubmitTest {
     }
 
     @Test
-    public void shouldNotSetHookUrl() throws Exception {
+    public void shouldResetHookUrlIfNotChecked() throws Exception {
         GitHubPlugin.configuration().setHookUrl(WEBHOOK_URL);
 
         HtmlForm form = globalConfig();
@@ -52,20 +52,7 @@ public class GlobalConfigSubmitTest {
         form.getInputByName(HOOK_URL_INPUT).setValueAttribute("http://foo");
         jenkins.submit(form);
 
-        assertThat(GitHubPlugin.configuration().getHookUrl(), equalTo(new URL(WEBHOOK_URL)));
-    }
-
-    @Test
-    public void shouldNotOverrideAPreviousHookUrlIfNotChecked() throws Exception {
-        GitHubPlugin.configuration().setHookUrl(WEBHOOK_URL);
-
-        HtmlForm form = globalConfig();
-
-        form.getInputByName(OVERRIDE_HOOK_URL_CHECKBOX).setChecked(false);
-        form.getInputByName(HOOK_URL_INPUT).setValueAttribute("");
-        jenkins.submit(form);
-
-        assertThat(GitHubPlugin.configuration().getHookUrl(), equalTo(new URL(WEBHOOK_URL)));
+        assertThat(GitHubPlugin.configuration().getHookUrl().toString(), startsWith(jenkins.jenkins.getRootUrl()));
     }
 
     public HtmlForm globalConfig() throws IOException, SAXException {
