@@ -195,13 +195,12 @@ public class GitHubPluginConfig extends GlobalConfiguration {
             BulkChange bc = new BulkChange(this);
             try {
                 if (json.has("configs")) {
-                    setConfigs(req.bindJSONToList(GitHubServerConfig.class, json.getJSONObject("configs")));
+                    setConfigs(req.bindJSONToList(GitHubServerConfig.class, json.get("configs")));
                 } else {
                     setConfigs(Collections.emptyList());
                 }
                 if (json.has("hookSecretConfigs")) {
-                    setHookSecretConfigs(req.bindJSONToList(HookSecretConfig.class,
-                        json.getJSONObject("hookSecretConfigs")));
+                    setHookSecretConfigs(req.bindJSONToList(HookSecretConfig.class, json.get("hookSecretConfigs")));
                 } else {
                     setHookSecretConfigs(Collections.emptyList());
                 }
