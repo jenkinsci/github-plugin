@@ -1,7 +1,7 @@
 package com.cloudbees.jenkins;
 
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.htmlunit.html.HtmlForm;
+import org.htmlunit.html.HtmlPage;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,7 +20,6 @@ import static org.hamcrest.Matchers.startsWith;
  *
  * @author Seiji Sogabe
  */
-//@Ignore("Have troubles with memory consumption")
 public class GlobalConfigSubmitTest {
 
     public static final String OVERRIDE_HOOK_URL_CHECKBOX = "isOverrideHookUrl";
@@ -36,7 +35,7 @@ public class GlobalConfigSubmitTest {
         HtmlForm form = globalConfig();
 
         form.getInputByName(OVERRIDE_HOOK_URL_CHECKBOX).setChecked(true);
-        form.getInputByName(HOOK_URL_INPUT).setValueAttribute(WEBHOOK_URL);
+        form.getInputByName(HOOK_URL_INPUT).setValue(WEBHOOK_URL);
         jenkins.submit(form);
 
         assertThat(GitHubPlugin.configuration().getHookUrl(), equalTo(new URL(WEBHOOK_URL)));
@@ -49,7 +48,7 @@ public class GlobalConfigSubmitTest {
         HtmlForm form = globalConfig();
 
         form.getInputByName(OVERRIDE_HOOK_URL_CHECKBOX).setChecked(false);
-        form.getInputByName(HOOK_URL_INPUT).setValueAttribute("http://foo");
+        form.getInputByName(HOOK_URL_INPUT).setValue("http://foo");
         jenkins.submit(form);
 
         assertThat(GitHubPlugin.configuration().getHookUrl().toString(), startsWith(jenkins.jenkins.getRootUrl()));
