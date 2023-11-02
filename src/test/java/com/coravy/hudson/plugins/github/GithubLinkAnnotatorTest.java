@@ -10,6 +10,8 @@ import java.util.Random;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.jvnet.hudson.test.Issue;
+
 import static java.lang.String.format;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -78,6 +80,22 @@ public class GithubLinkAnnotatorTest {
         assertThat(format("For changeset input '%s'", input),
                 annotate(input, changeSet),
                 is(expected + expectedChangeSetAnnotation));
+    }
+
+    //Test to verify that fake url starting with sentences like javascript are not validated
+    @Test(expected = IllegalArgumentException.class)
+    @Issue("SECURITY-3246")
+    public void urlValidationTest() {
+        GithubLinkAnnotator annotator = new GithubLinkAnnotator();
+        annotator.annotate(new GithubUrl("javascript:alert(1); //"), null, null);
+    }
+
+    //Test to verify that fake url are not validated
+    @Test(expected = IllegalArgumentException.class)
+    @Issue("SECURITY-3246")
+    public void urlHtmlAttributeValidationTest() {
+        GithubLinkAnnotator annotator = new GithubLinkAnnotator();
+        annotator.annotate(new GithubUrl("a' onclick=alert(777) foo='bar/\n"), null, null);
     }
 
     private String annotate(final String originalText, GitChangeSet changeSet) {

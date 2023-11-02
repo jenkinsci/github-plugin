@@ -7,9 +7,20 @@ import hudson.model.Run;
 import hudson.plugins.git.GitChangeSet;
 import hudson.scm.ChangeLogAnnotator;
 import hudson.scm.ChangeLogSet.Entry;
+import org.apache.commons.lang.StringUtils;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
+
+import static hudson.Functions.htmlAttributeEscape;
 import static java.lang.String.format;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -26,6 +37,13 @@ import java.util.regex.Pattern;
 @Extension
 public class GithubLinkAnnotator extends ChangeLogAnnotator {
 
+    private static final Set<String> ALLOWED_URI_SCHEMES = new HashSet<String>();
+
+    static {
+        ALLOWED_URI_SCHEMES.addAll(
+                Arrays.asList("http", "https"));
+    }
+
     @Override
     public void annotate(Run<?, ?> build, Entry change, MarkupText text) {
         final GithubProjectProperty p = build.getParent().getProperty(
@@ -38,15 +56,18 @@ public class GithubLinkAnnotator extends ChangeLogAnnotator {
 
     void annotate(final GithubUrl url, final MarkupText text, final Entry change) {
         final String base = url.baseUrl();
+        boolean isValid = verifyUrl(base);
+        if (!isValid) {
+            throw new IllegalArgumentException("The provided Github URL is not valid");
+        }
         for (LinkMarkup markup : MARKUPS) {
             markup.process(text, base);
         }
-
         if (change instanceof GitChangeSet) {
             GitChangeSet cs = (GitChangeSet) change;
             final String id = cs.getId();
             text.wrapBy("", format(" (<a href='%s'>commit: %s</a>)",
-                                   url.commitId(id),
+                    htmlAttributeEscape(url.commitId(id)),
                                    id.substring(0, Math.min(id.length(), 7))));
         }
     }
@@ -66,7 +87,7 @@ public class GithubLinkAnnotator extends ChangeLogAnnotator {
 
         void process(MarkupText text, String url) {
             for (SubText st : text.findTokens(pattern)) {
-                st.surroundWith("<a href='" + url + href + "'>", "</a>");
+                st.surroundWith("<a href='" + htmlAttributeEscape(url) + href + "'>", "</a>");
             }
         }
 
@@ -78,4 +99,34 @@ public class GithubLinkAnnotator extends ChangeLogAnnotator {
     private static final LinkMarkup[] MARKUPS = new LinkMarkup[]{new LinkMarkup(
             "(?:C|c)lose(?:s?)\\s(?<!\\:)(?:#)NUM", // "Closes #123"
             "issues/$1")};
+
+    @Nonnull
+    public static String getAllowedUriSchemes() {
+        return StringUtils.join(ALLOWED_URI_SCHEMES, ',');
+    }
+
+    @CheckReturnValue
+    @Nonnull
+    public static boolean verifyUrl(@CheckForNull String urlString) {
+        if (StringUtils.isBlank(urlString)) {
+            return false;
+        }
+
+        // Copy of the code from Functions#getActionUrl()
+        final URI uri;
+        try {
+            uri = new URI(urlString);
+        } catch (URISyntaxException ex) {
+            return false;
+        }
+
+        // Let's check if the scheme is allowed
+        String toCheck = uri.getScheme().toLowerCase();
+        if (!ALLOWED_URI_SCHEMES.contains(toCheck)) {
+            return false;
+        }
+
+        return true;
+
+    }
 }
