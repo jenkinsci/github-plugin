@@ -12,6 +12,9 @@ import hudson.model.Action;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.model.Project;
+import hudson.plugins.git.BranchSpec;
+import hudson.plugins.git.GitSCM;
+import hudson.plugins.git.extensions.impl.UserExclusion;
 import hudson.triggers.SCMTrigger;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
@@ -24,6 +27,7 @@ import jenkins.model.ParameterizedJobMixIn;
 import jenkins.scm.api.SCMEvent;
 import jenkins.triggers.SCMTriggerItem;
 import jenkins.triggers.SCMTriggerItem.SCMTriggerItems;
+
 import org.apache.commons.jelly.XMLOutput;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
@@ -35,6 +39,7 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.Stapler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,11 +55,13 @@ import java.text.DateFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.regex.Matcher;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.Validate.notNull;
@@ -66,6 +73,7 @@ import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJo
  * @author Kohsuke Kawaguchi
  */
 public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigger {
+    private boolean useGitExcludedUsers;
 
     @DataBoundConstructor
     public GitHubPushTrigger() {
@@ -98,6 +106,32 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     public void onPost(final GitHubTriggerEvent event) {
         if (Objects.isNull(job)) {
             return; // nothing to do
+        }
+        if (job instanceof AbstractProject && (((AbstractProject<?, ?>) job).getScm()) instanceof GitSCM) {
+            GitSCM scm = (GitSCM) (((AbstractProject<?, ?>) job).getScm());
+            if (!branchMatchesGitBranchToBeBuilt(scm, event.getRef())) {
+                return;
+            }
+
+            if (useGitExcludedUsers) {
+                Set<String> lowercaseExcludedUsers = new HashSet<>();
+                if (job instanceof AbstractProject) {
+                    UserExclusion exclusions = scm.getExtensions().get(UserExclusion.class);
+                    if (exclusions != null) {
+                        for (String userName: exclusions.getExcludedUsersNormalized()) {
+                            lowercaseExcludedUsers.add(userName.toLowerCase());
+                        }
+                    }
+                }
+
+                String lowercaseTriggeredByUser = null;
+                if (event.getTriggeredByUser() != null) {
+                    lowercaseTriggeredByUser = event.getTriggeredByUser().toLowerCase();
+                }
+                if (lowercaseExcludedUsers != null && lowercaseExcludedUsers.contains(lowercaseTriggeredByUser)) {
+                    return; // user is excluded from triggering build
+                }
+            }
         }
 
         Job<?, ?> currentJob = notNull(job, "Job can't be null");
@@ -167,6 +201,30 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
                 }
             }
         });
+    }
+
+    private boolean branchMatchesGitBranchToBeBuilt(GitSCM scm, String ref) {
+        List< BranchSpec > branches = scm.getBranches();
+        for (BranchSpec branch: branches) {
+            if (!branch.matches(ref)) {
+                // code block copied from GitSCM plugin's GitSCM.compareRemoteRevisionWithImpl()
+                // convert head `refs/(heads|tags|whatever)/branch` into shortcut notation `remote/branch`
+                String name;
+                Matcher matcher = GitSCM.GIT_REF.matcher(ref);
+                if (matcher.matches()) {
+                    name = "origin" + ref.substring(matcher.group(1).length());
+                } else {
+                    name = "origin" + "/" + ref;
+                }
+
+                if (!branch.matches(name)) {
+                    continue;
+                }
+
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -240,6 +298,15 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl) super.getDescriptor();
+    }
+
+    public boolean isUseGitExcludedUsers() {
+        return useGitExcludedUsers;
+    }
+
+    @DataBoundSetter
+    public void setUseGitExcludedUsers(Boolean useGitExcludedUsers) {
+        this.useGitExcludedUsers = useGitExcludedUsers != null ? useGitExcludedUsers : false;
     }
 
     /**
