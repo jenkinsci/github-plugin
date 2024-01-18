@@ -30,7 +30,7 @@ import org.jvnet.hudson.test.recipes.LocalData;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
