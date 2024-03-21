@@ -38,6 +38,9 @@ public class Migrator {
     public void migrate() throws IOException {
         LOGGER.debug("Check if GitHub Plugin needs config migration");
         GitHubPushTrigger.DescriptorImpl descriptor = GitHubPushTrigger.DescriptorImpl.get();
+        if (descriptor == null) {
+            return;
+        }
         descriptor.load();
 
         if (isNotEmpty(descriptor.getCredentials())) {
