@@ -34,7 +34,7 @@ import org.jvnet.hudson.test.TestExtension;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.Collections;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
