@@ -9,9 +9,9 @@ import hudson.scm.ChangeLogAnnotator;
 import hudson.scm.ChangeLogSet.Entry;
 import org.apache.commons.lang.StringUtils;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.CheckReturnValue;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.CheckReturnValue;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import static hudson.Functions.htmlAttributeEscape;
 import static java.lang.String.format;
@@ -100,13 +100,13 @@ public class GithubLinkAnnotator extends ChangeLogAnnotator {
             "(?:C|c)lose(?:s?)\\s(?<!\\:)(?:#)NUM", // "Closes #123"
             "issues/$1")};
 
-    @Nonnull
+    @NonNull
     public static String getAllowedUriSchemes() {
         return StringUtils.join(ALLOWED_URI_SCHEMES, ',');
     }
 
     @CheckReturnValue
-    @Nonnull
+    @NonNull
     public static boolean verifyUrl(@CheckForNull String urlString) {
         if (StringUtils.isBlank(urlString)) {
             return false;
