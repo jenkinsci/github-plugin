@@ -348,7 +348,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
         @SuppressWarnings("unused")
         public ListBoxModel doFillCredentialsIdItems(@QueryParameter String apiUrl,
                                                      @QueryParameter String credentialsId) {
-            if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.getInstance().hasPermission(Jenkins.MANAGE)) {
                 return new StandardListBoxModel().includeCurrentValue(credentialsId);
             }
             return new StandardListBoxModel()
@@ -367,7 +367,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
         public FormValidation doVerifyCredentials(
                 @QueryParameter String apiUrl,
                 @QueryParameter String credentialsId) throws IOException {
-            Jenkins.getActiveInstance().checkPermission(Jenkins.ADMINISTER);
+            Jenkins.getActiveInstance().checkPermission(Jenkins.MANAGE);
 
             GitHubServerConfig config = new GitHubServerConfig(credentialsId);
             config.setApiUrl(apiUrl);
