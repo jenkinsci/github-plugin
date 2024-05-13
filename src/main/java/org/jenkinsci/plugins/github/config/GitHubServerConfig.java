@@ -14,6 +14,7 @@ import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.security.ACL;
+import hudson.security.Permission;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
@@ -345,6 +346,12 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
             return "GitHub Server";
         }
 
+        @NonNull
+        @Override
+        public Permission getRequiredGlobalConfigPagePermission() {
+            return Jenkins.MANAGE;
+        }
+
         @SuppressWarnings("unused")
         public ListBoxModel doFillCredentialsIdItems(@QueryParameter String apiUrl,
                                                      @QueryParameter String credentialsId) {
@@ -419,4 +426,6 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
             return github.getCachedClient();
         }
     }
+
+
 }

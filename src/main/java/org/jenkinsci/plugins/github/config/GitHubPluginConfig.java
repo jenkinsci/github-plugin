@@ -4,11 +4,13 @@ import com.cloudbees.jenkins.GitHubWebHook;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.Util;
 import hudson.XmlFile;
 import hudson.model.Descriptor;
 import hudson.model.Item;
+import hudson.security.Permission;
 import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
@@ -212,7 +214,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     @SuppressWarnings("unused")
     @RequirePOST
     public FormValidation doReRegister() {
-        Jenkins.getActiveInstance().checkPermission(Jenkins.ADMINISTER);
+        Jenkins.getActiveInstance().checkPermission(Jenkins.MANAGE);
         if (!GitHubPlugin.configuration().isManageHooks()) {
             return FormValidation.warning("Works only when Jenkins manages hooks (one or more creds specified)");
         }
@@ -227,7 +229,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
     @Restricted(DoNotUse.class) // WebOnly
     @SuppressWarnings("unused")
     public FormValidation doCheckHookUrl(@QueryParameter String value) {
-        Jenkins.getActiveInstance().checkPermission(Jenkins.ADMINISTER);
+        Jenkins.getActiveInstance().checkPermission(Jenkins.MANAGE);
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(value).openConnection();
             con.setRequestMethod("POST");
@@ -316,5 +318,11 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         } catch (MalformedURLException e) {
             return null;
         }
+    }
+
+    @NonNull
+    @Override
+    public Permission getRequiredGlobalConfigPagePermission() {
+        return Jenkins.MANAGE;
     }
 }
