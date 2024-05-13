@@ -92,7 +92,7 @@ public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredent
 
     @SuppressWarnings("unused")
     public ListBoxModel doFillCredentialsIdItems(@QueryParameter String apiUrl, @QueryParameter String credentialsId) {
-        if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+        if (!Jenkins.getInstance().hasPermission(Jenkins.MANAGE)) {
             return new StandardUsernameListBoxModel().includeCurrentValue(credentialsId);
         }
         return new StandardUsernameListBoxModel()
@@ -118,7 +118,7 @@ public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredent
     public FormValidation doCreateTokenByCredentials(
             @QueryParameter String apiUrl,
             @QueryParameter String credentialsId) {
-        Jenkins.getActiveInstance().checkPermission(Jenkins.ADMINISTER);
+        Jenkins.getActiveInstance().checkPermission(Jenkins.MANAGE);
         if (isEmpty(credentialsId)) {
             return FormValidation.error("Please specify credentials to create token");
         }
@@ -167,7 +167,7 @@ public class GitHubTokenCredentialsCreator extends Descriptor<GitHubTokenCredent
             @QueryParameter String apiUrl,
             @QueryParameter String login,
             @QueryParameter String password) {
-        Jenkins.getActiveInstance().checkPermission(Jenkins.ADMINISTER);
+        Jenkins.getActiveInstance().checkPermission(Jenkins.MANAGE);
         try {
             GHAuthorization token = createToken(login, password, defaultIfBlank(apiUrl, GITHUB_URL));
             StandardCredentials credentials = createCredentials(apiUrl, token.getToken(), login);
