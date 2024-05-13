@@ -62,7 +62,7 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
 
         @SuppressWarnings("unused")
         public ListBoxModel doFillCredentialsIdItems(@QueryParameter String credentialsId) {
-            if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.getInstance().hasPermission(Jenkins.MANAGE)) {
                 return new StandardListBoxModel().includeCurrentValue(credentialsId);
             }
 
