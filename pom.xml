@@ -50,8 +50,8 @@
         <revision>1.39.1</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/github-plugin</gitHubRepo>
-        <!-- TODO JENKINS-73130 https://ci.jenkins.io/job/Core/job/jenkins/job/prototype/ -->
-        <jenkins.version>2.468-rc35110.010999645350</jenkins.version>
+        <!-- TODO JENKINS-73278 https://ci.jenkins.io/job/Core/job/jenkins/job/jakarta/ -->
+        <jenkins.version>2.468-rc35110.420704d41d71</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <tagNameFormat>v@{project.version}</tagNameFormat>
         <useBeta>true</useBeta> <!-- For Jenkins.MANAGE permission -->
@@ -206,6 +206,12 @@
                 <version>2718.v7e8a_d43b_3f0b_</version>
                 <scope>import</scope>
                 <type>pom</type>
+            </dependency>
+            <!-- TODO JENKINS-73339 until in parent POM, work around https://github.com/jenkinsci/plugin-pom/issues/936 -->
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>5.0.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
