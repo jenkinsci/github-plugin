@@ -50,10 +50,14 @@
         <revision>1.39.1</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/github-plugin</gitHubRepo>
-        <jenkins.version>2.414.3</jenkins.version>
+        <!-- TODO JENKINS-73130 https://ci.jenkins.io/job/Core/job/jenkins/job/prototype/ -->
+        <jenkins.version>2.468-rc35110.010999645350</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <tagNameFormat>v@{project.version}</tagNameFormat>
         <useBeta>true</useBeta> <!-- For Jenkins.MANAGE permission -->
+        <!-- TODO JENKINS-73339 until in parent POM -->
+        <jenkins-test-harness.version>2244.v77428109fd1f</jenkins-test-harness.version>
+        <maven.compiler.release>17</maven.compiler.release>
     </properties>
 
     <repositories>
