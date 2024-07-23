@@ -47,12 +47,13 @@
     </issueManagement>
 
     <properties>
-        <revision>1.38.1</revision>
+        <revision>1.39.1</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/github-plugin</gitHubRepo>
         <jenkins.version>2.414.3</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <tagNameFormat>v@{project.version}</tagNameFormat>
+        <useBeta>true</useBeta> <!-- For Jenkins.MANAGE permission -->
     </properties>
 
     <repositories>

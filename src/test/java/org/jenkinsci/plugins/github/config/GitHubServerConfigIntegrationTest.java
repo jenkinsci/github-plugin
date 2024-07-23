@@ -107,7 +107,9 @@ public class GitHubServerConfigIntegrationTest {
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
 
         GlobalMatrixAuthorizationStrategy strategy = new GlobalMatrixAuthorizationStrategy();
-        strategy.add(Jenkins.ADMINISTER, "admin");
+        Jenkins.MANAGE.setEnabled(true);
+        strategy.add(Jenkins.MANAGE, "admin");
+        strategy.add(Jenkins.READ, "admin");
         strategy.add(Jenkins.READ, "user");
         j.jenkins.setAuthorizationStrategy(strategy);
         
@@ -121,7 +123,7 @@ public class GitHubServerConfigIntegrationTest {
             
             assertThat(attackerServlet.secretCreds, isEmptyOrNullString());
         }
-        { // only admin can verify the credentials
+        { // only admin (with Manage permission) can verify the credentials
             JenkinsRule.WebClient wc = j.createWebClient();
             wc.getOptions().setThrowExceptionOnFailingStatusCode(false);
             wc.login("admin");
