@@ -19,30 +19,37 @@ public class GitHubPushCause extends SCMTriggerCause {
      * The name of the user who pushed to GitHub.
      */
     private String pushedBy;
+    /**
+     * The target ref of the triggering GitHub push.
+     */
+    private String ref;
 
-    public GitHubPushCause(String pusher) {
-        this("", pusher);
+    public GitHubPushCause(String pusher, String ref) {
+        this("", pusher, ref);
     }
 
-    public GitHubPushCause(String pollingLog, String pusher) {
+    public GitHubPushCause(String pollingLog, String pusher, String ref) {
         super(pollingLog);
-        pushedBy = pusher;
+        this.pushedBy = pusher;
+        this.ref = ref;
     }
 
-    public GitHubPushCause(File pollingLog, String pusher) throws IOException {
+    public GitHubPushCause(File pollingLog, String pusher, String ref) throws IOException {
         super(pollingLog);
-        pushedBy = pusher;
+        this.pushedBy = pusher;
+        this.ref = ref;
     }
 
     @Override
     public String getShortDescription() {
-        return format("Started by GitHub push by %s", trimToEmpty(pushedBy));
+        return format("Started by GitHub push to %s by %s", trimToEmpty(ref), trimToEmpty(pushedBy));
     }
 
     @Override
     public boolean equals(Object o) {
         return o instanceof GitHubPushCause
                 && Objects.equals(this.pushedBy, ((GitHubPushCause) o).pushedBy)
+                && Objects.equals(this.ref, ((GitHubPushCause) o).ref)
                 && super.equals(o);
     }
 
@@ -50,7 +57,7 @@ public class GitHubPushCause extends SCMTriggerCause {
     public int hashCode() {
         int hash = super.hashCode();
         hash = 89 * hash + Objects.hash(this.pushedBy);
+        hash = 89 * hash + Objects.hash(this.ref);
         return hash;
     }
 }
-
