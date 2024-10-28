@@ -47,12 +47,16 @@
     </issueManagement>
 
     <properties>
-        <revision>1.38.1</revision>
+        <revision>1.40.1</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/github-plugin</gitHubRepo>
         <jenkins.version>2.414.3</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <tagNameFormat>v@{project.version}</tagNameFormat>
+        <useBeta>true</useBeta> <!-- For Jenkins.MANAGE permission -->
+        <!-- TODO JENKINS-73339 until in parent POM -->
+        <jenkins-test-harness.version>2250.v03a_1295b_0a_30</jenkins-test-harness.version>
+        <maven.compiler.testRelease>17</maven.compiler.testRelease>
     </properties>
 
     <repositories>

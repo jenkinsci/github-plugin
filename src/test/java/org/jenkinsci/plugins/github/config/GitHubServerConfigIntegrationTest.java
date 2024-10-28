@@ -14,10 +14,9 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletContextHandler.Context;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.ee8.servlet.DefaultServlet;
+import org.eclipse.jetty.ee8.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee8.servlet.ServletHolder;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.After;
 import org.junit.Before;
@@ -107,7 +106,9 @@ public class GitHubServerConfigIntegrationTest {
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
 
         GlobalMatrixAuthorizationStrategy strategy = new GlobalMatrixAuthorizationStrategy();
-        strategy.add(Jenkins.ADMINISTER, "admin");
+        Jenkins.MANAGE.setEnabled(true);
+        strategy.add(Jenkins.MANAGE, "admin");
+        strategy.add(Jenkins.READ, "admin");
         strategy.add(Jenkins.READ, "user");
         j.jenkins.setAuthorizationStrategy(strategy);
         
@@ -121,7 +122,7 @@ public class GitHubServerConfigIntegrationTest {
             
             assertThat(attackerServlet.secretCreds, isEmptyOrNullString());
         }
-        { // only admin can verify the credentials
+        { // only admin (with Manage permission) can verify the credentials
             JenkinsRule.WebClient wc = j.createWebClient();
             wc.getOptions().setThrowExceptionOnFailingStatusCode(false);
             wc.login("admin");

@@ -4,17 +4,14 @@ import com.cloudbees.jenkins.GitHubPushTrigger
 
 tr {
     td(colspan: 4) {
-        div(id: 'gh-hooks-warn')
+        def url = descriptor.getCheckMethod('hookRegistered').toCheckUrl()
+        def input = "input[name='${GitHubPushTrigger.class.getName().replace('.', '-')}']"
+
+        div(id: 'gh-hooks-warn',
+                'data-url': url,
+                'data-input': input
+        )
     }
 }
 
 script(src:"${rootURL}${h.getResourcePath()}/plugin/github/js/warning.js")
-script {
-    text("""
-InlineWarning.setup({ 
-    id: 'gh-hooks-warn',
-    url: ${descriptor.getCheckMethod('hookRegistered').toCheckUrl()}, 
-    input: 'input[name="${GitHubPushTrigger.class.getName().replace(".", "-")}"]'
-}).start();
-""")
-}

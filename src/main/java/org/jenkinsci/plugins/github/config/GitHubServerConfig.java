@@ -14,6 +14,7 @@ import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.security.ACL;
+import hudson.security.Permission;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
@@ -345,10 +346,16 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
             return "GitHub Server";
         }
 
+        @NonNull
+        @Override
+        public Permission getRequiredGlobalConfigPagePermission() {
+            return Jenkins.MANAGE;
+        }
+
         @SuppressWarnings("unused")
         public ListBoxModel doFillCredentialsIdItems(@QueryParameter String apiUrl,
                                                      @QueryParameter String credentialsId) {
-            if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.getInstance().hasPermission(Jenkins.MANAGE)) {
                 return new StandardListBoxModel().includeCurrentValue(credentialsId);
             }
             return new StandardListBoxModel()
@@ -367,7 +374,7 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
         public FormValidation doVerifyCredentials(
                 @QueryParameter String apiUrl,
                 @QueryParameter String credentialsId) throws IOException {
-            Jenkins.getActiveInstance().checkPermission(Jenkins.ADMINISTER);
+            Jenkins.getActiveInstance().checkPermission(Jenkins.MANAGE);
 
             GitHubServerConfig config = new GitHubServerConfig(credentialsId);
             config.setApiUrl(apiUrl);
@@ -419,4 +426,6 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
             return github.getCachedClient();
         }
     }
+
+
 }

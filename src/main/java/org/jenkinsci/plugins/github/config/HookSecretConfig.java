@@ -3,10 +3,12 @@ package org.jenkinsci.plugins.github.config;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.security.ACL;
+import hudson.security.Permission;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
@@ -62,7 +64,7 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
 
         @SuppressWarnings("unused")
         public ListBoxModel doFillCredentialsIdItems(@QueryParameter String credentialsId) {
-            if (!Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.getInstance().hasPermission(Jenkins.MANAGE)) {
                 return new StandardListBoxModel().includeCurrentValue(credentialsId);
             }
 
@@ -75,6 +77,12 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
                             Collections.<DomainRequirement>emptyList(),
                             CredentialsMatchers.always()
                     );
+        }
+
+        @NonNull
+        @Override
+        public Permission getRequiredGlobalConfigPagePermission() {
+            return Jenkins.MANAGE;
         }
     }
 }
