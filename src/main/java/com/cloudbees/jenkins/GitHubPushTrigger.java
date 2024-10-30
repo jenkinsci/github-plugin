@@ -86,7 +86,7 @@ public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigg
      */
     public void onPost(String triggeredByUser) {
         onPost(GitHubTriggerEvent.create()
-                .withOrigin(SCMEvent.originOf(Stapler.getCurrentRequest()))
+                .withOrigin(SCMEvent.originOf(Stapler.getCurrentRequest2()))
                 .withTriggeredByUser(triggeredByUser)
                 .build()
         );

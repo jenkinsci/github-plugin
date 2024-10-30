@@ -10,14 +10,14 @@ import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.util.FluentIterableWrapper;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.stapler.HttpResponses;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 import org.kohsuke.stapler.interceptor.Interceptor;
 import org.kohsuke.stapler.interceptor.InterceptorAnnotation;
 import org.slf4j.Logger;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.annotation.Retention;
@@ -37,8 +37,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static org.apache.commons.codec.binary.Base64.encodeBase64;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
@@ -69,7 +69,7 @@ public @interface RequirePostWithGHHookPayload {
         private static final String SHA1_PREFIX = "sha1=";
 
         @Override
-        public Object invoke(StaplerRequest req, StaplerResponse rsp, Object instance, Object[] arguments)
+        public Object invoke(StaplerRequest2 req, StaplerResponse2 rsp, Object instance, Object[] arguments)
                 throws IllegalAccessException, InvocationTargetException, ServletException {
 
             shouldBePostMethod(req);
@@ -87,7 +87,7 @@ public @interface RequirePostWithGHHookPayload {
          *
          * @throws InvocationTargetException if method os not POST
          */
-        protected void shouldBePostMethod(StaplerRequest request) throws InvocationTargetException {
+        protected void shouldBePostMethod(StaplerRequest2 request) throws InvocationTargetException {
             if (!request.getMethod().equals("POST")) {
                 throw new InvocationTargetException(error(SC_METHOD_NOT_ALLOWED, "Method POST required"));
             }
@@ -96,12 +96,12 @@ public @interface RequirePostWithGHHookPayload {
         /**
          * Used for {@link GitHubPluginConfig#doCheckHookUrl(String)}}
          */
-        protected void returnsInstanceIdentityIfLocalUrlTest(StaplerRequest req) throws InvocationTargetException {
+        protected void returnsInstanceIdentityIfLocalUrlTest(StaplerRequest2 req) throws InvocationTargetException {
             if (req.getHeader(GitHubWebHook.URL_VALIDATION_HEADER) != null) {
                 // when the configuration page provides the self-check button, it makes a request with this header.
                 throw new InvocationTargetException(new HttpResponses.HttpResponseException() {
                     @Override
-                    public void generateResponse(StaplerRequest req, StaplerResponse rsp, Object node)
+                    public void generateResponse(StaplerRequest2 req, StaplerResponse2 rsp, Object node)
                             throws IOException, ServletException {
                         RSAPublicKey key = new InstanceIdentity().getPublic();
                         rsp.setStatus(HttpServletResponse.SC_OK);
@@ -142,7 +142,8 @@ public @interface RequirePostWithGHHookPayload {
          * @param req Incoming request.
          * @throws InvocationTargetException if any of preconditions is not satisfied
          */
-        protected void shouldProvideValidSignature(StaplerRequest req, Object[] args) throws InvocationTargetException {
+        protected void shouldProvideValidSignature(StaplerRequest2 req, Object[] args)
+                throws InvocationTargetException {
             List<Secret> secrets = GitHubPlugin.configuration().getHookSecretConfigs().stream().
                     map(HookSecretConfig::getHookSecret).filter(Objects::nonNull).collect(Collectors.toList());
 
@@ -166,7 +167,7 @@ public @interface RequirePostWithGHHookPayload {
          *
          * @return ready-to-hash payload
          */
-        protected String payloadFrom(StaplerRequest req, Object[] args) {
+        protected String payloadFrom(StaplerRequest2 req, Object[] args) {
             final String parsedPayload = (String) args[1];
 
             if (req.getContentType().equals(GHEventPayload.PayloadHandler.APPLICATION_JSON)) {

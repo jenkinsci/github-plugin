@@ -9,7 +9,7 @@ import jenkins.model.ParameterizedJobMixIn;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -116,7 +116,7 @@ public final class GithubProjectProperty extends JobProperty<Job<?, ?>> {
         }
 
         @Override
-        public JobProperty<?> newInstance(@NonNull StaplerRequest req,
+        public JobProperty<?> newInstance(@NonNull StaplerRequest2 req,
                                           JSONObject formData) throws Descriptor.FormException {
 
             GithubProjectProperty tpp = req.bindJSON(
