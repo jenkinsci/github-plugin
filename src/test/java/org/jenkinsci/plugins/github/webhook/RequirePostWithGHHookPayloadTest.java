@@ -7,7 +7,7 @@ import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.kohsuke.github.GHEvent;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -31,7 +31,7 @@ public class RequirePostWithGHHookPayloadTest {
     private static final String PAYLOAD = "sample payload";
 
     @Mock
-    private StaplerRequest req;
+    private StaplerRequest2 req;
 
     @Rule
     public JenkinsRule jenkinsRule = new JenkinsRule();

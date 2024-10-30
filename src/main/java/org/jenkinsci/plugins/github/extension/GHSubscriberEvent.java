@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.extension;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jenkins.scm.api.SCMEvent;
 import org.kohsuke.github.GHEvent;
 
@@ -20,7 +21,7 @@ public class GHSubscriberEvent extends SCMEvent<String> {
     /**
      * Constructs a new {@link GHSubscriberEvent}.
      *
-     * @param origin  the origin (see {@link SCMEvent#originOf(javax.servlet.http.HttpServletRequest)}) or {@code null}.
+     * @param origin  the origin (see {@link SCMEvent#originOf(HttpServletRequest)}) or {@code null}.
      * @param ghEvent the type of event received from GitHub.
      * @param payload the event payload.
      */

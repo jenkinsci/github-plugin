@@ -3,7 +3,7 @@ package org.jenkinsci.plugins.github.admin;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -22,7 +22,7 @@ public class GHRepoNameTest {
     private static final String REPO = "https://github.com/user/repo";
 
     @Mock
-    private StaplerRequest req;
+    private StaplerRequest2 req;
 
     @Mock
     private GHRepoName anno;

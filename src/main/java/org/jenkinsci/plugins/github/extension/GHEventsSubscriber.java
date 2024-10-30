@@ -222,7 +222,7 @@ public abstract class GHEventsSubscriber implements ExtensionPoint {
      */
     @Deprecated
     public static Function<GHEventsSubscriber, Void> processEvent(final GHEvent event, final String payload) {
-        return processEvent(new GHSubscriberEvent(SCMEvent.originOf(Stapler.getCurrentRequest()), event, payload));
+        return processEvent(new GHSubscriberEvent(SCMEvent.originOf(Stapler.getCurrentRequest2()), event, payload));
     }
 
     /**

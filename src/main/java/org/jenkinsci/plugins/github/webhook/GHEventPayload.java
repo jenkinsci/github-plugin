@@ -8,11 +8,11 @@ import org.apache.commons.io.IOUtils;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.kohsuke.stapler.AnnotationHandler;
 import org.kohsuke.stapler.InjectedParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 import org.slf4j.Logger;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -46,8 +46,8 @@ public @interface GHEventPayload {
          *
          * @see <a href=https://developer.github.com/webhooks/creating/#content-type>Developer manual</a>
          */
-        private static final Map<String, Function<StaplerRequest, String>> PAYLOAD_PROCESS =
-                ImmutableMap.<String, Function<StaplerRequest, String>>builder()
+        private static final Map<String, Function<StaplerRequest2, String>> PAYLOAD_PROCESS =
+                ImmutableMap.<String, Function<StaplerRequest2, String>>builder()
                         .put(APPLICATION_JSON, fromApplicationJson())
                         .put(FORM_URLENCODED, fromForm())
                         .build();
@@ -58,8 +58,8 @@ public @interface GHEventPayload {
          * @return String payload extracted from request or null on any problem
          */
         @Override
-        public Object parse(StaplerRequest req, GHEventPayload a, Class type, String param) throws ServletException {
-            if (notNull(req, "Why StaplerRequest is null?").getHeader(GitHubWebHook.URL_VALIDATION_HEADER) != null) {
+        public Object parse(StaplerRequest2 req, GHEventPayload a, Class type, String param) throws ServletException {
+            if (notNull(req, "Why StaplerRequest2 is null?").getHeader(GitHubWebHook.URL_VALIDATION_HEADER) != null) {
                 // if self test for custom hook url
                 return null;
             }
@@ -82,10 +82,10 @@ public @interface GHEventPayload {
          *
          * @return function to extract payload from form request parameters
          */
-        protected static Function<StaplerRequest, String> fromForm() {
-            return new NullSafeFunction<StaplerRequest, String>() {
+        protected static Function<StaplerRequest2, String> fromForm() {
+            return new NullSafeFunction<StaplerRequest2, String>() {
                 @Override
-                protected String applyNullSafe(@NonNull StaplerRequest request) {
+                protected String applyNullSafe(@NonNull StaplerRequest2 request) {
                     return request.getParameter("payload");
                 }
             };
@@ -96,10 +96,10 @@ public @interface GHEventPayload {
          *
          * @return function to extract payload from body
          */
-        protected static Function<StaplerRequest, String> fromApplicationJson() {
-            return new NullSafeFunction<StaplerRequest, String>() {
+        protected static Function<StaplerRequest2, String> fromApplicationJson() {
+            return new NullSafeFunction<StaplerRequest2, String>() {
                 @Override
-                protected String applyNullSafe(@NonNull StaplerRequest request) {
+                protected String applyNullSafe(@NonNull StaplerRequest2 request) {
                     try {
                         return IOUtils.toString(request.getInputStream(), Charsets.UTF_8);
                     } catch (IOException e) {
