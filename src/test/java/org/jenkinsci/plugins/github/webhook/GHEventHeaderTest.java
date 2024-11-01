@@ -3,7 +3,7 @@ package org.jenkinsci.plugins.github.webhook;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kohsuke.github.GHEvent;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -24,7 +24,7 @@ public class GHEventHeaderTest {
     public static final String UNKNOWN_EVENT = "unkn";
     
     @Mock
-    private StaplerRequest req;
+    private StaplerRequest2 req;
 
     @Mock
     private GHEventHeader ann;

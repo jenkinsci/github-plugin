@@ -3,7 +3,7 @@ package org.jenkinsci.plugins.github.admin;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import org.kohsuke.stapler.AnnotationHandler;
 import org.kohsuke.stapler.InjectedParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 import org.slf4j.Logger;
 
 import java.lang.annotation.Documented;
@@ -37,8 +37,8 @@ public @interface GHRepoName {
          * @return {@link GitHubRepositoryName} extracted from request or null on any problem
          */
         @Override
-        public GitHubRepositoryName parse(StaplerRequest req, GHRepoName a, Class type, String param) {
-            String repo = notNull(req, "Why StaplerRequest is null?").getParameter(param);
+        public GitHubRepositoryName parse(StaplerRequest2 req, GHRepoName a, Class type, String param) {
+            String repo = notNull(req, "Why StaplerRequest2 is null?").getParameter(param);
             LOGGER.trace("Repo url in method {}", repo);
             return GitHubRepositoryName.create(repo);
         }

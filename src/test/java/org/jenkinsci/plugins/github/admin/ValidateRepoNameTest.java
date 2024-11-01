@@ -6,8 +6,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.kohsuke.stapler.Function;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -25,10 +25,10 @@ public class ValidateRepoNameTest {
     private Function target;
 
     @Mock
-    private StaplerRequest req;
+    private StaplerRequest2 req;
 
     @Mock
-    private StaplerResponse resp;
+    private StaplerResponse2 resp;
 
     @Rule
     public ExpectedException exc = ExpectedException.none();

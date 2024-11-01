@@ -3,7 +3,7 @@ package org.jenkinsci.plugins.github.webhook;
 import com.cloudbees.jenkins.GitHubWebHookFullTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -24,7 +24,7 @@ public class GHEventPayloadTest {
     public static final String UNKNOWN_CONTENT_TYPE = "text/plain";
 
     @Mock
-    private StaplerRequest req;
+    private StaplerRequest2 req;
 
     @Mock
     private GHEventPayload ann;

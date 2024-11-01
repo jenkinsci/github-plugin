@@ -15,7 +15,7 @@ import org.jenkinsci.plugins.github.Messages;
 import org.kohsuke.stapler.HttpRedirect;
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,7 +147,7 @@ public class GitHubHookRegisterProblemMonitor extends AdministrativeMonitor impl
      */
     @RequirePOST
     @RequireAdminRights
-    public HttpResponse doAct(StaplerRequest req) throws IOException {
+    public HttpResponse doAct(StaplerRequest2 req) throws IOException {
         if (req.hasParameter("no")) {
             disable(true);
             return HttpResponses.redirectViaContextPath("/manage");

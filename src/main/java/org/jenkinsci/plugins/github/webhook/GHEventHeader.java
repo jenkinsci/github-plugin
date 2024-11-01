@@ -3,10 +3,10 @@ package org.jenkinsci.plugins.github.webhook;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.stapler.AnnotationHandler;
 import org.kohsuke.stapler.InjectedParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 import org.slf4j.Logger;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -42,7 +42,7 @@ public @interface GHEventHeader {
          * @return parsed {@link GHEvent} or null on empty header or unknown value
          */
         @Override
-        public Object parse(StaplerRequest req, GHEventHeader a, Class type, String param) throws ServletException {
+        public Object parse(StaplerRequest2 req, GHEventHeader a, Class type, String param) throws ServletException {
             isTrue(GHEvent.class.isAssignableFrom(type),
                     "Parameter '%s' should has type %s, not %s", param,
                     GHEvent.class.getName(),
