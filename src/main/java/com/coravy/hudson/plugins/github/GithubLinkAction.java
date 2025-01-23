@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Add the Github Logo/Icon to the sidebar.
+ * Add the GitHub Logo/Icon to the sidebar.
  *
  * @author <a href="mailto:stefan@coravy.com">Stefan Saasen</a>
  */

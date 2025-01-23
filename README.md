@@ -1,9 +1,9 @@
-# Github Plugin
+# GitHub Plugin
 
 [![codecov](https://codecov.io/gh/jenkinsci/github-plugin/branch/master/graph/badge.svg)](https://codecov.io/gh/jenkinsci/github-plugin)
 [![License](https://img.shields.io/github/license/jenkinsci/github-plugin.svg)](LICENSE)
 
-This plugin integrates Jenkins with [Github](http://github.com/)
+This plugin integrates Jenkins with [GitHub](http://github.com/)
 projects.The plugin currently has three major functionalities:
 
 -   Create hyperlinks between your Jenkins projects and GitHub
@@ -17,14 +17,14 @@ projects.The plugin currently has three major functionalities:
 
 ## Hyperlinks between changes
 
-The Github plugin decorates Jenkins "Changes" pages to create links to
-your Github commit and issue pages. It adds a sidebar link that links
-back to the Github project page.
+The GitHub plugin decorates Jenkins "Changes" pages to create links to
+your GitHub commit and issue pages. It adds a sidebar link that links
+back to the GitHub project page.
 
 ![](/docs/images/changes.png)
 ![](/docs/images/changes-2.png)
 
-When creating a job, specify that is connects to git. Under "Github
+When creating a job, specify that is connects to git. Under "GitHub
 project", put in: git@github.com:*Person*/*Project*.git Under "Source
 Code Management" select Git, and put in
 git@github.com:*Person*/*Project*.git
@@ -180,7 +180,7 @@ Additional info:
     Jenkins service by right clicking on Jenkins (in the services
     window), and hit "Restart".
 -   Jenkins does not support passphrases for SSH keys. Therefore, if you
-    set one while running the initial Github configuration, rerun it and
+    set one while running the initial GitHub configuration, rerun it and
     don't set one.
 
 ## Pipeline examples
