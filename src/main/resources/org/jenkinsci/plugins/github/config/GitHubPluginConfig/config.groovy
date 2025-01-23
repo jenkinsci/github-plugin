@@ -27,10 +27,11 @@ f.section(title: descriptor.displayName) {
             f.entry(title: _("Override Hook URL")) {
                 g.blockWrapper {
                     f.optionalBlock(title: _("Specify another hook URL for GitHub configuration"),
+                            name: "isOverrideHookUrl",
                             inline: true,
                             checked: instance.isOverrideHookUrl()) {
                         f.entry(field: "hookUrl") {
-                            f.textbox(checkMethod: "post")
+                            f.textbox(checkMethod: "post", name: "hookUrl")
                         }
                     }
                 }
