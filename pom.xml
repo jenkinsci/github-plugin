@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>5.2</version>
+        <version>5.5</version>
         <relativePath />
     </parent>
 
@@ -52,10 +52,10 @@
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
         <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
         <jenkins.baseline>2.479</jenkins.baseline>
-        <jenkins.version>${jenkins.baseline}.1</jenkins.version>
+        <!-- REMOVE -->
+        <jenkins.version>2.494-rc35897.1f8edd4c1651</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <tagNameFormat>v@{project.version}</tagNameFormat>
-        <useBeta>true</useBeta> <!-- For Jenkins.MANAGE permission -->
     </properties>
 
     <repositories>
@@ -64,7 +64,7 @@
             <url>https://repo.jenkins-ci.org/public/</url>
         </repository>
     </repositories>
-    
+
     <pluginRepositories>
         <pluginRepository>
             <id>repo.jenkins-ci.org</id>
