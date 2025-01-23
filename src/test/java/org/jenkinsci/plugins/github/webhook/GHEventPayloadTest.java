@@ -1,11 +1,11 @@
 package org.jenkinsci.plugins.github.webhook;
 
 import com.cloudbees.jenkins.GitHubWebHookFullTest;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -16,7 +16,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author lanwen (Merkushev Kirill)
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class GHEventPayloadTest {
 
     public static final String NOT_EMPTY_PAYLOAD_CONTENT = "{}";
@@ -30,7 +30,7 @@ public class GHEventPayloadTest {
     private GHEventPayload ann;
 
     @Test
-    public void shouldReturnPayloadFromForm() throws Exception {
+    void shouldReturnPayloadFromForm() throws Exception {
         when(req.getContentType()).thenReturn(GitHubWebHookFullTest.FORM);
         when(req.getParameter(PARAM_NAME)).thenReturn(NOT_EMPTY_PAYLOAD_CONTENT);
         Object payload = new GHEventPayload.PayloadHandler().parse(req, ann, String.class, PARAM_NAME);
@@ -40,7 +40,7 @@ public class GHEventPayloadTest {
     }
 
     @Test
-    public void shouldReturnNullOnUnknownContentType() throws Exception {
+    void shouldReturnNullOnUnknownContentType() throws Exception {
         when(req.getContentType()).thenReturn(UNKNOWN_CONTENT_TYPE);
         Object payload = new GHEventPayload.PayloadHandler().parse(req, ann, String.class, PARAM_NAME);
 

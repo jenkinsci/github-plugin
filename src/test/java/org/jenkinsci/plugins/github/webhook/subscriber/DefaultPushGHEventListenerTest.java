@@ -7,20 +7,22 @@ import hudson.ExtensionList;
 import hudson.model.FreeStyleProject;
 import hudson.model.Item;
 import hudson.plugins.git.GitSCM;
-import java.util.Collections;
-import java.util.List;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.extension.GHSubscriberEvent;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.kohsuke.github.GHEvent;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+
+import java.util.Collections;
+import java.util.List;
 
 import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -35,24 +37,29 @@ import static org.mockito.Mockito.when;
 /**
  * @author lanwen (Merkushev Kirill)
  */
+@WithJenkins
 public class DefaultPushGHEventListenerTest {
 
     public static final GitSCM GIT_SCM_FROM_RESOURCE = new GitSCM("ssh://git@github.com/lanwen/test.git");
     public static final String TRIGGERED_BY_USER_FROM_RESOURCE = "lanwen";
 
-    @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    private JenkinsRule jenkins;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        jenkins = rule;
+    }
 
     @Test
     @WithoutJenkins
-    public void shouldBeNotApplicableForProjectWithoutTrigger() {
+    void shouldBeNotApplicableForProjectWithoutTrigger() {
         FreeStyleProject prj = mock(FreeStyleProject.class);
         assertThat(new DefaultPushGHEventSubscriber().isApplicable(prj), is(false));
     }
 
     @Test
     @WithoutJenkins
-    public void shouldBeApplicableForProjectWithTrigger() {
+    void shouldBeApplicableForProjectWithTrigger() {
         FreeStyleProject prj = mock(FreeStyleProject.class);
         when(prj.getTriggers()).thenReturn(
                 Collections.singletonMap(new GitHubPushTrigger.DescriptorImpl(), new GitHubPushTrigger()));
@@ -61,7 +68,7 @@ public class DefaultPushGHEventListenerTest {
 
     @Test
     @WithoutJenkins
-    public void shouldParsePushPayload() {
+    void shouldParsePushPayload() {
         GitHubPushTrigger trigger = mock(GitHubPushTrigger.class);
 
         FreeStyleProject prj = mock(FreeStyleProject.class);
@@ -96,7 +103,7 @@ public class DefaultPushGHEventListenerTest {
 
     @Test
     @Issue("JENKINS-27136")
-    public void shouldReceivePushHookOnWorkflow() throws Exception {
+    void shouldReceivePushHookOnWorkflow() throws Exception {
         WorkflowJob job = jenkins.getInstance().createProject(WorkflowJob.class, "test-workflow-job");
 
         GitHubPushTrigger trigger = mock(GitHubPushTrigger.class);
@@ -119,7 +126,7 @@ public class DefaultPushGHEventListenerTest {
 
     @Test
     @Issue("JENKINS-27136")
-    public void shouldNotReceivePushHookOnWorkflowWithNoBuilds() throws Exception {
+    void shouldNotReceivePushHookOnWorkflowWithNoBuilds() throws Exception {
         WorkflowJob job = jenkins.getInstance().createProject(WorkflowJob.class, "test-workflow-job");
 
         GitHubPushTrigger trigger = mock(GitHubPushTrigger.class);

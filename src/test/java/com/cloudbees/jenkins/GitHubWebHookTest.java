@@ -1,36 +1,33 @@
 package com.cloudbees.jenkins;
 
 import com.google.inject.Inject;
-
 import hudson.model.Item;
-import hudson.model.Job;
-
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestExtension;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.kohsuke.github.GHEvent;
 
 import java.util.Set;
 
 import static com.google.common.collect.Sets.immutableEnumSet;
 import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author lanwen (Merkushev Kirill)
  */
-public class GitHubWebHookTest {
+@WithJenkins
+class GitHubWebHookTest {
 
     public static final String PAYLOAD = "{}";
 
-    @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    private JenkinsRule jenkins;
 
     @Inject
     private IssueSubscriber subscriber;
@@ -41,25 +38,26 @@ public class GitHubWebHookTest {
     @Inject
     private ThrowablePullRequestSubscriber throwablePullRequestSubscriber;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        jenkins = rule;
         jenkins.getInstance().getInjector().injectMembers(this);
     }
 
     @Test
-    public void shouldCallExtensionInterestedInIssues() throws Exception {
+    void shouldCallExtensionInterestedInIssues() throws Exception {
         new GitHubWebHook().doIndex(GHEvent.ISSUES, PAYLOAD);
         assertThat("should get interested event", subscriber.lastEvent(), equalTo(GHEvent.ISSUES));
     }
 
     @Test
-    public void shouldNotCallAnyExtensionsWithPublicEventIfNotRegistered() throws Exception {
+    void shouldNotCallAnyExtensionsWithPublicEventIfNotRegistered() throws Exception {
         new GitHubWebHook().doIndex(GHEvent.PUBLIC, PAYLOAD);
         assertThat("should not get not interested event", subscriber.lastEvent(), nullValue());
     }
 
     @Test
-    public void shouldCatchThrowableOnFailedSubscriber() throws Exception {
+    void shouldCatchThrowableOnFailedSubscriber() throws Exception {
         new GitHubWebHook().doIndex(GHEvent.PULL_REQUEST, PAYLOAD);
         assertThat("each extension should get event",
                 asList(
