@@ -1,10 +1,7 @@
 package org.jenkinsci.plugins.github.util;
 
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static java.lang.String.format;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -13,11 +10,9 @@ import static org.hamcrest.Matchers.is;
 /**
  * @author lanwen (Merkushev Kirill)
  */
-@RunWith(DataProviderRunner.class)
-public class XSSApiTest {
+class XSSApiTest {
 
-    @DataProvider
-    public static Object[][] links() {
+    static Object[][] links() {
         return new Object[][]{
                 new Object[]{"javascript:alert(1);//", ""},
                 new Object[]{"javascript:alert(1)://", ""},
@@ -37,9 +32,9 @@ public class XSSApiTest {
         };
     }
 
-    @Test
-    @UseDataProvider("links")
-    public void shouldSanitizeUrl(String url, String expected) throws Exception {
+    @ParameterizedTest
+    @MethodSource("links")
+    void shouldSanitizeUrl(String url, String expected) throws Exception {
         assertThat(format("For %s", url), XSSApi.asValidHref(url), is(expected));
     }
 }

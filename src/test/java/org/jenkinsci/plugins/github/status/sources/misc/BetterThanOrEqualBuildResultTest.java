@@ -1,37 +1,29 @@
 package org.jenkinsci.plugins.github.status.sources.misc;
 
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import hudson.model.Result;
 import hudson.model.Run;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.kohsuke.github.GHCommitState;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.jenkinsci.plugins.github.status.sources.misc.BetterThanOrEqualBuildResult.betterThanOrEqualTo;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author lanwen (Merkushev Kirill)
  */
-@RunWith(DataProviderRunner.class)
-public class BetterThanOrEqualBuildResultTest {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+@ExtendWith(MockitoExtension.class)
+class BetterThanOrEqualBuildResultTest {
 
     @Mock
     private Run run;
 
-    @DataProvider
-    public static Object[][] results() {
+    static Object[][] results() {
         return new Object[][]{
                 {Result.SUCCESS, Result.SUCCESS, true},
                 {Result.UNSTABLE, Result.UNSTABLE, true},
@@ -44,9 +36,9 @@ public class BetterThanOrEqualBuildResultTest {
         };
     }
 
-    @Test
-    @UseDataProvider("results")
-    public void shouldMatch(Result defined, Result real, boolean expect) throws Exception {
+    @ParameterizedTest
+    @MethodSource("results")
+    void shouldMatch(Result defined, Result real, boolean expect) throws Exception {
         Mockito.when(run.getResult()).thenReturn(real);
 
         boolean matched = betterThanOrEqualTo(defined, GHCommitState.FAILURE, "").matches(run);

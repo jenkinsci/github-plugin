@@ -3,10 +3,11 @@ package com.cloudbees.jenkins;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
 import org.jenkinsci.plugins.github.GitHubPlugin;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -20,7 +21,8 @@ import static org.hamcrest.Matchers.equalTo;
  *
  * @author Seiji Sogabe
  */
-@Ignore("Have troubles with memory consumption")
+@WithJenkins
+@Disabled("Have troubles with memory consumption")
 public class GlobalConfigSubmitTest {
 
     public static final String OVERRIDE_HOOK_URL_CHECKBOX = "_.isOverrideHookUrl";
@@ -28,11 +30,15 @@ public class GlobalConfigSubmitTest {
 
     private static final String WEBHOOK_URL = "http://jenkinsci.example.com/jenkins/github-webhook/";
 
-    @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    private JenkinsRule jenkins;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        jenkins = rule;
+    }
 
     @Test
-    public void shouldSetHookUrl() throws Exception {
+    void shouldSetHookUrl() throws Exception {
         HtmlForm form = globalConfig();
 
         form.getInputByName(OVERRIDE_HOOK_URL_CHECKBOX).setChecked(true);
@@ -43,7 +49,7 @@ public class GlobalConfigSubmitTest {
     }
 
     @Test
-    public void shouldNotSetHookUrl() throws Exception {
+    void shouldNotSetHookUrl() throws Exception {
         GitHubPlugin.configuration().setHookUrl(WEBHOOK_URL);
 
         HtmlForm form = globalConfig();
@@ -56,7 +62,7 @@ public class GlobalConfigSubmitTest {
     }
 
     @Test
-    public void shouldNotOverrideAPreviousHookUrlIfNotChecked() throws Exception {
+    void shouldNotOverrideAPreviousHookUrlIfNotChecked() throws Exception {
         GitHubPlugin.configuration().setHookUrl(WEBHOOK_URL);
 
         HtmlForm form = globalConfig();

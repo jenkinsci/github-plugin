@@ -1,29 +1,33 @@
 package com.coravy.hudson.plugins.github;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.MatcherAssert.assertThat;
+import com.coravy.hudson.plugins.github.GithubLinkAction.GithubLinkActionFactory;
+import hudson.model.Action;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import java.io.IOException;
 import java.util.Collection;
 
-import org.jenkinsci.plugins.workflow.job.WorkflowJob;
-import org.junit.Rule;
-import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
 
-import com.coravy.hudson.plugins.github.GithubLinkAction.GithubLinkActionFactory;
-
-import hudson.model.Action;
-
-public class GithubLinkActionFactoryTest {
-    @Rule
-    public final JenkinsRule rule = new JenkinsRule();
+@WithJenkins
+class GithubLinkActionFactoryTest {
+    private JenkinsRule rule;
 
     private final GithubLinkActionFactory factory = new GithubLinkActionFactory();
 
     private static final String PROJECT_URL = "https://github.com/jenkinsci/github-plugin/";
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        this.rule = rule;
+    }
 
     private WorkflowJob createExampleJob() throws IOException {
         return rule.getInstance().createProject(WorkflowJob.class, "example");
@@ -34,7 +38,7 @@ public class GithubLinkActionFactoryTest {
     }
 
     @Test
-    public void shouldCreateGithubLinkActionForJobWithGithubProjectProperty() throws IOException {
+    void shouldCreateGithubLinkActionForJobWithGithubProjectProperty() throws IOException {
         final WorkflowJob job = createExampleJob();
         final GithubProjectProperty property = createExampleProperty();
         job.addProperty(property);
@@ -48,7 +52,7 @@ public class GithubLinkActionFactoryTest {
     }
 
     @Test
-    public void shouldNotCreateGithubLinkActionForJobWithoutGithubProjectProperty() throws IOException {
+    void shouldNotCreateGithubLinkActionForJobWithoutGithubProjectProperty() throws IOException {
         final WorkflowJob job = createExampleJob();
 
         final Collection<? extends Action> actions = factory.createFor(job);

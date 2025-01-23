@@ -5,22 +5,19 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.jenkinsci.plugins.github.status.err.ChangingBuildStatusErrorHandler;
 import org.jenkinsci.plugins.github.status.err.ShallowAnyErrorHandler;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Collections;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.jenkinsci.plugins.github.common.CombineErrorHandler.errorHandling;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -28,8 +25,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 /**
  * @author lanwen (Merkushev Kirill)
  */
-@RunWith(MockitoJUnitRunner.class)
-public class CombineErrorHandlerTest {
+@ExtendWith(MockitoExtension.class)
+class CombineErrorHandlerTest {
 
     @Mock(answer = Answers.RETURNS_MOCKS)
     private Run run;
@@ -37,25 +34,22 @@ public class CombineErrorHandlerTest {
     @Mock
     private TaskListener listener;
 
-    @Rule
-    public ExpectedException exc = ExpectedException.none();
-
     @Test
-    public void shouldRethrowExceptionIfNoMatch() throws Exception {
-        exc.expect(CombineErrorHandler.ErrorHandlingException.class);
+    void shouldRethrowExceptionIfNoMatch() {
+        assertThrows(CombineErrorHandler.ErrorHandlingException.class, () ->
 
-        errorHandling().handle(new RuntimeException(), run, listener);
+                errorHandling().handle(new RuntimeException(), run, listener));
     }
 
     @Test
-    public void shouldRethrowExceptionIfNullHandlersList() throws Exception {
-        exc.expect(CombineErrorHandler.ErrorHandlingException.class);
+    void shouldRethrowExceptionIfNullHandlersList() {
+        assertThrows(CombineErrorHandler.ErrorHandlingException.class, () ->
 
-        errorHandling().withHandlers(null).handle(new RuntimeException(), run, listener);
+                errorHandling().withHandlers(null).handle(new RuntimeException(), run, listener));
     }
 
     @Test
-    public void shouldHandleExceptionsWithHandler() throws Exception {
+    void shouldHandleExceptionsWithHandler() throws Exception {
         boolean handled = errorHandling()
                 .withHandlers(Collections.singletonList(new ShallowAnyErrorHandler()))
                 .handle(new RuntimeException(), run, listener);
@@ -64,23 +58,20 @@ public class CombineErrorHandlerTest {
     }
 
     @Test
-    public void shouldRethrowExceptionIfExceptionInside() throws Exception {
-        exc.expect(CombineErrorHandler.ErrorHandlingException.class);
+    void shouldRethrowExceptionIfExceptionInside() {
+        assertThrows(CombineErrorHandler.ErrorHandlingException.class, () ->
 
-        errorHandling()
-                .withHandlers(Collections.singletonList(
-                        new ErrorHandler() {
-                            @Override
-                            public boolean handle(Exception e, @NonNull Run<?, ?> run, @NonNull TaskListener listener) {
+                errorHandling()
+                        .withHandlers(Collections.singletonList(
+                                (e, run, listener) -> {
                                 throw new RuntimeException("wow");
                             }
-                        }
-                ))
-                .handle(new RuntimeException(), run, listener);
+                        ))
+                        .handle(new RuntimeException(), run, listener));
     }
 
     @Test
-    public void shouldHandleExceptionWithFirstMatchAndSetStatus() throws Exception {
+    void shouldHandleExceptionWithFirstMatchAndSetStatus() throws Exception {
         boolean handled = errorHandling()
                 .withHandlers(asList(
                         new ChangingBuildStatusErrorHandler(Result.FAILURE.toString()),
