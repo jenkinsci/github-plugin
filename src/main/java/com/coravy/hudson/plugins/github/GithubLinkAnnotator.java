@@ -58,7 +58,7 @@ public class GithubLinkAnnotator extends ChangeLogAnnotator {
         final String base = url.baseUrl();
         boolean isValid = verifyUrl(base);
         if (!isValid) {
-            throw new IllegalArgumentException("The provided Github URL is not valid");
+            throw new IllegalArgumentException("The provided GitHub URL is not valid");
         }
         for (LinkMarkup markup : MARKUPS) {
             markup.process(text, base);

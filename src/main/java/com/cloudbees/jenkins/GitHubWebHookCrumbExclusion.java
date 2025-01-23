@@ -21,7 +21,7 @@ public class GitHubWebHookCrumbExclusion extends CrumbExclusion {
         if (isEmpty(pathInfo)) {
             return false;
         }
-        // Github will not follow redirects https://github.com/isaacs/github/issues/574
+        // GitHub will not follow redirects https://github.com/isaacs/github/issues/574
         pathInfo = pathInfo.endsWith("/") ? pathInfo : pathInfo + '/';
         if (!pathInfo.equals(getExclusionPath())) {
             return false;
