@@ -53,7 +53,7 @@
         <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
         <jenkins.baseline>2.479</jenkins.baseline>
         <!-- REMOVE -->
-        <jenkins.version>2.494-rc35897.1f8edd4c1651</jenkins.version>
+        <jenkins.version>2.495</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <tagNameFormat>v@{project.version}</tagNameFormat>
     </properties>
