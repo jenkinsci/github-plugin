@@ -52,6 +52,12 @@ public class GitHubWebHook implements UnprotectedRootAction {
     // headers used for testing the endpoint configuration
     public static final String URL_VALIDATION_HEADER = "X-Jenkins-Validation";
     public static final String X_INSTANCE_IDENTITY = "X-Instance-Identity";
+    /**
+     * X-GitHub-Delivery: A globally unique identifier (GUID) to identify the event.
+     * @see <a href="https://docs.github.com/en/webhooks/webhook-events-and-payloads#delivery-headers">Delivery
+     * headers</a>
+     */
+    public static final String X_GITHUB_DELIVERY = "X-GitHub-Delivery";
 
     private final transient SequentialExecutionQueue queue = new SequentialExecutionQueue(threadPoolForRemoting);
 
@@ -117,8 +123,10 @@ public class GitHubWebHook implements UnprotectedRootAction {
     @SuppressWarnings("unused")
     @RequirePostWithGHHookPayload
     public void doIndex(@NonNull @GHEventHeader GHEvent event, @NonNull @GHEventPayload String payload) {
+        var currentRequest = Stapler.getCurrentRequest2();
+        String eventGuid = currentRequest.getHeader(X_GITHUB_DELIVERY);
         GHSubscriberEvent subscriberEvent =
-                new GHSubscriberEvent(SCMEvent.originOf(Stapler.getCurrentRequest2()), event, payload);
+                new GHSubscriberEvent(eventGuid, SCMEvent.originOf(currentRequest), event, payload);
         from(GHEventsSubscriber.all())
                 .filter(isInterestedIn(event))
                 .transform(processEvent(subscriberEvent)).toList();

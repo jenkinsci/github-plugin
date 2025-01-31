@@ -18,6 +18,8 @@ public class GHSubscriberEvent extends SCMEvent<String> {
      */
     private final GHEvent ghEvent;
 
+    private final String eventGuid;
+
     /**
      * Constructs a new {@link GHSubscriberEvent}.
      *
@@ -25,9 +27,28 @@ public class GHSubscriberEvent extends SCMEvent<String> {
      * @param ghEvent the type of event received from GitHub.
      * @param payload the event payload.
      */
+    @Deprecated
     public GHSubscriberEvent(@CheckForNull String origin, @NonNull GHEvent ghEvent, @NonNull String payload) {
         super(Type.UPDATED, payload, origin);
         this.ghEvent = ghEvent;
+        this.eventGuid = null;
+    }
+
+    /**
+     * Constructs a new {@link GHSubscriberEvent}.
+     * @param eventGuid the globally unique identifier (GUID) to identify the event.
+     * @param origin  the origin (see {@link SCMEvent#originOf(HttpServletRequest)}) or {@code null}.
+     * @param ghEvent the type of event received from GitHub.
+     * @param payload the event payload.
+     */
+    public GHSubscriberEvent(
+            @CheckForNull String eventGuid,
+            @CheckForNull String origin,
+            @NonNull GHEvent ghEvent,
+            @NonNull String payload) {
+        super(Type.UPDATED, payload, origin);
+        this.ghEvent = ghEvent;
+        this.eventGuid = eventGuid;
     }
 
     /**
@@ -39,4 +60,8 @@ public class GHSubscriberEvent extends SCMEvent<String> {
         return ghEvent;
     }
 
+    @CheckForNull
+    public String getEventGuid() {
+        return eventGuid;
+    }
 }
