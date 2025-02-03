@@ -41,9 +41,27 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
         return false;
     }
 
+    /**
+     * Subscribe to events that can trigger some kind of action within Jenkins, such as repository scan, build launch,
+     * etc.
+     * <p>
+     * There are about 63 specific events mentioned in the {@link GHEvent} enum, but not all of them are useful in
+     * Jenkins. Subscribing to and tracking them in duplicates tracker would cause an increase in memory usage, and
+     * those events' occurrences are likely larger than those that cause an action in Jenkins.
+     * <p>
+     * <a href="https://docs.github.com/en/webhooks/webhook-events-and-payloads">
+     *     Documentation reference (as also referenced in {@link GHEvent})</a>
+     * */
     @Override
     protected Set<GHEvent> events() {
-        return immutableEnumSet(GHEvent.PUSH);
+        return immutableEnumSet(
+                GHEvent.CHECK_RUN, // associated with GitHub action Re-run button to trigger build
+                GHEvent.CHECK_SUITE, // associated with GitHub action Re-run button to trigger build
+                GHEvent.CREATE, // branch or tag creation
+                GHEvent.DELETE, // branch or tag deletion
+                GHEvent.PULL_REQUEST, // PR creation (also PR close or merge)
+                GHEvent.PUSH // commit push
+            );
     }
 
     @Override
@@ -55,7 +73,6 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
         long now = Instant.now().toEpochMilli();
         EVENT_COUNTS_TRACKER.compute(
                 eventGuid, (key, value) -> new EventCountWithTTL(value == null ? 1 : value.count() + 1, now));
-        cleanUpOldEntries(now);
     }
 
     public static Map<String, Integer> getDuplicateEventCounts() {
@@ -65,7 +82,8 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
                         Map.Entry::getKey, entry -> entry.getValue().count()));
     }
 
-    private static void cleanUpOldEntries(long now) {
+    @VisibleForTesting
+    static void cleanUpOldEntries(long now) {
         EVENT_COUNTS_TRACKER
                 .entrySet()
                 .removeIf(entry -> (now - entry.getValue().lastUpdated()) > TTL_MILLIS);
@@ -83,9 +101,26 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
     @Extension
     public static class EventCountTrackerCleanup extends PeriodicWork {
 
+        /**
+         * At present, as the {@link #TTL_MILLIS} is set to 10 minutes, we consider half of it for cleanup.
+         * This recurrence period is chosen to balance removing stale entries from accumulating in memory vs.
+         * additional load on Jenkins due to a new periodic job execution.
+         * <p>
+         * If we want to keep the stale entries to a minimum, there appear to be three different ways to achieve this:
+         * <ul>
+         *     <li>Increasing the frequency of this periodic task, which will contribute to load</li>
+         *     <li>Event-driven cleanup: for every event from GH, clean up expired entries (need to use
+         *     better data structures and algorithms; simply calling the current {@link #cleanUpOldEntries} will
+         *     result in {@code O(n)} for every {@code insert}, which may lead to slowness in this hot code path)</li>
+         *     <li>Adaptive cleanup: based on the number of stale entries being seen, the system itself will adjust
+         *     the periodic task's frequency (if such adaptive scheduling does not already exist in Jenkins core,
+         *     this wouldn't be a good idea to implement here)
+         *     </li>
+         * </ul>
+         */
         @Override
         public long getRecurrencePeriod() {
-            return TTL_MILLIS;
+            return TTL_MILLIS / 2;
         }
 
         @Override
