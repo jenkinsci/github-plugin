@@ -125,7 +125,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
     public void doIndex(@NonNull @GHEventHeader GHEvent event, @NonNull @GHEventPayload String payload) {
         var currentRequest = Stapler.getCurrentRequest2();
         // during unit tests currentRequest is null
-        String eventGuid = currentRequest != null ? currentRequest.getHeader(X_GITHUB_DELIVERY) : null;
+        String eventGuid = currentRequest.getHeader(X_GITHUB_DELIVERY);
         GHSubscriberEvent subscriberEvent =
                 new GHSubscriberEvent(eventGuid, SCMEvent.originOf(currentRequest), event, payload);
         from(GHEventsSubscriber.all())
