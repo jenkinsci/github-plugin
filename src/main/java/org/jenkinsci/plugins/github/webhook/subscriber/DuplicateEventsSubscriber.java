@@ -100,6 +100,7 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
     }
 
     @VisibleForTesting
+    @Restricted(NoExternalUse.class)
     static void cleanUpOldEntries() {
         var nowMillis = Instant.now().toEpochMilli();
         EVENT_TRACKER.entrySet().removeIf(entry -> nowMillis - entry.getValue() > TTL_MILLIS);
