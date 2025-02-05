@@ -21,11 +21,7 @@ public class GHSubscriberEvent extends SCMEvent<String> {
     private final String eventGuid;
 
     /**
-     * Constructs a new {@link GHSubscriberEvent}.
-     *
-     * @param origin  the origin (see {@link SCMEvent#originOf(HttpServletRequest)}) or {@code null}.
-     * @param ghEvent the type of event received from GitHub.
-     * @param payload the event payload.
+     * @deprecated use {@link #GHSubscriberEvent(String, String, GHEvent, String)} instead.
      */
     @Deprecated
     public GHSubscriberEvent(@CheckForNull String origin, @NonNull GHEvent ghEvent, @NonNull String payload) {
