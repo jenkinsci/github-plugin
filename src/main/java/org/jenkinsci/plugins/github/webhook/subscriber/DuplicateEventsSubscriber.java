@@ -24,7 +24,7 @@ import org.kohsuke.github.GHEvent;
 /**
  * Tracks duplicate {@link GHEvent} triggering actions in Jenkins.
  * Events are tracked for 10 minutes, with the last detected duplicate reference retained for up to 24 hours
- * (see {@link #isDuplicateEventsSeen}).
+ * (see {@link #isDuplicateEventSeen}).
  * <p>
  * Duplicates are stored in-memory only, so a controller restart clears all entries as if none existed.
  * Persistent storage is omitted for simplicity, since webhook misconfigurations would likely cause new duplicates.
@@ -94,7 +94,7 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
      *
      * @return {@code true} if a duplicate was seen in the last 24 hours, {@code false} otherwise.
      */
-    public static boolean isDuplicateEventsSeen() {
+    public static boolean isDuplicateEventSeen() {
         return lastDuplicate != null
                && (Instant.now().toEpochMilli() - lastDuplicate.lastUpdated()) < TWENTY_FOUR_HOURS_MILLIS;
     }

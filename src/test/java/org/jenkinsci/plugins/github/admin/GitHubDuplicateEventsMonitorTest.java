@@ -63,22 +63,8 @@ public class GitHubDuplicateEventsMonitorTest {
         wc.addRequestHeader("X-GitHub-Delivery", eventGuid);
         wc.addRequestHeader("X-Github-Event", "push");
         String url = j.getURL() + "/github-webhook/";
-        String content = """
-                {
-                    "repository":
-                    {
-                        "url": "http://dummy",
-                        "html_url": "http://dummy"
-                    },
-                    "pusher":
-                    {
-                        "name": "dummy",
-                        "email": "dummy@dummy.com"
-                    }
-                }
-            """;
         var webRequest = new WebRequest(new URL(url), HttpMethod.POST);
-        webRequest.setRequestBody(content);
+        webRequest.setRequestBody("{}");
         wc.getPage(webRequest).getWebResponse();
     }
 

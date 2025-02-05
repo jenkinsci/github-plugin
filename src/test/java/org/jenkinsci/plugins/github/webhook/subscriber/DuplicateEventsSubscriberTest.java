@@ -5,7 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jenkinsci.plugins.github.webhook.subscriber.DuplicateEventsSubscriber.getEventCountsTracker;
 import static org.jenkinsci.plugins.github.webhook.subscriber.DuplicateEventsSubscriber.getLastDuplicate;
-import static org.jenkinsci.plugins.github.webhook.subscriber.DuplicateEventsSubscriber.isDuplicateEventsSeen;
+import static org.jenkinsci.plugins.github.webhook.subscriber.DuplicateEventsSubscriber.isDuplicateEventSeen;
 
 import java.time.Instant;
 import java.util.Set;
@@ -21,7 +21,7 @@ public class DuplicateEventsSubscriberTest {
     public void onEventShouldTrackEventAndKeepTrackOfLastDuplicate() {
         var subscriber = new DuplicateEventsSubscriber();
         assertThat("lastDuplicate is null at first", getLastDuplicate(), is(nullValue()));
-        assertThat("should not throw NPE", isDuplicateEventsSeen(), is(false));
+        assertThat("should not throw NPE", isDuplicateEventSeen(), is(false));
         // send a null event
         subscriber.onEvent(new GHSubscriberEvent(null, "origin", GHEvent.PUSH, "payload"));
         assertThat("null event is not tracked", getEventCountsTracker().size(), is(0));
@@ -38,15 +38,15 @@ public class DuplicateEventsSubscriberTest {
             subscriber.onEvent(new GHSubscriberEvent("1", "origin", GHEvent.PUSH, "payload"));
             assertThat(getEventCountsTracker().keySet(), is(Set.of("1")));
             assertThat(getLastDuplicate(), is(nullValue()));
-            assertThat(isDuplicateEventsSeen(), is(false));
+            assertThat(isDuplicateEventSeen(), is(false));
             subscriber.onEvent(new GHSubscriberEvent("2", "origin", GHEvent.PUSH, "payload"));
             assertThat(getLastDuplicate(), is(nullValue()));
-            assertThat(isDuplicateEventsSeen(), is(false));
+            assertThat(isDuplicateEventSeen(), is(false));
             assertThat(getEventCountsTracker().keySet(), is(Set.of("1", "2")));
             subscriber.onEvent(new GHSubscriberEvent(null, "origin", GHEvent.PUSH, "payload"));
             assertThat(getLastDuplicate(), is(nullValue()));
             assertThat(getEventCountsTracker().keySet(), is(Set.of("1", "2")));
-            assertThat(isDuplicateEventsSeen(), is(false));
+            assertThat(isDuplicateEventSeen(), is(false));
 
             // second occurrence happens after 1 second
             mockedInstant.when(Instant::now).thenReturn(after1Sec);
@@ -54,7 +54,7 @@ public class DuplicateEventsSubscriberTest {
             assertThat(getLastDuplicate().eventGuid(), is("1"));
             assertThat(getLastDuplicate().lastUpdated(), is(after1Sec.toEpochMilli()));
             assertThat(getEventCountsTracker().keySet(), is(Set.of("1", "2")));
-            assertThat(isDuplicateEventsSeen(), is(true));
+            assertThat(isDuplicateEventSeen(), is(true));
 
             // second occurrence for another event after 2 seconds
             mockedInstant.when(Instant::now).thenReturn(after2Sec);
@@ -62,11 +62,11 @@ public class DuplicateEventsSubscriberTest {
             assertThat(getLastDuplicate().eventGuid(), is("2"));
             assertThat(getLastDuplicate().lastUpdated(), is(after2Sec.toEpochMilli()));
             assertThat(getEventCountsTracker().keySet(), is(Set.of("1", "2")));
-            assertThat(isDuplicateEventsSeen(), is(true));
+            assertThat(isDuplicateEventSeen(), is(true));
 
             // 24 hours has passed
             mockedInstant.when(Instant::now).thenReturn(after24Hour1Sec);
-            assertThat(isDuplicateEventsSeen(), is(false));
+            assertThat(isDuplicateEventSeen(), is(false));
         }
     }
 

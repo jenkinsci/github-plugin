@@ -25,7 +25,7 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
 
     @Override
     public boolean isActivated() {
-        return DuplicateEventsSubscriber.isDuplicateEventsSeen();
+        return DuplicateEventsSubscriber.isDuplicateEventSeen();
     }
 
     @Override
