@@ -98,6 +98,10 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
                && (Instant.now().toEpochMilli() - lastDuplicate.lastUpdated()) < TWENTY_FOUR_HOURS_MILLIS;
     }
 
+    public static TrackedDuplicateEvent getLastDuplicate() {
+        return lastDuplicate;
+    }
+
     @VisibleForTesting
     @Restricted(NoExternalUse.class)
     static void cleanUpOldEntries() {
@@ -110,10 +114,6 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
     @Restricted(NoExternalUse.class)
     static Map<String, Long> getEventCountsTracker() {
         return Collections.unmodifiableMap(EVENT_TRACKER);
-    }
-
-    public static TrackedDuplicateEvent getLastDuplicate() {
-        return lastDuplicate;
     }
 
     /**

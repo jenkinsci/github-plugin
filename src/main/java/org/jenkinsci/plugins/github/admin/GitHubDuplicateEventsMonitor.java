@@ -39,7 +39,8 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
             if (!curDuplicate.eventGuid().equals(previouslyLoggedEventId)) {
                 LOGGER.finest(() -> {
                     previouslyLoggedEventId = curDuplicate.eventGuid();
-                    return "Latest tracked duplicate event payload: " + curDuplicate.ghSubscriberEvent().getPayload();
+                    return "Latest tracked duplicate event id: " + curDuplicate.eventGuid()
+                           + ", payload: " + curDuplicate.ghSubscriberEvent().getPayload();
                 });
             }
         }

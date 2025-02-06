@@ -2,10 +2,12 @@ package org.jenkinsci.plugins.github.admin;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.logging.Level;
 
 import org.htmlunit.HttpMethod;
 
@@ -18,12 +20,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
+import org.jvnet.hudson.test.LoggerRule;
 import org.mockito.Mockito;
 
 public class GitHubDuplicateEventsMonitorTest {
 
     @Rule
     public JenkinsRule j = new JenkinsRule();
+
+    @Rule
+    public LoggerRule loggerRule = new LoggerRule().record(GitHubDuplicateEventsMonitor.class.getName(), Level.FINEST)
+                                                   .capture(100);
+
     private WebClient wc;
 
     @Before
@@ -55,6 +63,21 @@ public class GitHubDuplicateEventsMonitorTest {
             sendGHEvents(wc, "event3");
             sendGHEvents(wc, "event3");
             assertMonitorDisplayed();
+            assertThat(loggerRule.getMessages().size(), is(1));
+            assertThat(loggerRule.getMessages().get(0),
+                       containsString("Latest tracked duplicate event id: event3, payload: {}"));
+
+            assertMonitorDisplayed();
+            assertThat("Reloading admin monitor shouldn't cause log spam",
+                       loggerRule.getMessages().size(), is(1));
+
+            // send a new duplicate
+            sendGHEvents(wc, "event4");
+            sendGHEvents(wc, "event4");
+            assertMonitorDisplayed(); // refresh the monitor
+            assertThat(loggerRule.getMessages().size(), is(2));
+            assertThat(loggerRule.getMessages().get(1),
+                       containsString("Latest tracked duplicate event id: event4, payload: {}"));
         }
     }
 
