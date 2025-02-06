@@ -31,6 +31,9 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
     @Override
     public boolean isActivated() {
         boolean isActivated = DuplicateEventsSubscriber.isDuplicateEventSeen();
+        /* The `isActivated` method is evaluated by Jenkins a lot of times when the user is navigating various pages.
+            So when the `FINEST` logger is enabled, we should avoid logging the same event multiple times.
+         */
         if (isActivated) {
             var curDuplicate = DuplicateEventsSubscriber.getLastDuplicate();
             if (!curDuplicate.eventGuid().equals(previouslyLoggedEventId)) {
