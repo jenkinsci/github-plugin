@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.github.admin;
 
+import java.util.logging.Logger;
+
 import hudson.Extension;
 import hudson.model.AdministrativeMonitor;
 import jenkins.model.Jenkins;
@@ -9,6 +11,9 @@ import org.jenkinsci.plugins.github.webhook.subscriber.DuplicateEventsSubscriber
 @SuppressWarnings("unused")
 @Extension
 public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
+
+    private static final Logger LOGGER = Logger.getLogger(GitHubDuplicateEventsMonitor.class.getName());
+    private static String previouslyLoggedEventId;
 
     @Override
     public String getDisplayName() {
@@ -25,7 +30,17 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
 
     @Override
     public boolean isActivated() {
-        return DuplicateEventsSubscriber.isDuplicateEventSeen();
+        boolean isActivated = DuplicateEventsSubscriber.isDuplicateEventSeen();
+        if (isActivated) {
+            var curDuplicate = DuplicateEventsSubscriber.getLastDuplicate();
+            if (!curDuplicate.eventGuid().equals(previouslyLoggedEventId)) {
+                LOGGER.finest(() -> {
+                    previouslyLoggedEventId = curDuplicate.eventGuid();
+                    return "Latest tracked event payload: " + curDuplicate.ghSubscriberEvent().getPayload();
+                });
+            }
+        }
+        return isActivated;
     }
 
     @Override

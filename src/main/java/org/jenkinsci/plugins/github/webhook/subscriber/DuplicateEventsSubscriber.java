@@ -38,8 +38,7 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
     private static final Map<String, Long> EVENT_TRACKER = new ConcurrentHashMap<>();
     private static volatile TrackedDuplicateEvent lastDuplicate;
 
-    @VisibleForTesting
-    record TrackedDuplicateEvent(String eventGuid, long lastUpdated, GHSubscriberEvent ghSubscriberEvent) { }
+    public record TrackedDuplicateEvent(String eventGuid, long lastUpdated, GHSubscriberEvent ghSubscriberEvent) { }
 
     /**
      * This subscriber is not applicable to any item
@@ -113,9 +112,7 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
         return Collections.unmodifiableMap(EVENT_TRACKER);
     }
 
-    @VisibleForTesting
-    @Restricted(NoExternalUse.class)
-    static TrackedDuplicateEvent getLastDuplicate() {
+    public static TrackedDuplicateEvent getLastDuplicate() {
         return lastDuplicate;
     }
 
