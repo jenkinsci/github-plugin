@@ -1,19 +1,24 @@
 package org.jenkinsci.plugins.github.admin;
 
-import java.util.logging.Logger;
+import com.google.common.annotations.VisibleForTesting;
 
 import hudson.Extension;
 import hudson.model.AdministrativeMonitor;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.Messages;
 import org.jenkinsci.plugins.github.webhook.subscriber.DuplicateEventsSubscriber;
+import org.kohsuke.stapler.HttpResponse;
+import org.kohsuke.stapler.WebMethod;
+import org.kohsuke.stapler.json.JsonHttpResponse;
+import net.sf.json.JSONObject;
 
 @SuppressWarnings("unused")
 @Extension
 public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
 
-    private static final Logger LOGGER = Logger.getLogger(GitHubDuplicateEventsMonitor.class.getName());
-    private static String previouslyLoggedEventId;
+    @VisibleForTesting
+    static final String LAST_DUPLICATE_CLICK_HERE_ANCHOR_ID = GitHubDuplicateEventsMonitor.class.getName()
+                                                              + "#last-duplicate";
 
     @Override
     public String getDisplayName() {
@@ -25,26 +30,18 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
     }
 
     public String getBlurb() {
-        return Messages.duplicate_events_administrative_monitor_blurb();
+        return Messages.duplicate_events_administrative_monitor_blurb(
+            LAST_DUPLICATE_CLICK_HERE_ANCHOR_ID, this.getLastDuplicateUrl());
+    }
+
+    @VisibleForTesting
+    String getLastDuplicateUrl() {
+        return this.getUrl() + "/" + "last-duplicate.json";
     }
 
     @Override
     public boolean isActivated() {
-        boolean isActivated = DuplicateEventsSubscriber.isDuplicateEventSeen();
-        /* The `isActivated` method is evaluated by Jenkins a lot of times when the user is navigating various pages.
-            So when the `FINEST` logger is enabled, we should avoid logging the same event multiple times.
-         */
-        if (isActivated) {
-            var curDuplicate = DuplicateEventsSubscriber.getLastDuplicate();
-            if (!curDuplicate.eventGuid().equals(previouslyLoggedEventId)) {
-                LOGGER.finest(() -> {
-                    previouslyLoggedEventId = curDuplicate.eventGuid();
-                    return "Latest tracked duplicate event id: " + curDuplicate.eventGuid()
-                           + ", payload: " + curDuplicate.ghSubscriberEvent().getPayload();
-                });
-            }
-        }
-        return isActivated;
+        return DuplicateEventsSubscriber.isDuplicateEventSeen();
     }
 
     @Override
@@ -55,5 +52,20 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
     @Override
     public void checkRequiredPermission() {
         Jenkins.get().checkPermission(Jenkins.SYSTEM_READ);
+    }
+
+    @WebMethod(name = "last-duplicate.json")
+    public HttpResponse doGetLastDuplicatePayload() {
+        Jenkins.get().checkPermission(Jenkins.SYSTEM_READ);
+        JSONObject data = getLastDuplicateNoEventPayload();
+        if (DuplicateEventsSubscriber.getLastDuplicate() != null) {
+            data = JSONObject.fromObject(DuplicateEventsSubscriber.getLastDuplicate().ghSubscriberEvent().getPayload());
+        }
+        return new JsonHttpResponse(data, 200);
+    }
+
+    @VisibleForTesting
+    static JSONObject getLastDuplicateNoEventPayload() {
+        return JSONObject.fromObject("{\"payload\": \"No duplicate events seen yet.\"}");
     }
 }

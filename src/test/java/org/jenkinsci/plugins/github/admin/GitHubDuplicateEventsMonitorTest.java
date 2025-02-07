@@ -4,14 +4,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.logging.Level;
 
 import org.htmlunit.HttpMethod;
 
 import org.htmlunit.WebRequest;
+import org.htmlunit.html.HtmlElementUtil;
+import org.htmlunit.html.HtmlPage;
 import org.jenkinsci.plugins.github.Messages;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.webhook.subscriber.DuplicateEventsSubscriber;
@@ -20,22 +22,20 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
-import org.jvnet.hudson.test.LoggerRule;
 import org.mockito.Mockito;
+import org.xml.sax.SAXException;
 
 public class GitHubDuplicateEventsMonitorTest {
 
     @Rule
     public JenkinsRule j = new JenkinsRule();
 
-    @Rule
-    public LoggerRule loggerRule = new LoggerRule().record(GitHubDuplicateEventsMonitor.class.getName(), Level.FINEST)
-                                                   .capture(100);
-
+    private GitHubDuplicateEventsMonitor monitor;
     private WebClient wc;
 
     @Before
     public void setUp() throws Exception {
+        monitor = j.jenkins.getExtensionList(GitHubDuplicateEventsMonitor.class).get(0);
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
         wc = j.createWebClient();
         wc.login("admin", "admin");
@@ -60,24 +60,16 @@ public class GitHubDuplicateEventsMonitorTest {
             assertMonitorNotDisplayed();
 
             // duplicate events cause admin monitor
-            sendGHEvents(wc, "event3");
-            sendGHEvents(wc, "event3");
-            assertMonitorDisplayed();
-            assertThat(loggerRule.getMessages().size(), is(1));
-            assertThat(loggerRule.getMessages().get(0),
-                       containsString("Latest tracked duplicate event id: event3, payload: {}"));
-
-            assertMonitorDisplayed();
-            assertThat("Reloading admin monitor shouldn't cause log spam",
-                       loggerRule.getMessages().size(), is(1));
+            var event3 = "event3";
+            sendGHEvents(wc, event3);
+            sendGHEvents(wc, event3);
+            assertMonitorDisplayed(event3);
 
             // send a new duplicate
-            sendGHEvents(wc, "event4");
-            sendGHEvents(wc, "event4");
-            assertMonitorDisplayed(); // refresh the monitor
-            assertThat(loggerRule.getMessages().size(), is(2));
-            assertThat(loggerRule.getMessages().get(1),
-                       containsString("Latest tracked duplicate event id: event4, payload: {}"));
+            var event4 = "event4";
+            sendGHEvents(wc, event4);
+            sendGHEvents(wc, event4);
+            assertMonitorDisplayed(event4);
         }
     }
 
@@ -87,21 +79,47 @@ public class GitHubDuplicateEventsMonitorTest {
         wc.addRequestHeader("X-Github-Event", "push");
         String url = j.getURL() + "/github-webhook/";
         var webRequest = new WebRequest(new URL(url), HttpMethod.POST);
-        webRequest.setRequestBody("{}");
-        wc.getPage(webRequest).getWebResponse();
+        webRequest.setRequestBody(getJsonPayload(eventGuid));
+        assertThat(wc.getPage(webRequest).getWebResponse().getStatusCode(), is(200));
     }
 
     private void assertMonitorNotDisplayed() throws IOException {
         String manageUrl = j.getURL() + "/manage";
         assertThat(
             wc.getPage(manageUrl).getWebResponse().getContentAsString(),
-            not(containsString(Messages.duplicate_events_administrative_monitor_blurb())));
+            not(containsString(Messages.duplicate_events_administrative_monitor_blurb(
+                GitHubDuplicateEventsMonitor.LAST_DUPLICATE_CLICK_HERE_ANCHOR_ID,
+                monitor.getLastDuplicateUrl()
+            ))));
+        assertEquals(GitHubDuplicateEventsMonitor.getLastDuplicateNoEventPayload().toString(),
+                     getLastDuplicatePageContentByLink());
     }
 
-    private void assertMonitorDisplayed() throws IOException {
+    private void assertMonitorDisplayed(String eventGuid) throws IOException, SAXException {
         String manageUrl = j.getURL() + "/manage";
         assertThat(
             wc.getPage(manageUrl).getWebResponse().getContentAsString(),
-            containsString(Messages.duplicate_events_administrative_monitor_blurb()));
+            containsString(Messages.duplicate_events_administrative_monitor_blurb(
+                GitHubDuplicateEventsMonitor.LAST_DUPLICATE_CLICK_HERE_ANCHOR_ID,
+                monitor.getLastDuplicateUrl())));
+        assertEquals(getJsonPayload(eventGuid), getLastDuplicatePageContentByAnchor());
+    }
+
+    private String getLastDuplicatePageContentByAnchor() throws IOException, SAXException {
+        HtmlPage page = wc.goTo("./manage");
+        var lastDuplicateAnchor = page.getAnchors().stream().filter(
+            a -> a.getId().equals(GitHubDuplicateEventsMonitor.LAST_DUPLICATE_CLICK_HERE_ANCHOR_ID)
+            ).findFirst();
+        var lastDuplicatePage = HtmlElementUtil.click(lastDuplicateAnchor.get());
+        return lastDuplicatePage.getWebResponse().getContentAsString();
+    }
+
+    private String getLastDuplicatePageContentByLink() throws IOException {
+        var page = wc.getPage(j.getURL() + "/" + monitor.getLastDuplicateUrl());
+        return page.getWebResponse().getContentAsString();
+    }
+
+    private String getJsonPayload(String eventGuid) {
+            return "{\"payload\":\"" + eventGuid + "\"}";
     }
 }
