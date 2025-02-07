@@ -10,6 +10,7 @@ import org.jenkinsci.plugins.github.webhook.subscriber.DuplicateEventsSubscriber
 import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.WebMethod;
 import org.kohsuke.stapler.json.JsonHttpResponse;
+import org.kohsuke.stapler.verb.GET;
 import net.sf.json.JSONObject;
 
 @SuppressWarnings("unused")
@@ -54,6 +55,7 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
         Jenkins.get().checkPermission(Jenkins.SYSTEM_READ);
     }
 
+    @GET
     @WebMethod(name = "last-duplicate.json")
     public HttpResponse doGetLastDuplicatePayload() {
         Jenkins.get().checkPermission(Jenkins.SYSTEM_READ);
