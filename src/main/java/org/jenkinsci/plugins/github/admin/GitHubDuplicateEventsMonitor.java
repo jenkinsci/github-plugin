@@ -19,7 +19,7 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
 
     @VisibleForTesting
     static final String LAST_DUPLICATE_CLICK_HERE_ANCHOR_ID = GitHubDuplicateEventsMonitor.class.getName()
-                                                              + "#last-duplicate";
+                                                              + ".last-duplicate";
 
     @Override
     public String getDisplayName() {
