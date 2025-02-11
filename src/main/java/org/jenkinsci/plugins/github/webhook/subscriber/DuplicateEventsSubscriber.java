@@ -63,8 +63,9 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
     }
 
     /**
-     * The {@link DuplicateEventsSubscriber} is interested in only those events that trigger actions in Jenkins,
-     * such as repository scans or builds.
+     * {@inheritDoc}
+     * <p>
+     * Subscribes to events that trigger actions in Jenkins, such as repository scans or builds.
      * <p>
      * The {@link GHEvent} enum defines about 63 events, but not all are relevant to Jenkins.
      * Tracking unnecessary events increases memory usage, and they occur more frequently than those triggering any

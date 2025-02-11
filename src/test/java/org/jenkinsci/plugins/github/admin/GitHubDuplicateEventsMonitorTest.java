@@ -47,6 +47,14 @@ public class GitHubDuplicateEventsMonitorTest {
     public void testAdminMonitorDisplaysForDuplicateEvents() throws Exception {
         try (var mockSubscriber = Mockito.mockStatic(GHEventsSubscriber.class)) {
             var subscribers = j.jenkins.getExtensionList(GHEventsSubscriber.class);
+            /* Other type of subscribers are removed to avoid them invoking event processing. At this
+            time, when using the `push` event type, the `DefaultGHEventsSubscriber` gets invoked, and throws
+            an NPE during processing of the event. This is because the `GHEvent` object here is not fully initialized.
+            However, as this test is only concerned with the duplicate event detection, it doesn't seem to add value
+            in fixing for the NPE. Alternatively, we may choose to send an event which is not subscribed
+            by other subscribers (ex: `check_run`), but that would only work until someone adds a new subscriber for
+            that event type, at which point, a new event type would need to be chosen in here.
+            * */
             var nonDuplicateSubscribers = subscribers.stream()
                                                      .filter(e -> !(e instanceof DuplicateEventsSubscriber))
                                                      .toList();
