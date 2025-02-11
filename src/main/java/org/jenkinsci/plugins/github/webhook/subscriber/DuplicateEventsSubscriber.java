@@ -42,9 +42,13 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
      * Only the keys (event GUIDs) are relevant, as Caffeine automatically handles expiration based
      * on insertion time; the value is irrelevant, we put {@link #DUMMY}, as Caffeine doesn't provide any
      * Set structures.
+     * <p>
+     * Maximum cache size is set to 24k so it doesn't grow unbound (approx. 1MB). Each key takes 36 bytes, and
+     * timestamp (assuming caffeine internally keeps long) takes 8 bytes; total of 44 bytes
+     * per entry. So the maximum memory consumed by this cache is 24k * 44 = 1056k = 1.056 MB.
      */
     private static final Cache<String, Object> EVENT_TRACKER = Caffeine.newBuilder()
-                                                                       .maximumSize(20_000L)
+                                                                       .maximumSize(24_000L)
                                                                        .expireAfterWrite(Duration.ofMinutes(10))
                                                                        .ticker(() -> ticker.read())
                                                                        .build();
