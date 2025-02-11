@@ -35,7 +35,7 @@ public class GitHubDuplicateEventsMonitorTest {
 
     @Before
     public void setUp() throws Exception {
-        monitor = j.jenkins.getExtensionList(GitHubDuplicateEventsMonitor.class).get(0);
+        monitor = ExtensionList.lookupSingleton(GitHubDuplicateEventsMonitor.class);
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
         wc = j.createWebClient();
         wc.login("admin", "admin");
