@@ -2,20 +2,20 @@ package org.jenkinsci.plugins.github.webhook.subscriber;
 
 import static com.google.common.collect.Sets.immutableEnumSet;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Ticker;
 import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
 import hudson.model.Item;
-import hudson.model.PeriodicWork;
 
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.extension.GHSubscriberEvent;
 import org.kohsuke.accmod.Restricted;
@@ -34,21 +34,30 @@ import org.kohsuke.github.GHEvent;
 public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
 
     private static final Logger LOGGER = Logger.getLogger(DuplicateEventsSubscriber.class.getName());
-    private static final Duration TTL = Duration.ofMinutes(10);
-    private static final Duration TWENTY_FOUR_HOURS = Duration.ofHours(24);
-    /**
-     * Stores the event GUID and the time it was last seen.
-     */
-    private static final Map<String, Instant> EVENT_TRACKER = new ConcurrentHashMap<>();
-    private static volatile TrackedDuplicateEvent lastDuplicate;
 
-    private static Clock clock = Clock.systemUTC();
+    private static Ticker ticker = Ticker.systemTicker();
+    /**
+     * Caches GitHub event GUIDs for 10 minutes to track recent events to detect duplicates.
+     * <p>
+     * Only the keys (event GUIDs) are relevant, as Caffeine automatically handles expiration based
+     * on insertion time; the value is irrelevant, we put {@link #DUMMY}, as Caffeine doesn't provide any
+     * Set structures.
+     */
+    private static final Cache<String, Object> EVENT_TRACKER = Caffeine.newBuilder()
+                                                                       .maximumSize(20_000L)
+                                                                       .expireAfterWrite(Duration.ofMinutes(10))
+                                                                       .ticker(() -> ticker.read())
+                                                                       .build();
+    private static final Object DUMMY = new Object();
+
+    private static volatile TrackedDuplicateEvent lastDuplicate;
     public record TrackedDuplicateEvent(String eventGuid, Instant lastUpdated, GHSubscriberEvent ghSubscriberEvent) { }
+    private static final Duration TWENTY_FOUR_HOURS = Duration.ofHours(24);
 
     @VisibleForTesting
     @Restricted(NoExternalUse.class)
-    void setClock(Clock clock) {
-        DuplicateEventsSubscriber.clock = clock;
+    static void setTicker(Ticker testTicker) {
+        ticker = testTicker;
     }
 
     /**
@@ -93,10 +102,10 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
         if (eventGuid == null) {
             return;
         }
-        if (EVENT_TRACKER.containsKey(eventGuid)) {
-            lastDuplicate = new TrackedDuplicateEvent(eventGuid, Instant.now(clock), event);
+        if (EVENT_TRACKER.getIfPresent(eventGuid) != null) {
+            lastDuplicate = new TrackedDuplicateEvent(eventGuid, getNow(), event);
         }
-        EVENT_TRACKER.put(eventGuid, Instant.now(clock));
+        EVENT_TRACKER.put(eventGuid, DUMMY);
     }
 
     /**
@@ -108,43 +117,25 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
      */
     public static boolean isDuplicateEventSeen() {
         return lastDuplicate != null
-               && Duration.between(lastDuplicate.lastUpdated(), Instant.now(clock)).compareTo(TWENTY_FOUR_HOURS) < 0;
+               && Duration.between(lastDuplicate.lastUpdated(), getNow()).compareTo(TWENTY_FOUR_HOURS) < 0;
+    }
+
+    private static Instant getNow() {
+        return Instant.ofEpochSecond(0L, ticker.read());
     }
 
     public static TrackedDuplicateEvent getLastDuplicate() {
         return lastDuplicate;
     }
 
-    @VisibleForTesting
-    @Restricted(NoExternalUse.class)
-    static void cleanUpOldEntries() {
-        var now = Instant.now(clock);
-        EVENT_TRACKER.entrySet().removeIf(entry -> Duration.between(entry.getValue(), now).compareTo(TTL) > 0);
-        LOGGER.fine(() -> "Entries remaining after cleanup " + EVENT_TRACKER.size());
-    }
-
-    @VisibleForTesting
-    @Restricted(NoExternalUse.class)
-    static Map<String, Instant> getEventCountsTracker() {
-        return Collections.unmodifiableMap(EVENT_TRACKER);
-    }
-
     /**
-     * Periodically runs every 5 minutes, and remove old entries from {@link #EVENT_TRACKER}.
+     * Caffeine expired keys are not removed immediately. Method returns the non-expired keys; required for the tests.
      */
-    @SuppressWarnings("unused")
-    @Extension
-    public static class EventCountBackgroundWork extends PeriodicWork {
-
-        @Override
-        public long getRecurrencePeriod() {
-            return TTL.toMillis() / 2;
-        }
-
-        @Override
-        protected void doRun() {
-            LOGGER.fine(() -> "Cleaning up old entries from duplicate events tracker");
-            cleanUpOldEntries();
-        }
+    @VisibleForTesting
+    @Restricted(NoExternalUse.class)
+    static Set<String> getEventCountsTracker() {
+        return EVENT_TRACKER.asMap().keySet().stream()
+                            .filter(key -> EVENT_TRACKER.getIfPresent(key) != null)
+                            .collect(Collectors.toSet());
     }
 }
