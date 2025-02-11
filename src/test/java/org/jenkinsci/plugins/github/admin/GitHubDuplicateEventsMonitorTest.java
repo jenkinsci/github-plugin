@@ -115,7 +115,7 @@ public class GitHubDuplicateEventsMonitorTest {
     }
 
     private String getLastDuplicatePageContentByLink() throws IOException {
-        var page = wc.getPage(j.getURL() + "/" + monitor.getLastDuplicateUrl());
+        var page = wc.goTo(monitor.getLastDuplicateUrl());
         return page.getWebResponse().getContentAsString();
     }
 
