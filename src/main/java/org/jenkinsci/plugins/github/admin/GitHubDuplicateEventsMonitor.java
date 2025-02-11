@@ -59,11 +59,12 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
     @WebMethod(name = "last-duplicate.json")
     public HttpResponse doGetLastDuplicatePayload() {
         Jenkins.get().checkPermission(Jenkins.SYSTEM_READ);
-        JSONObject data = getLastDuplicateNoEventPayload();
-
+        JSONObject data;
         var lastDuplicate = DuplicateEventsSubscriber.getLastDuplicate();
         if (lastDuplicate != null) {
             data = JSONObject.fromObject(lastDuplicate.ghSubscriberEvent().getPayload());
+        } else {
+            data = getLastDuplicateNoEventPayload();
         }
         return new JsonHttpResponse(data, 200);
     }
