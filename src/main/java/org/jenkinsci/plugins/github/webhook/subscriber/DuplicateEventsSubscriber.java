@@ -8,12 +8,13 @@ import hudson.Extension;
 import hudson.model.Item;
 import hudson.model.PeriodicWork;
 
+import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.jenkinsci.plugins.github.extension.GHSubscriberEvent;
@@ -33,12 +34,22 @@ import org.kohsuke.github.GHEvent;
 public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
 
     private static final Logger LOGGER = Logger.getLogger(DuplicateEventsSubscriber.class.getName());
-    private static final long TTL_MILLIS = TimeUnit.MINUTES.toMillis(10);
-    private static final long TWENTY_FOUR_HOURS_MILLIS = TimeUnit.HOURS.toMillis(24);
-    private static final Map<String, Long> EVENT_TRACKER = new ConcurrentHashMap<>();
+    private static final Duration TTL = Duration.ofMinutes(10);
+    private static final Duration TWENTY_FOUR_HOURS = Duration.ofHours(24);
+    /**
+     * Stores the event GUID and the time it was last seen.
+     */
+    private static final Map<String, Instant> EVENT_TRACKER = new ConcurrentHashMap<>();
     private static volatile TrackedDuplicateEvent lastDuplicate;
 
-    public record TrackedDuplicateEvent(String eventGuid, long lastUpdated, GHSubscriberEvent ghSubscriberEvent) { }
+    private static Clock clock = Clock.systemUTC();
+    public record TrackedDuplicateEvent(String eventGuid, Instant lastUpdated, GHSubscriberEvent ghSubscriberEvent) { }
+
+    @VisibleForTesting
+    @Restricted(NoExternalUse.class)
+    void setClock(Clock clock) {
+        DuplicateEventsSubscriber.clock = clock;
+    }
 
     /**
      * This subscriber is not applicable to any item
@@ -52,7 +63,8 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
     }
 
     /**
-     * Subscribes to events that trigger actions in Jenkins, such as repository scans or builds.
+     * The {@link DuplicateEventsSubscriber} is interested in only those events that trigger actions in Jenkins,
+     * such as repository scans or builds.
      * <p>
      * The {@link GHEvent} enum defines about 63 events, but not all are relevant to Jenkins.
      * Tracking unnecessary events increases memory usage, and they occur more frequently than those triggering any
@@ -81,9 +93,9 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
             return;
         }
         if (EVENT_TRACKER.containsKey(eventGuid)) {
-            lastDuplicate = new TrackedDuplicateEvent(eventGuid, Instant.now().toEpochMilli(), event);
+            lastDuplicate = new TrackedDuplicateEvent(eventGuid, Instant.now(clock), event);
         }
-        EVENT_TRACKER.put(eventGuid, Instant.now().toEpochMilli());
+        EVENT_TRACKER.put(eventGuid, Instant.now(clock));
     }
 
     /**
@@ -95,7 +107,7 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
      */
     public static boolean isDuplicateEventSeen() {
         return lastDuplicate != null
-               && (Instant.now().toEpochMilli() - lastDuplicate.lastUpdated()) < TWENTY_FOUR_HOURS_MILLIS;
+               && Duration.between(lastDuplicate.lastUpdated(), Instant.now(clock)).compareTo(TWENTY_FOUR_HOURS) < 0;
     }
 
     public static TrackedDuplicateEvent getLastDuplicate() {
@@ -105,14 +117,14 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
     @VisibleForTesting
     @Restricted(NoExternalUse.class)
     static void cleanUpOldEntries() {
-        var nowMillis = Instant.now().toEpochMilli();
-        EVENT_TRACKER.entrySet().removeIf(entry -> nowMillis - entry.getValue() > TTL_MILLIS);
+        var now = Instant.now(clock);
+        EVENT_TRACKER.entrySet().removeIf(entry -> Duration.between(entry.getValue(), now).compareTo(TTL) > 0);
         LOGGER.fine(() -> "Entries remaining after cleanup " + EVENT_TRACKER.size());
     }
 
     @VisibleForTesting
     @Restricted(NoExternalUse.class)
-    static Map<String, Long> getEventCountsTracker() {
+    static Map<String, Instant> getEventCountsTracker() {
         return Collections.unmodifiableMap(EVENT_TRACKER);
     }
 
@@ -125,7 +137,7 @@ public final class DuplicateEventsSubscriber extends GHEventsSubscriber {
 
         @Override
         public long getRecurrencePeriod() {
-            return TTL_MILLIS / 2;
+            return TTL.toMillis() / 2;
         }
 
         @Override

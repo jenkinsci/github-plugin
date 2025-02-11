@@ -25,6 +25,8 @@ import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import org.mockito.Mockito;
 import org.xml.sax.SAXException;
 
+import hudson.ExtensionList;
+
 public class GitHubDuplicateEventsMonitorTest {
 
     @Rule
@@ -83,7 +85,7 @@ public class GitHubDuplicateEventsMonitorTest {
         assertThat(wc.getPage(webRequest).getWebResponse().getStatusCode(), is(200));
     }
 
-    private void assertMonitorNotDisplayed() throws IOException {
+    private void assertMonitorNotDisplayed() throws IOException, SAXException {
         String manageUrl = j.getURL() + "/manage";
         assertThat(
             wc.getPage(manageUrl).getWebResponse().getContentAsString(),
@@ -114,9 +116,8 @@ public class GitHubDuplicateEventsMonitorTest {
         return lastDuplicatePage.getWebResponse().getContentAsString();
     }
 
-    private String getLastDuplicatePageContentByLink() throws IOException {
-        var page = wc.goTo(monitor.getLastDuplicateUrl());
-        return page.getWebResponse().getContentAsString();
+    private String getLastDuplicatePageContentByLink() throws IOException, SAXException {
+        return wc.goTo(monitor.getLastDuplicateUrl(), "application/json").getWebResponse().getContentAsString();
     }
 
     private String getJsonPayload(String eventGuid) {
