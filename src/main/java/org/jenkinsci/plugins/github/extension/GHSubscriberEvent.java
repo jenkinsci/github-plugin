@@ -25,9 +25,7 @@ public class GHSubscriberEvent extends SCMEvent<String> {
      */
     @Deprecated
     public GHSubscriberEvent(@CheckForNull String origin, @NonNull GHEvent ghEvent, @NonNull String payload) {
-        super(Type.UPDATED, payload, origin);
-        this.ghEvent = ghEvent;
-        this.eventGuid = null;
+        this(null, origin, ghEvent, payload);
     }
 
     /**
