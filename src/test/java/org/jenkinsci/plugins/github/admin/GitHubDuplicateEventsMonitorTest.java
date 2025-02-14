@@ -16,7 +16,6 @@ import org.htmlunit.html.HtmlElementUtil;
 import org.htmlunit.html.HtmlPage;
 import org.jenkinsci.plugins.github.Messages;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
-import org.jenkinsci.plugins.github.webhook.subscriber.DuplicateEventsSubscriber;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,7 +55,7 @@ public class GitHubDuplicateEventsMonitorTest {
             that event type, at which point, a new event type would need to be chosen in here.
             * */
             var nonDuplicateSubscribers = subscribers.stream()
-                                                     .filter(e -> !(e instanceof DuplicateEventsSubscriber))
+                                                     .filter(e -> !(e instanceof GitHubDuplicateEventsMonitor.DuplicateEventsSubscriber))
                                                      .toList();
             nonDuplicateSubscribers.forEach(subscribers::remove);
             mockSubscriber.when(GHEventsSubscriber::all).thenReturn(subscribers);

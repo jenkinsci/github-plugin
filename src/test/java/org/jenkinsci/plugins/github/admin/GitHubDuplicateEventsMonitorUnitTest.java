@@ -1,11 +1,11 @@
-package org.jenkinsci.plugins.github.webhook.subscriber;
+package org.jenkinsci.plugins.github.admin;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.jenkinsci.plugins.github.webhook.subscriber.DuplicateEventsSubscriber.getEventCountsTracker;
-import static org.jenkinsci.plugins.github.webhook.subscriber.DuplicateEventsSubscriber.getLastDuplicate;
-import static org.jenkinsci.plugins.github.webhook.subscriber.DuplicateEventsSubscriber.isDuplicateEventSeen;
+import static org.jenkinsci.plugins.github.admin.GitHubDuplicateEventsMonitor.DuplicateEventsSubscriber.getEventCountsTracker;
+import static org.jenkinsci.plugins.github.admin.GitHubDuplicateEventsMonitor.DuplicateEventsSubscriber.getLastDuplicate;
+import static org.jenkinsci.plugins.github.admin.GitHubDuplicateEventsMonitor.DuplicateEventsSubscriber.isDuplicateEventSeen;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -15,11 +15,14 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.github.benmanes.caffeine.cache.Ticker;
 import org.jenkinsci.plugins.github.extension.GHSubscriberEvent;
 import org.junit.Test;
+import org.jvnet.hudson.test.For;
 import org.kohsuke.github.GHEvent;
 
-public class DuplicateEventsSubscriberTest {
+@For(GitHubDuplicateEventsMonitor.DuplicateEventsSubscriber.class)
+public class GitHubDuplicateEventsMonitorUnitTest {
 
-    private final DuplicateEventsSubscriber subscriber = new DuplicateEventsSubscriber();
+    private final GitHubDuplicateEventsMonitor.DuplicateEventsSubscriber subscriber
+        = new GitHubDuplicateEventsMonitor.DuplicateEventsSubscriber();
 
     @Test
     public void onEventShouldTrackEventAndKeepTrackOfLastDuplicate() {
@@ -27,7 +30,7 @@ public class DuplicateEventsSubscriberTest {
         var after1Sec = Instant.parse("2025-02-05T03:00:01Z");
         var after2Sec = Instant.parse("2025-02-05T03:00:02Z");
         FakeTicker fakeTicker = new FakeTicker(now);
-        DuplicateEventsSubscriber.setTicker(fakeTicker);
+        GitHubDuplicateEventsMonitor.DuplicateEventsSubscriber.setTicker(fakeTicker);
 
         assertThat("lastDuplicate is null at first", getLastDuplicate(), is(nullValue()));
         assertThat("should not throw NPE", isDuplicateEventSeen(), is(false));
@@ -75,7 +78,7 @@ public class DuplicateEventsSubscriberTest {
     public void checkOldEntriesAreExpiredAfter10Minutes() {
         var now = Instant.parse("2025-02-05T03:00:00Z");
         FakeTicker fakeTicker = new FakeTicker(now);
-        DuplicateEventsSubscriber.setTicker(fakeTicker);
+        GitHubDuplicateEventsMonitor.DuplicateEventsSubscriber.setTicker(fakeTicker);
 
         // at present
         subscriber.onEvent(new GHSubscriberEvent("1", "origin", GHEvent.PUSH, "payload"));
