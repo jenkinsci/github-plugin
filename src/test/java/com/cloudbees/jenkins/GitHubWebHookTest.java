@@ -3,7 +3,6 @@ package com.cloudbees.jenkins;
 import com.google.inject.Inject;
 
 import hudson.model.Item;
-import hudson.model.Job;
 
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.junit.Before;
@@ -12,6 +11,11 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestExtension;
 import org.kohsuke.github.GHEvent;
+import org.kohsuke.stapler.Stapler;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Set;
 
@@ -41,31 +45,45 @@ public class GitHubWebHookTest {
     @Inject
     private ThrowablePullRequestSubscriber throwablePullRequestSubscriber;
 
+    @Mock
+    private StaplerRequest2 req2;
+
     @Before
     public void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this);
         jenkins.getInstance().getInjector().injectMembers(this);
     }
 
     @Test
     public void shouldCallExtensionInterestedInIssues() throws Exception {
-        new GitHubWebHook().doIndex(GHEvent.ISSUES, PAYLOAD);
-        assertThat("should get interested event", subscriber.lastEvent(), equalTo(GHEvent.ISSUES));
+        try(var mockedStapler = Mockito.mockStatic(Stapler.class)) {
+            mockedStapler.when(Stapler::getCurrentRequest2).thenReturn(req2);
+
+            new GitHubWebHook().doIndex(GHEvent.ISSUES, PAYLOAD);
+            assertThat("should get interested event", subscriber.lastEvent(), equalTo(GHEvent.ISSUES));
+        }
     }
 
     @Test
     public void shouldNotCallAnyExtensionsWithPublicEventIfNotRegistered() throws Exception {
-        new GitHubWebHook().doIndex(GHEvent.PUBLIC, PAYLOAD);
-        assertThat("should not get not interested event", subscriber.lastEvent(), nullValue());
+        try(var mockedStapler = Mockito.mockStatic(Stapler.class)) {
+            mockedStapler.when(Stapler::getCurrentRequest2).thenReturn(req2);
+
+            new GitHubWebHook().doIndex(GHEvent.PUBLIC, PAYLOAD);
+            assertThat("should not get not interested event", subscriber.lastEvent(), nullValue());
+        }
     }
 
     @Test
     public void shouldCatchThrowableOnFailedSubscriber() throws Exception {
-        new GitHubWebHook().doIndex(GHEvent.PULL_REQUEST, PAYLOAD);
-        assertThat("each extension should get event",
-                asList(
-                        pullRequestSubscriber.lastEvent(),
-                        throwablePullRequestSubscriber.lastEvent()
-                ), everyItem(equalTo(GHEvent.PULL_REQUEST)));
+        try(var mockedStapler = Mockito.mockStatic(Stapler.class)) {
+            mockedStapler.when(Stapler::getCurrentRequest2).thenReturn(req2);
+
+            new GitHubWebHook().doIndex(GHEvent.PULL_REQUEST, PAYLOAD);
+            assertThat("each extension should get event",
+                       asList(pullRequestSubscriber.lastEvent(), throwablePullRequestSubscriber.lastEvent()),
+                       everyItem(equalTo(GHEvent.PULL_REQUEST)));
+        }
     }
 
     @TestExtension

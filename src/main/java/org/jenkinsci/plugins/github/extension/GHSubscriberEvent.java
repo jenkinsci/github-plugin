@@ -18,16 +18,32 @@ public class GHSubscriberEvent extends SCMEvent<String> {
      */
     private final GHEvent ghEvent;
 
+    private final String eventGuid;
+
+    /**
+     * @deprecated use {@link #GHSubscriberEvent(String, String, GHEvent, String)} instead.
+     */
+    @Deprecated
+    public GHSubscriberEvent(@CheckForNull String origin, @NonNull GHEvent ghEvent, @NonNull String payload) {
+        this(null, origin, ghEvent, payload);
+    }
+
     /**
      * Constructs a new {@link GHSubscriberEvent}.
-     *
+     * @param eventGuid the globally unique identifier (GUID) to identify the event; value of
+     * request header {@link com.cloudbees.jenkins.GitHubWebHook#X_GITHUB_DELIVERY}.
      * @param origin  the origin (see {@link SCMEvent#originOf(HttpServletRequest)}) or {@code null}.
      * @param ghEvent the type of event received from GitHub.
      * @param payload the event payload.
      */
-    public GHSubscriberEvent(@CheckForNull String origin, @NonNull GHEvent ghEvent, @NonNull String payload) {
+    public GHSubscriberEvent(
+            @CheckForNull String eventGuid,
+            @CheckForNull String origin,
+            @NonNull GHEvent ghEvent,
+            @NonNull String payload) {
         super(Type.UPDATED, payload, origin);
         this.ghEvent = ghEvent;
+        this.eventGuid = eventGuid;
     }
 
     /**
@@ -39,4 +55,8 @@ public class GHSubscriberEvent extends SCMEvent<String> {
         return ghEvent;
     }
 
+    @CheckForNull
+    public String getEventGuid() {
+        return eventGuid;
+    }
 }
