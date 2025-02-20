@@ -86,7 +86,7 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
 
     @VisibleForTesting
     static JSONObject getLastDuplicateNoEventPayload() {
-        return JSONObject.fromObject("{\"payload\": \"No duplicate events seen yet.\"}");
+        return new JSONObject().accumulate("payload", "No duplicate events seen yet");
     }
 
     /**
