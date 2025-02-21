@@ -11,7 +11,7 @@
 
     <groupId>com.coravy.hudson.plugins.github</groupId>
     <artifactId>github</artifactId>
-    <version>1.42.0</version>
+    <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
 
     <name>GitHub plugin</name>
@@ -47,7 +47,7 @@
     </issueManagement>
 
     <properties>
-        <revision>1.41.1</revision>
+        <revision>1.42.1</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
         <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
