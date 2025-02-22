@@ -6,10 +6,13 @@ import hudson.Extension;
 import hudson.model.Descriptor;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import org.jenkinsci.plugins.github.common.ExpandableMessage;
 import org.jenkinsci.plugins.github.extension.status.GitHubReposSource;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Collections;
@@ -18,6 +21,7 @@ import java.util.List;
 import static org.jenkinsci.plugins.github.util.FluentIterableWrapper.from;
 
 public class ManuallyEnteredRepositorySource extends GitHubReposSource {
+    private static final Logger LOG = LoggerFactory.getLogger(ManuallyEnteredRepositorySource.class);
     private String url;
 
     @DataBoundConstructor
@@ -36,7 +40,15 @@ public class ManuallyEnteredRepositorySource extends GitHubReposSource {
 
     @Override
     public List<GHRepository> repos(@NonNull Run<?, ?> run, @NonNull final TaskListener listener) {
-        List<String> urls = Collections.singletonList(url);
+        String expandedUrl = url;
+
+        try {
+            expandedUrl = new ExpandableMessage(url).expandAll(run, listener);
+        } catch (Exception e) {
+            LOG.debug("Can't expand context, using as is", e);
+        }
+
+        List<String> urls = Collections.singletonList(expandedUrl);
         return from(urls).transformAndConcat(new NullSafeFunction<String, Iterable<GHRepository>>() {
             @Override
             protected Iterable<GHRepository> applyNullSafe(@NonNull String url) {
