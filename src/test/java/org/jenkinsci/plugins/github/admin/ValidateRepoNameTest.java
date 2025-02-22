@@ -1,23 +1,23 @@
 package org.jenkinsci.plugins.github.admin;
 
 import com.cloudbees.jenkins.GitHubRepositoryName;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.kohsuke.stapler.Function;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.lang.reflect.InvocationTargetException;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author lanwen (Merkushev Kirill)
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ValidateRepoNameTest {
+@ExtendWith(MockitoExtension.class)
+class ValidateRepoNameTest {
     public static final Object ANY_INSTANCE = null;
     public static final GitHubRepositoryName VALID_REPO = new GitHubRepositoryName("", "", "");
 
@@ -30,21 +30,18 @@ public class ValidateRepoNameTest {
     @Mock
     private StaplerResponse2 resp;
 
-    @Rule
-    public ExpectedException exc = ExpectedException.none();
-
     @Test
-    public void shouldThrowInvocationExcOnNullsInArgs() throws Exception {
-        ValidateRepoName.Processor processor = new ValidateRepoName.Processor();
-        processor.setTarget(target);
+    void shouldThrowInvocationExcOnNullsInArgs() {
+        assertThrows(InvocationTargetException.class, () -> {
+            ValidateRepoName.Processor processor = new ValidateRepoName.Processor();
+            processor.setTarget(target);
 
-        exc.expect(InvocationTargetException.class);
-
-        processor.invoke(req, resp, ANY_INSTANCE, new Object[]{null});
+            processor.invoke(req, resp, ANY_INSTANCE, new Object[]{null});
+        });
     }
 
     @Test
-    public void shouldNotThrowInvocationExcNameInArgs() throws Exception {
+    void shouldNotThrowInvocationExcNameInArgs() throws Exception {
         ValidateRepoName.Processor processor = new ValidateRepoName.Processor();
         processor.setTarget(target);
 
