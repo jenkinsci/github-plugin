@@ -12,6 +12,7 @@ import com.github.benmanes.caffeine.cache.Ticker;
 import com.google.common.annotations.VisibleForTesting;
 
 import hudson.Extension;
+import hudson.ExtensionList;
 import hudson.model.AdministrativeMonitor;
 import hudson.model.Item;
 import jenkins.model.Jenkins;
@@ -57,7 +58,7 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
 
     @Override
     public boolean isActivated() {
-        return DuplicateEventsSubscriber.isDuplicateEventSeen();
+        return ExtensionList.lookupSingleton(DuplicateEventsSubscriber.class).isDuplicateEventSeen();
     }
 
     @Override
@@ -75,7 +76,7 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
     public HttpResponse doGetLastDuplicatePayload() {
         Jenkins.get().checkPermission(Jenkins.SYSTEM_READ);
         JSONObject data;
-        var lastDuplicate = DuplicateEventsSubscriber.getLastDuplicate();
+        var lastDuplicate = ExtensionList.lookupSingleton(DuplicateEventsSubscriber.class).getLastDuplicate();
         if (lastDuplicate != null) {
             data = JSONObject.fromObject(lastDuplicate.ghSubscriberEvent().getPayload());
         } else {
@@ -102,7 +103,7 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
 
         private static final Logger LOGGER = Logger.getLogger(DuplicateEventsSubscriber.class.getName());
 
-        private static Ticker ticker = Ticker.systemTicker();
+        private Ticker ticker = Ticker.systemTicker();
         /**
          * Caches GitHub event GUIDs for 10 minutes to track recent events to detect duplicates.
          * <p>
@@ -114,21 +115,21 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
          * timestamp (assuming caffeine internally keeps long) takes 8 bytes; total of 44 bytes
          * per entry. So the maximum memory consumed by this cache is 24k * 44 = 1056k = 1.056 MB.
          */
-        private static final Cache<String, Object> EVENT_TRACKER = Caffeine.newBuilder()
-                                                                           .maximumSize(24_000L)
-                                                                           .expireAfterWrite(Duration.ofMinutes(10))
-                                                                           .ticker(() -> ticker.read())
-                                                                           .build();
+        private final Cache<String, Object> eventTracker = Caffeine.newBuilder()
+                                                                   .maximumSize(24_000L)
+                                                                   .expireAfterWrite(Duration.ofMinutes(10))
+                                                                   .ticker(() -> ticker.read())
+                                                                   .build();
         private static final Object DUMMY = new Object();
 
-        private static volatile TrackedDuplicateEvent lastDuplicate;
+        private volatile TrackedDuplicateEvent lastDuplicate;
         public record TrackedDuplicateEvent(
             String eventGuid, Instant lastUpdated, GHSubscriberEvent ghSubscriberEvent) { }
         private static final Duration TWENTY_FOUR_HOURS = Duration.ofHours(24);
 
         @VisibleForTesting
         @Restricted(NoExternalUse.class)
-        static void setTicker(Ticker testTicker) {
+        void setTicker(Ticker testTicker) {
             ticker = testTicker;
         }
 
@@ -174,10 +175,10 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
             if (eventGuid == null) {
                 return;
             }
-            if (EVENT_TRACKER.getIfPresent(eventGuid) != null) {
+            if (eventTracker.getIfPresent(eventGuid) != null) {
                 lastDuplicate = new TrackedDuplicateEvent(eventGuid, getNow(), event);
             }
-            EVENT_TRACKER.put(eventGuid, DUMMY);
+            eventTracker.put(eventGuid, DUMMY);
         }
 
         /**
@@ -187,16 +188,16 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
          *
          * @return {@code true} if a duplicate was seen in the last 24 hours, {@code false} otherwise.
          */
-        public static boolean isDuplicateEventSeen() {
+        public boolean isDuplicateEventSeen() {
             return lastDuplicate != null
                    && Duration.between(lastDuplicate.lastUpdated(), getNow()).compareTo(TWENTY_FOUR_HOURS) < 0;
         }
 
-        private static Instant getNow() {
+        private Instant getNow() {
             return Instant.ofEpochSecond(0L, ticker.read());
         }
 
-        public static TrackedDuplicateEvent getLastDuplicate() {
+        public TrackedDuplicateEvent getLastDuplicate() {
             return lastDuplicate;
         }
 
@@ -206,10 +207,10 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
          */
         @VisibleForTesting
         @Restricted(NoExternalUse.class)
-        static Set<String> getEventCountsTracker() {
-            return EVENT_TRACKER.asMap().keySet().stream()
-                                .filter(key -> EVENT_TRACKER.getIfPresent(key) != null)
-                                .collect(Collectors.toSet());
+        Set<String> getEventCountsTracker() {
+            return eventTracker.asMap().keySet().stream()
+                               .filter(key -> eventTracker.getIfPresent(key) != null)
+                               .collect(Collectors.toSet());
         }
     }
 }
