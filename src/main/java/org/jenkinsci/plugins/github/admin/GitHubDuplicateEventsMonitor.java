@@ -207,7 +207,7 @@ public class GitHubDuplicateEventsMonitor extends AdministrativeMonitor {
          */
         @VisibleForTesting
         @Restricted(NoExternalUse.class)
-        Set<String> getEventCountsTracker() {
+        Set<String> getPresentEventKeys() {
             return eventTracker.asMap().keySet().stream()
                                .filter(key -> eventTracker.getIfPresent(key) != null)
                                .collect(Collectors.toSet());

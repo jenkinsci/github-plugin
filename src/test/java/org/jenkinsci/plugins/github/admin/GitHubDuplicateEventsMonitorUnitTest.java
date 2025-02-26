@@ -32,21 +32,21 @@ public class GitHubDuplicateEventsMonitorUnitTest {
         assertThat("should not throw NPE", subscriber.isDuplicateEventSeen(), is(false));
         // send a null event
         subscriber.onEvent(new GHSubscriberEvent(null, "origin", GHEvent.PUSH, "payload"));
-        assertThat("null event is not tracked", subscriber.getEventCountsTracker().size(), is(0));
+        assertThat("null event is not tracked", subscriber.getPresentEventKeys().size(), is(0));
         assertThat("lastDuplicate is still null", subscriber.getLastDuplicate(), is(nullValue()));
 
         // at present
         subscriber.onEvent(new GHSubscriberEvent("1", "origin", GHEvent.PUSH, "payload"));
-        assertThat(subscriber.getEventCountsTracker(), is(Set.of("1")));
+        assertThat(subscriber.getPresentEventKeys(), is(Set.of("1")));
         assertThat(subscriber.getLastDuplicate(), is(nullValue()));
         assertThat(subscriber.isDuplicateEventSeen(), is(false));
         subscriber.onEvent(new GHSubscriberEvent("2", "origin", GHEvent.PUSH, "payload"));
         assertThat(subscriber.getLastDuplicate(), is(nullValue()));
         assertThat(subscriber.isDuplicateEventSeen(), is(false));
-        assertThat(subscriber.getEventCountsTracker(), is(Set.of("1", "2")));
+        assertThat(subscriber.getPresentEventKeys(), is(Set.of("1", "2")));
         subscriber.onEvent(new GHSubscriberEvent(null, "origin", GHEvent.PUSH, "payload"));
         assertThat(subscriber.getLastDuplicate(), is(nullValue()));
-        assertThat(subscriber.getEventCountsTracker(), is(Set.of("1", "2")));
+        assertThat(subscriber.getPresentEventKeys(), is(Set.of("1", "2")));
         assertThat(subscriber.isDuplicateEventSeen(), is(false));
 
         // after a second
@@ -54,7 +54,7 @@ public class GitHubDuplicateEventsMonitorUnitTest {
         subscriber.onEvent(new GHSubscriberEvent("1", "origin", GHEvent.PUSH, "payload"));
         assertThat(subscriber.getLastDuplicate().eventGuid(), is("1"));
         assertThat(subscriber.getLastDuplicate().lastUpdated(), is(after1Sec));
-        assertThat(subscriber.getEventCountsTracker(), is(Set.of("1", "2")));
+        assertThat(subscriber.getPresentEventKeys(), is(Set.of("1", "2")));
         assertThat(subscriber.isDuplicateEventSeen(), is(true));
 
         // second occurrence for another event after 2 seconds
@@ -62,7 +62,7 @@ public class GitHubDuplicateEventsMonitorUnitTest {
         subscriber.onEvent(new GHSubscriberEvent("2", "origin", GHEvent.PUSH, "payload"));
         assertThat(subscriber.getLastDuplicate().eventGuid(), is("2"));
         assertThat(subscriber.getLastDuplicate().lastUpdated(), is(after2Sec));
-        assertThat(subscriber.getEventCountsTracker(), is(Set.of("1", "2")));
+        assertThat(subscriber.getPresentEventKeys(), is(Set.of("1", "2")));
         assertThat(subscriber.isDuplicateEventSeen(), is(true));
 
         // 24 hours has passed; note we already added 2 seconds/ so effectively 24h 2sec now.
@@ -81,19 +81,19 @@ public class GitHubDuplicateEventsMonitorUnitTest {
         // at present
         subscriber.onEvent(new GHSubscriberEvent("1", "origin", GHEvent.PUSH, "payload"));
         subscriber.onEvent(new GHSubscriberEvent("2", "origin", GHEvent.PUSH, "payload"));
-        assertThat(subscriber.getEventCountsTracker(), is(Set.of("1", "2")));
+        assertThat(subscriber.getPresentEventKeys(), is(Set.of("1", "2")));
 
         // after 2 minutes
         fakeTicker.advance(Duration.ofMinutes(2));
         subscriber.onEvent(new GHSubscriberEvent("3", "origin", GHEvent.PUSH, "payload"));
         subscriber.onEvent(new GHSubscriberEvent("4", "origin", GHEvent.PUSH, "payload"));
-        assertThat(subscriber.getEventCountsTracker(), is(Set.of("1", "2", "3", "4")));
-        assertThat(subscriber.getEventCountsTracker().size(), is(4));
+        assertThat(subscriber.getPresentEventKeys(), is(Set.of("1", "2", "3", "4")));
+        assertThat(subscriber.getPresentEventKeys().size(), is(4));
 
         // 10 minutes 1 second later
         fakeTicker.advance(Duration.ofMinutes(8).plusSeconds(1));
-        assertThat(subscriber.getEventCountsTracker(), is(Set.of("3", "4")));
-        assertThat(subscriber.getEventCountsTracker().size(), is(2));
+        assertThat(subscriber.getPresentEventKeys(), is(Set.of("3", "4")));
+        assertThat(subscriber.getPresentEventKeys().size(), is(2));
     }
 
     private static class FakeTicker implements Ticker {
