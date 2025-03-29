@@ -195,6 +195,11 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         hookSecretConfigs = null; // form binding might omit empty lists
         try {
             req.bindJSON(this, json);
+            // There is a type mismatch between the getter and the setter, so the bindJSON doesn't save
+            // the hookUrl properly
+            if (json != null && json.containsKey("hookUrl")) {
+                this.setHookUrl(json.getString("hookUrl"));
+            }
         } catch (Exception e) {
             LOGGER.debug("Problem while submitting form for GitHub Plugin ({})", e.getMessage(), e);
             LOGGER.trace("GH form data: {}", json.toString());
