@@ -5,21 +5,17 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.domains.Domain;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import net.sf.json.JSONObject;
 import hudson.security.GlobalMatrixAuthorizationStrategy;
 import hudson.util.Secret;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jenkins.model.Jenkins;
-import net.sf.json.JSONObject;
-import org.eclipse.jetty.ee9.servlet.DefaultServlet;
-import org.eclipse.jetty.ee9.servlet.ServletContextHandler;
-import org.eclipse.jetty.ee9.servlet.ServletHolder;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.htmlunit.HttpMethod;
 import org.htmlunit.Page;
 import org.htmlunit.WebRequest;
-import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +25,12 @@ import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -45,8 +46,8 @@ import static org.hamcrest.Matchers.not;
 class GitHubServerConfigIntegrationTest {
 
     private JenkinsRule j;
-
-    private Server server;
+   
+    private HttpServer server;
     private AttackerServlet attackerServlet;
     private String attackerUrl;
 
@@ -56,37 +57,19 @@ class GitHubServerConfigIntegrationTest {
         setupAttackerServer();
     }
 
+
     @AfterEach
     void stopServer() {
-        try {
-            server.stop();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        server.stop(1);
     }
 
     private void setupAttackerServer() throws Exception {
-        this.server = new Server();
-        ServerConnector serverConnector = new ServerConnector(this.server);
-        server.addConnector(serverConnector);
-
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        context.setContextPath("/*");
-
+        this.server = HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0);
         this.attackerServlet = new AttackerServlet();
-        ServletHolder servletHolder = new ServletHolder(attackerServlet);
-        context.addServlet(servletHolder, "/*");
-
-        server.setHandler(context);
-
-        server.start();
-
-        String host = serverConnector.getHost();
-        if (host == null) {
-            host = "localhost";
-        }
-
-        this.attackerUrl = "http://" + host + ":" + serverConnector.getLocalPort();
+        this.server.createContext("/user", this.attackerServlet);
+        this.server.start();
+        InetSocketAddress addr = this.server.getAddress();
+        this.attackerUrl = String.format("http://%s:%d", addr.getHostString(), addr.getPort());
     }
 
     @Test
@@ -154,25 +137,31 @@ class GitHubServerConfigIntegrationTest {
         store.addCredentials(domain, credentials);
     }
 
-    private static class AttackerServlet extends DefaultServlet {
+    private static class AttackerServlet implements HttpHandler {
+
         public String secretCreds;
 
         @Override
-        protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-            switch (request.getRequestURI()) {
-                case "/user":
-                    this.onUser(request, response);
-                    break;
+        public void handle(HttpExchange he) throws IOException {
+            if ("GET".equals(he.getRequestMethod())) {
+                this.onUser(he);
+            } else {
+                he.sendResponseHeaders(HttpURLConnection.HTTP_BAD_METHOD, -1);
             }
         }
-
-        private void onUser(HttpServletRequest request, HttpServletResponse response) throws IOException {
-            secretCreds = request.getHeader("Authorization");
-            response.getWriter().write(JSONObject.fromObject(
+        
+        private void onUser(HttpExchange he) throws IOException {
+            secretCreds = he.getRequestHeaders().getFirst("Authorization");
+            String response = JSONObject.fromObject(
                     new HashMap<String, Object>() {{
                         put("login", "alice");
                     }}
-            ).toString());
+            ).toString();
+            byte[] body = response.getBytes(StandardCharsets.UTF_8);
+            he.sendResponseHeaders(HttpURLConnection.HTTP_OK, body.length);
+            try (OutputStream os = he.getResponseBody()) {
+                os.write(body);
+            }
         }
     }
 }
