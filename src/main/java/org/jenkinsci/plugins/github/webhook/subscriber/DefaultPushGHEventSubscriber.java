@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.webhook.subscriber;
 
+import com.cloudbees.jenkins.GitHubBranch;
 import com.cloudbees.jenkins.GitHubPushTrigger;
 import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
@@ -21,6 +22,7 @@ import org.kohsuke.github.GitHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Set;
 
 import static com.google.common.collect.Sets.immutableEnumSet;
@@ -65,6 +67,9 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
      * @param event   only PUSH event
      */
     @Override
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+        value = "SIC_INNER_SHOULD_BE_STATIC_ANON", justification = "anonymous inner class is acceptable"
+    )
     protected void onEvent(final GHSubscriberEvent event) {
         GHEventPayload.Push push;
         try {
@@ -75,7 +80,8 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
         }
         URL repoUrl = push.getRepository().getUrl();
         final String pusherName = push.getPusher().getName();
-        LOGGER.info("Received PushEvent for {} from {}", repoUrl, event.getOrigin());
+        final String ref = push.getRef();
+        LOGGER.info("Received PushEvent for {} {} from {}", repoUrl, ref, event.getOrigin());
         GitHubRepositoryName fromEventRepository = GitHubRepositoryName.create(repoUrl.toExternalForm());
 
         if (fromEventRepository == null) {
@@ -92,36 +98,65 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
         }
 
         final GitHubRepositoryName changedRepository = fromEventRepository;
-
         if (changedRepository != null) {
+            final Runnable body = new Runnable() {
+                @Override
+                public void run() {
+                    Jenkins j = Jenkins.getInstanceOrNull();
+                    if (j == null) {
+                        return;
+                    }
+
+                    for (Item job : j.getAllItems(Item.class)) {
+                        GitHubPushTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
+                        if (trigger == null) {
+                            continue;
+                        }
+                        String fullDisplayName = job.getFullDisplayName();
+                        LOGGER.debug("Considering to poke {}", fullDisplayName);
+                        final Collection<GitHubRepositoryName> names =
+                            GitHubRepositoryNameContributor.parseAssociatedNames(job);
+                        if (!names.contains(changedRepository)) {
+                            LOGGER.debug(
+                                "Skipped {} because {} doesn't have a matching repository for {}.",
+                                fullDisplayName, names, changedRepository);
+                            continue;
+                        }
+                        try {
+                            final Collection<GitHubBranch> branchSpecs =
+                                GitHubRepositoryNameContributor.parseAssociatedBranches(job);
+                            if (!branchSpecs.isEmpty()) {
+                                boolean foundBranch = false;
+                                for (GitHubBranch branch : branchSpecs) {
+                                    if (branch.matches(changedRepository, ref)) {
+                                        foundBranch = true;
+                                        break;
+                                    }
+                                }
+                                if (!foundBranch) {
+                                    LOGGER.info("Skipped {} because it doesn't have a matching branch specifier.",
+                                        job.getFullDisplayName());
+                                    continue;
+                                }
+                            }
+                        } catch (Exception e) {
+                            LOGGER.error("parseAssociatedBranches threw exception", e);
+                        }
+                        LOGGER.info("Poked {}", fullDisplayName);
+                        trigger.onPost(GitHubTriggerEvent.create()
+                                .withTimestamp(event.getTimestamp())
+                                .withOrigin(event.getOrigin())
+                                .withTriggeredByUser(pusherName)
+                                .withTriggeredByRef(ref)
+                                .build()
+                        );
+                    }
+                }
+            };
             // run in high privilege to see all the projects anonymous users don't see.
             // this is safe because when we actually schedule a build, it's a build that can
             // happen at some random time anyway.
-            ACL.impersonate(ACL.SYSTEM, new Runnable() {
-                @Override
-                public void run() {
-                    for (Item job : Jenkins.getInstance().getAllItems(Item.class)) {
-                        GitHubPushTrigger trigger = triggerFrom(job, GitHubPushTrigger.class);
-                        if (trigger != null) {
-                            String fullDisplayName = job.getFullDisplayName();
-                            LOGGER.debug("Considering to poke {}", fullDisplayName);
-                            if (GitHubRepositoryNameContributor.parseAssociatedNames(job)
-                                    .contains(changedRepository)) {
-                                LOGGER.info("Poked {}", fullDisplayName);
-                                trigger.onPost(GitHubTriggerEvent.create()
-                                        .withTimestamp(event.getTimestamp())
-                                        .withOrigin(event.getOrigin())
-                                        .withTriggeredByUser(pusherName)
-                                        .build()
-                                );
-                            } else {
-                                LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
-                                        fullDisplayName);
-                            }
-                        }
-                    }
-                }
-            });
+            ACL.impersonate(ACL.SYSTEM, body);
 
             for (GitHubWebHook.Listener listener : ExtensionList.lookup(GitHubWebHook.Listener.class)) {
                 listener.onPushRepositoryChanged(pusherName, changedRepository);

@@ -26,6 +26,7 @@ import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.jenkinsci.plugins.github.webhook.subscriber.DefaultPushGHEventListenerTest.TRIGGERED_BY_USER_FROM_RESOURCE;
+import static org.jenkinsci.plugins.github.webhook.subscriber.DefaultPushGHEventListenerTest.TRIGGERED_BY_REF_FROM_RESOURCE;
 
 /**
  * @author lanwen (Merkushev Kirill)
@@ -69,7 +70,7 @@ public class GitHubPushTriggerTest {
         buildData.buildsByBranchName = new HashMap<String, Build>();
         buildData.getLastBuiltRevision().setSha1(ObjectId.zeroId());
 
-        trigger.onPost(TRIGGERED_BY_USER_FROM_RESOURCE);
+        trigger.onPost(TRIGGERED_BY_USER_FROM_RESOURCE, TRIGGERED_BY_REF_FROM_RESOURCE);
 
         TimeUnit.SECONDS.sleep(job.getQuietPeriod());
         jRule.waitUntilNoActivity();

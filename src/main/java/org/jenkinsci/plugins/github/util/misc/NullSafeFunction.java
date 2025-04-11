@@ -14,6 +14,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class NullSafeFunction<F, T> implements Function<F, T> {
 
     @Override
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings(
+        value = "NP_PARAMETER_MUST_BE_NONNULL_BUT_MARKED_AS_NULLABLE",
+        justification = "https://github.com/spotbugs/spotbugs/issues/616"
+    )
     public T apply(F input) {
         return applyNullSafe(checkNotNull(input, "This function does not allow using null as argument"));
     }
