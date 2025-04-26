@@ -73,25 +73,10 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
             LOGGER.warn("Received malformed PushEvent: " + event.getPayload(), e);
             return;
         }
-        URL repoUrl = push.getRepository().getUrl();
+        URL htmlUrl = push.getRepository().getHtmlUrl();
         final String pusherName = push.getPusher().getName();
-        LOGGER.info("Received PushEvent for {} from {}", repoUrl, event.getOrigin());
-        GitHubRepositoryName fromEventRepository = GitHubRepositoryName.create(repoUrl.toExternalForm());
-
-        if (fromEventRepository == null) {
-            // On push event on github.com url === html_url
-            // this is not consistent with the API docs and with hosted repositories
-            // see https://goo.gl/c1qmY7
-            // let's retry with 'html_url'
-            URL htmlUrl = push.getRepository().getHtmlUrl();
-            fromEventRepository = GitHubRepositoryName.create(htmlUrl.toExternalForm());
-            if (fromEventRepository != null) {
-                LOGGER.debug("PushEvent handling: 'html_url' field "
-                        + "has been used to retrieve project information (instead of default 'url' field)");
-            }
-        }
-
-        final GitHubRepositoryName changedRepository = fromEventRepository;
+        LOGGER.info("Received PushEvent for {} from {}", htmlUrl, event.getOrigin());
+        final GitHubRepositoryName changedRepository = GitHubRepositoryName.create(htmlUrl.toExternalForm());
 
         if (changedRepository != null) {
             // run in high privilege to see all the projects anonymous users don't see.
