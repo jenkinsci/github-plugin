@@ -113,7 +113,7 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
             }
 
         } else {
-            LOGGER.warn("Malformed repo url {}", repoUrl);
+            LOGGER.warn("Malformed repo html url {}", htmlUrl);
         }
     }
 }
