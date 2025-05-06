@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>5.5</version>
+        <version>5.9</version>
         <relativePath />
     </parent>
 
@@ -47,7 +47,7 @@
     </issueManagement>
 
     <properties>
-        <revision>1.41.1</revision>
+        <revision>1.43.1</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
         <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
@@ -120,6 +120,11 @@
             <artifactId>instance-identity</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>io.jenkins.plugins</groupId>
+            <artifactId>caffeine-api</artifactId>
+        </dependency>
+
         <!--TEST DEPS-->
 
         <!-- 4.5.3 used by rest-assured -->
@@ -180,9 +185,9 @@
 
         <!--to mock github-->
         <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock-jre8-standalone</artifactId>
-            <version>2.35.2</version>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock-standalone</artifactId>
+            <version>3.12.1</version>
             <scope>test</scope>
         </dependency>
 
