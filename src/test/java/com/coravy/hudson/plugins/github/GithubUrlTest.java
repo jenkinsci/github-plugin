@@ -1,23 +1,13 @@
 package com.coravy.hudson.plugins.github;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class GithubUrlTest {
-
-    @Before
-    public void setUp() throws Exception {
-    }
-
-    @After
-    public void tearDown() throws Exception {
-    }
+class GithubUrlTest {
 
     @Test
-    public final void testBaseUrlWithTree() {
+    void testBaseUrlWithTree() {
         GithubUrl url = new GithubUrl(
                 "http://github.com/juretta/iphone-project-tools/tree/master");
         assertEquals("http://github.com/juretta/iphone-project-tools/", url
@@ -29,7 +19,7 @@ public class GithubUrlTest {
     }
 
     @Test
-    public final void testBaseUrl() {
+    void testBaseUrl() {
         GithubUrl url = new GithubUrl(
                 "http://github.com/juretta/iphone-project-tools");
         assertEquals("http://github.com/juretta/iphone-project-tools/", url
@@ -37,7 +27,7 @@ public class GithubUrlTest {
     }
 
     @Test
-    public final void testCommitId() {
+    void testCommitId() {
         GithubUrl url = new GithubUrl(
                 "http://github.com/juretta/hudson-github-plugin/tree/master");
         assertEquals(
