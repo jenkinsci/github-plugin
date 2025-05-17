@@ -127,10 +127,10 @@ To the greatest extent possible, please wrap lines to ensure that they do not ex
 
 ## Issues
 
-This project uses [Jenkins Jira issue tracker](https://issues.jenkins-ci.org)
-with [github-plugin](https://issues.jenkins-ci.org/browse/JENKINS/component/15896) component.
+This project uses the [Jenkins Jira issue tracker](https://issues.jenkins.io/)
+with the [github-plugin](https://issues.jenkins.io/browse/JENKINS/component/15896) component.
 
 ## Links
 
-- https://wiki.jenkins-ci.org/display/JENKINS/contributing
-- https://wiki.jenkins-ci.org/display/JENKINS/Extend+Jenkins
+- https://www.jenkins.io/participate/
+- https://www.jenkins.io/doc/developer/
