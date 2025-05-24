@@ -51,11 +51,10 @@
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
         <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
-        <jenkins.baseline>2.479</jenkins.baseline>
-        <jenkins.version>${jenkins.baseline}.3</jenkins.version>
+        <jenkins.baseline>2.504</jenkins.baseline>
+        <jenkins.version>${jenkins.baseline}.1</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <tagNameFormat>v@{project.version}</tagNameFormat>
-        <useBeta>true</useBeta> <!-- For Jenkins.MANAGE permission -->
     </properties>
 
     <repositories>
@@ -204,7 +203,7 @@
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
                 <artifactId>bom-${jenkins.baseline}.x</artifactId>
-                <version>4488.v7fe26526366e</version>
+                <version>4710.v016f0a_07e34d</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
