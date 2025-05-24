@@ -1,40 +1,40 @@
 package com.cloudbees.jenkins;
 
 import com.google.inject.Inject;
-
 import hudson.model.Item;
-
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestExtension;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Set;
 
 import static com.google.common.collect.Sets.immutableEnumSet;
 import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author lanwen (Merkushev Kirill)
  */
-public class GitHubWebHookTest {
+@WithJenkins
+@ExtendWith(MockitoExtension.class)
+class GitHubWebHookTest {
 
     public static final String PAYLOAD = "{}";
 
-    @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    private JenkinsRule jenkins;
 
     @Inject
     private IssueSubscriber subscriber;
@@ -48,41 +48,40 @@ public class GitHubWebHookTest {
     @Mock
     private StaplerRequest2 req2;
 
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.openMocks(this);
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        jenkins = rule;
         jenkins.getInstance().getInjector().injectMembers(this);
     }
 
     @Test
-    public void shouldCallExtensionInterestedInIssues() throws Exception {
-        try(var mockedStapler = Mockito.mockStatic(Stapler.class)) {
+    void shouldCallExtensionInterestedInIssues() throws Exception {
+        try (var mockedStapler = Mockito.mockStatic(Stapler.class)) {
             mockedStapler.when(Stapler::getCurrentRequest2).thenReturn(req2);
-
             new GitHubWebHook().doIndex(GHEvent.ISSUES, PAYLOAD);
             assertThat("should get interested event", subscriber.lastEvent(), equalTo(GHEvent.ISSUES));
         }
     }
 
     @Test
-    public void shouldNotCallAnyExtensionsWithPublicEventIfNotRegistered() throws Exception {
-        try(var mockedStapler = Mockito.mockStatic(Stapler.class)) {
+    void shouldNotCallAnyExtensionsWithPublicEventIfNotRegistered() throws Exception {
+        try (var mockedStapler = Mockito.mockStatic(Stapler.class)) {
             mockedStapler.when(Stapler::getCurrentRequest2).thenReturn(req2);
-
             new GitHubWebHook().doIndex(GHEvent.PUBLIC, PAYLOAD);
             assertThat("should not get not interested event", subscriber.lastEvent(), nullValue());
         }
     }
 
     @Test
-    public void shouldCatchThrowableOnFailedSubscriber() throws Exception {
-        try(var mockedStapler = Mockito.mockStatic(Stapler.class)) {
+    void shouldCatchThrowableOnFailedSubscriber() throws Exception {
+        try (var mockedStapler = Mockito.mockStatic(Stapler.class)) {
             mockedStapler.when(Stapler::getCurrentRequest2).thenReturn(req2);
-
             new GitHubWebHook().doIndex(GHEvent.PULL_REQUEST, PAYLOAD);
             assertThat("each extension should get event",
-                       asList(pullRequestSubscriber.lastEvent(), throwablePullRequestSubscriber.lastEvent()),
-                       everyItem(equalTo(GHEvent.PULL_REQUEST)));
+                    asList(
+                            pullRequestSubscriber.lastEvent(),
+                            throwablePullRequestSubscriber.lastEvent()
+                    ), everyItem(equalTo(GHEvent.PULL_REQUEST)));
         }
     }
 
@@ -121,7 +120,7 @@ public class GitHubWebHookTest {
 
     public static class TestSubscriber extends GHEventsSubscriber {
 
-        private GHEvent interested;
+        private final GHEvent interested;
         private GHEvent event;
 
         public TestSubscriber(GHEvent interested) {
