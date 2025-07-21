@@ -11,6 +11,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.plugins.github.common.ExpandableMessage;
+import org.jenkinsci.plugins.github.extension.status.GitHubStatusBackrefSource;
 import org.jenkinsci.plugins.github.extension.status.GitHubStatusContextSource;
 import org.jenkinsci.plugins.github.extension.status.StatusErrorHandler;
 import org.jenkinsci.plugins.github.extension.status.misc.ConditionalResult;
@@ -36,6 +37,7 @@ public class GitHubSetCommitStatusBuilder extends Builder implements SimpleBuild
 
     private ExpandableMessage statusMessage = DEFAULT_MESSAGE;
     private GitHubStatusContextSource contextSource = new DefaultCommitContextSource();
+    private GitHubStatusBackrefSource statusBackrefSource;
 
     @DataBoundConstructor
     public GitHubSetCommitStatusBuilder() {
@@ -72,6 +74,12 @@ public class GitHubSetCommitStatusBuilder extends Builder implements SimpleBuild
         this.contextSource = contextSource;
     }
 
+
+    @DataBoundSetter
+    public void setStatusBackrefSource(GitHubStatusBackrefSource statusBackrefSource) {
+        this.statusBackrefSource = statusBackrefSource;
+    }
+
     @Override
     public void perform(@NonNull Run<?, ?> build,
                         @NonNull FilePath workspace,
@@ -83,6 +91,7 @@ public class GitHubSetCommitStatusBuilder extends Builder implements SimpleBuild
         setter.setCommitShaSource(new BuildDataRevisionShaSource());
         setter.setContextSource(contextSource);
         setter.setErrorHandlers(Collections.<StatusErrorHandler>singletonList(new ShallowAnyErrorHandler()));
+        setter.setStatusBackrefSource(statusBackrefSource);
 
         setter.setStatusResultSource(new ConditionalStatusResultSource(
                 Collections.<ConditionalResult>singletonList(
