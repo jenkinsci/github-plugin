@@ -1,6 +1,6 @@
 package com.coravy.hudson.plugins.github;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author <a href="mailto:stefan@coravy.com">Stefan Saasen</a>
