@@ -7,9 +7,10 @@ import hudson.model.FreeStyleProject;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.jvnet.hudson.test.recipes.LocalData;
 
 import java.io.IOException;
@@ -30,10 +31,10 @@ import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withCr
 /**
  * @author lanwen (Merkushev Kirill)
  */
-public class MigratorTest {
+@WithJenkins
+class MigratorTest {
 
-    @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    private JenkinsRule jenkins;
 
     public static final String HOOK_FROM_LOCAL_DATA = "http://some.proxy.example.com/webhook";
     public static final String CUSTOM_GH_URL = "http://custom.github.example.com/api/v3";
@@ -41,12 +42,17 @@ public class MigratorTest {
     public static final String TOKEN2 = "some-oauth-token2";
     public static final String TOKEN3 = "some-oauth-token3";
 
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        jenkins = rule;
+    }
+
     /**
      * Just ignore malformed hook in old config
      */
     @Test
     @LocalData
-    public void shouldNotThrowExcMalformedHookUrlInOldConfig() throws IOException {
+    void shouldNotThrowExcMalformedHookUrlInOldConfig() throws IOException {
         FreeStyleProject job = jenkins.createFreeStyleProject();
         GitHubPushTrigger trigger = new GitHubPushTrigger();
         trigger.start(job, true);
@@ -60,7 +66,7 @@ public class MigratorTest {
 
     @Test
     @LocalData
-    public void shouldMigrateHookUrl() {
+    void shouldMigrateHookUrl() {
         assertThat("in plugin - override", GitHubPlugin.configuration().isOverrideHookUrl(), is(true));
         assertThat("in plugin", valueOf(GitHubPlugin.configuration().getHookUrl()), is(HOOK_FROM_LOCAL_DATA));
 
@@ -70,7 +76,7 @@ public class MigratorTest {
 
     @Test
     @LocalData
-    public void shouldMigrateCredentials() throws Exception {
+    void shouldMigrateCredentials() throws Exception {
         assertThat("should migrate 3 configs", GitHubPlugin.configuration().getConfigs(), hasSize(3));
         assertThat("migrate custom url", GitHubPlugin.configuration().getConfigs(), hasItems(
                 both(withApiUrl(is(CUSTOM_GH_URL))).and(withCredsWithToken(TOKEN2)),
@@ -81,7 +87,7 @@ public class MigratorTest {
 
     @Test
     @LocalData
-    public void shouldLoadDataAfterStart() throws Exception {
+    void shouldLoadDataAfterStart() throws Exception {
         assertThat("should load 2 configs", GitHubPlugin.configuration().getConfigs(), hasSize(2));
         assertThat("migrate custom url", GitHubPlugin.configuration().getConfigs(), hasItems(
                 withApiUrl(is(CUSTOM_GH_URL)),
@@ -92,7 +98,7 @@ public class MigratorTest {
     }
 
     @Test
-    public void shouldConvertCredsToServerConfig() throws Exception {
+    void shouldConvertCredsToServerConfig() throws Exception {
         GitHubServerConfig conf = new Migrator().toGHServerConfig()
                 .apply(new Credential("name", CUSTOM_GH_URL, "token"));
         assertThat(conf, both(withCredsWithToken("token")).and(withApiUrl(is(CUSTOM_GH_URL))));

@@ -1,13 +1,14 @@
 package org.jenkinsci.plugins.github.internal;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import hudson.Functions;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
-import org.jenkinsci.plugins.github.test.GHMockRule;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.jenkinsci.plugins.github.test.GitHubMockExtension;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.kohsuke.github.GitHub;
 
 import java.io.IOException;
@@ -28,33 +29,36 @@ import static org.junit.Assume.assumeThat;
 /**
  * @author lanwen (Merkushev Kirill)
  */
-public class GitHubClientCacheCleanupTest {
+@WithJenkins
+class GitHubClientCacheCleanupTest {
 
     public static final String DEFAULT_CREDS_ID = "";
     public static final String CHANGED_CREDS_ID = "id";
 
-    @Rule
-    public JenkinsRule jRule = new JenkinsRule();
+    private JenkinsRule jRule;
 
-    @Rule
-    public GHMockRule github = new GHMockRule(new WireMockRule(wireMockConfig().dynamicPort())).stubUser();
+    @RegisterExtension
+    static GitHubMockExtension github = new GitHubMockExtension(WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort()))
+            .stubUser();
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        jRule = rule;
         assumeThat("ignore for windows (dunno how to fix it without win - heed help!)",
                 Functions.isWindows(), is(false)
         );
     }
 
     @Test
-    public void shouldCreateCachedFolder() throws Exception {
+    void shouldCreateCachedFolder() throws Exception {
         makeCachedRequestWithCredsId(DEFAULT_CREDS_ID);
 
         it("should create cached dir", 1);
     }
 
     @Test
-    public void shouldCreateOnlyOneCachedFolderForSameCredsAndApi() throws Exception {
+    void shouldCreateOnlyOneCachedFolderForSameCredsAndApi() throws Exception {
         makeCachedRequestWithCredsId(DEFAULT_CREDS_ID);
         makeCachedRequestWithCredsId(DEFAULT_CREDS_ID);
 
@@ -62,7 +66,7 @@ public class GitHubClientCacheCleanupTest {
     }
 
     @Test
-    public void shouldCreateCachedFolderForEachCreds() throws Exception {
+    void shouldCreateCachedFolderForEachCreds() throws Exception {
         makeCachedRequestWithCredsId(DEFAULT_CREDS_ID);
         makeCachedRequestWithCredsId(CHANGED_CREDS_ID);
 
@@ -70,7 +74,7 @@ public class GitHubClientCacheCleanupTest {
     }
 
     @Test
-    public void shouldRemoveCachedDirAfterClean() throws Exception {
+    void shouldRemoveCachedDirAfterClean() throws Exception {
         makeCachedRequestWithCredsId(DEFAULT_CREDS_ID);
 
         clearRedundantCaches(Collections.<GitHubServerConfig>emptyList());
@@ -79,7 +83,7 @@ public class GitHubClientCacheCleanupTest {
     }
 
     @Test
-    public void shouldRemoveOnlyNotActiveCachedDirAfterClean() throws Exception {
+    void shouldRemoveOnlyNotActiveCachedDirAfterClean() throws Exception {
         makeCachedRequestWithCredsId(DEFAULT_CREDS_ID);
         makeCachedRequestWithCredsId(CHANGED_CREDS_ID);
 
@@ -93,7 +97,7 @@ public class GitHubClientCacheCleanupTest {
     }
 
     @Test
-    public void shouldRemoveCacheWhichNotEnabled() throws Exception {
+    void shouldRemoveCacheWhichNotEnabled() throws Exception {
         makeCachedRequestWithCredsId(CHANGED_CREDS_ID);
 
         GitHubServerConfig config = new GitHubServerConfig(CHANGED_CREDS_ID);
