@@ -29,21 +29,18 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
     private SignatureAlgorithm signatureAlgorithm;
 
     @DataBoundConstructor
+    public HookSecretConfig(String credentialsId, String signatureAlgorithm) {
+        this.credentialsId = credentialsId;
+        this.signatureAlgorithm = parseSignatureAlgorithm(signatureAlgorithm);
+    }
+    
+    /**
+     * Legacy constructor for backwards compatibility.
+     */
     public HookSecretConfig(String credentialsId) {
         this(credentialsId, null);
     }
     
-    /**
-     * Constructor with signature algorithm specification.
-     *
-     * @param credentialsId the credentials ID for the webhook secret
-     * @param signatureAlgorithm the signature algorithm to use (defaults to SHA-256)
-     * @since 1.45.0
-     */
-    public HookSecretConfig(String credentialsId, SignatureAlgorithm signatureAlgorithm) {
-        this.credentialsId = credentialsId;
-        this.signatureAlgorithm = signatureAlgorithm != null ? signatureAlgorithm : SignatureAlgorithm.DEFAULT;
-    }
 
     /**
      * Gets the currently used secret being used for payload verification.
@@ -68,6 +65,16 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
     public SignatureAlgorithm getSignatureAlgorithm() {
         return signatureAlgorithm != null ? signatureAlgorithm : SignatureAlgorithm.DEFAULT;
     }
+    
+    /**
+     * Gets the signature algorithm name for UI binding.
+     *
+     * @return the algorithm name as string (e.g., "SHA256", "SHA1")
+     * @since 1.45.0
+     */
+    public String getSignatureAlgorithmName() {
+        return getSignatureAlgorithm().name();
+    }
 
     /**
      * @param credentialsId a new ID
@@ -88,6 +95,22 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
         }
         return this;
     }
+    
+    /**
+     * Parses signature algorithm from UI string input.
+     */
+    private SignatureAlgorithm parseSignatureAlgorithm(String algorithmName) {
+        if (algorithmName == null || algorithmName.trim().isEmpty()) {
+            return SignatureAlgorithm.DEFAULT;
+        }
+        
+        try {
+            return SignatureAlgorithm.valueOf(algorithmName.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            // Default to SHA-256 for invalid input
+            return SignatureAlgorithm.DEFAULT;
+        }
+    }
 
     @Extension
     public static class DescriptorImpl extends Descriptor<HookSecretConfig> {
@@ -95,6 +118,16 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
         @Override
         public String getDisplayName() {
             return "Hook secret configuration";
+        }
+        
+        /**
+         * Provides dropdown items for signature algorithm selection.
+         */
+        public ListBoxModel doFillSignatureAlgorithmItems() {
+            ListBoxModel items = new ListBoxModel();
+            items.add("SHA-256 (Recommended)", "SHA256");
+            items.add("SHA-1 (Legacy)", "SHA1");
+            return items;
         }
 
         @SuppressWarnings("unused")
