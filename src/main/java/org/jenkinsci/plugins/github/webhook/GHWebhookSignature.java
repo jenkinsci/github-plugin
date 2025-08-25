@@ -68,7 +68,6 @@ public class GHWebhookSignature {
     public String sha256() {
         return computeSignature(HMAC_SHA256_ALGORITHM);
     }
-    
     /**
      * Computes HMAC signature using the specified algorithm.
      *
@@ -99,7 +98,7 @@ public class GHWebhookSignature {
     public boolean matches(String digest) {
         return matches(digest, SignatureAlgorithm.SHA1);
     }
-    
+
     /**
      * Validates a signature using the specified algorithm.
      * Uses constant-time comparison to prevent timing attacks.
@@ -122,10 +121,9 @@ public class GHWebhookSignature {
                 LOGGER.warn("Unsupported signature algorithm: {}", algorithm);
                 return false;
         }
-        
-        LOGGER.trace("Signature validation: algorithm={} calculated={} provided={}", 
+
+        LOGGER.trace("Signature validation: algorithm={} calculated={} provided={}",
                     algorithm, computed, digest);
-        
         if (digest == null && computed == null) {
             return true;
         } else if (digest == null || computed == null) {

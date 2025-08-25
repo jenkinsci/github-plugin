@@ -33,14 +33,13 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
         this.credentialsId = credentialsId;
         this.signatureAlgorithm = parseSignatureAlgorithm(signatureAlgorithm);
     }
-    
+
     /**
      * Legacy constructor for backwards compatibility.
      */
     public HookSecretConfig(String credentialsId) {
         this(credentialsId, null);
     }
-    
 
     /**
      * Gets the currently used secret being used for payload verification.
@@ -55,7 +54,7 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
     public String getCredentialsId() {
         return credentialsId;
     }
-    
+
     /**
      * Gets the signature algorithm to use for webhook validation.
      *
@@ -65,7 +64,7 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
     public SignatureAlgorithm getSignatureAlgorithm() {
         return signatureAlgorithm != null ? signatureAlgorithm : SignatureAlgorithm.DEFAULT;
     }
-    
+
     /**
      * Gets the signature algorithm name for UI binding.
      *
@@ -84,7 +83,7 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
     public void setCredentialsId(String credentialsId) {
         this.credentialsId = credentialsId;
     }
-    
+
     /**
      * Ensures backwards compatibility during deserialization.
      * Sets default algorithm to SHA-256 for existing configurations.
@@ -95,7 +94,7 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
         }
         return this;
     }
-    
+
     /**
      * Parses signature algorithm from UI string input.
      */
@@ -103,7 +102,7 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
         if (algorithmName == null || algorithmName.trim().isEmpty()) {
             return SignatureAlgorithm.DEFAULT;
         }
-        
+
         try {
             return SignatureAlgorithm.valueOf(algorithmName.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
@@ -119,7 +118,7 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
         public String getDisplayName() {
             return "Hook secret configuration";
         }
-        
+
         /**
          * Provides dropdown items for signature algorithm selection.
          */
