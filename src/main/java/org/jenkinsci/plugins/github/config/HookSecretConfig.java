@@ -12,6 +12,7 @@ import hudson.security.Permission;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.github.webhook.SignatureAlgorithm;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -25,10 +26,23 @@ import org.kohsuke.stapler.QueryParameter;
 public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> {
 
     private String credentialsId;
+    private SignatureAlgorithm signatureAlgorithm;
 
     @DataBoundConstructor
     public HookSecretConfig(String credentialsId) {
+        this(credentialsId, null);
+    }
+    
+    /**
+     * Constructor with signature algorithm specification.
+     *
+     * @param credentialsId the credentials ID for the webhook secret
+     * @param signatureAlgorithm the signature algorithm to use (defaults to SHA-256)
+     * @since 1.45.0
+     */
+    public HookSecretConfig(String credentialsId, SignatureAlgorithm signatureAlgorithm) {
         this.credentialsId = credentialsId;
+        this.signatureAlgorithm = signatureAlgorithm != null ? signatureAlgorithm : SignatureAlgorithm.DEFAULT;
     }
 
     /**
@@ -44,6 +58,16 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
     public String getCredentialsId() {
         return credentialsId;
     }
+    
+    /**
+     * Gets the signature algorithm to use for webhook validation.
+     *
+     * @return the configured signature algorithm, defaults to SHA-256
+     * @since 1.45.0
+     */
+    public SignatureAlgorithm getSignatureAlgorithm() {
+        return signatureAlgorithm != null ? signatureAlgorithm : SignatureAlgorithm.DEFAULT;
+    }
 
     /**
      * @param credentialsId a new ID
@@ -52,6 +76,17 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
     @Deprecated
     public void setCredentialsId(String credentialsId) {
         this.credentialsId = credentialsId;
+    }
+    
+    /**
+     * Ensures backwards compatibility during deserialization.
+     * Sets default algorithm to SHA-256 for existing configurations.
+     */
+    private Object readResolve() {
+        if (signatureAlgorithm == null) {
+            signatureAlgorithm = SignatureAlgorithm.DEFAULT;
+        }
+        return this;
     }
 
     @Extension
