@@ -35,6 +35,6 @@ public class SignatureAlgorithmTest {
     @Test
     public void shouldDefaultToSHA256() {
         assertThat("Default algorithm should be SHA-256", 
-                  SignatureAlgorithm.DEFAULT, equalTo(SignatureAlgorithm.SHA256));
+                  SignatureAlgorithm.getDefault(), equalTo(SignatureAlgorithm.SHA256));
     }
 }

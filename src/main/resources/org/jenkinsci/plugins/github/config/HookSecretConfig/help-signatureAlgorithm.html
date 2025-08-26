@@ -8,4 +8,6 @@
     </ul>
     <p><strong>Note:</strong> When changing algorithms, ensure your GitHub webhook configuration uses the corresponding 
     signature header (<code>X-Hub-Signature-256</code> for SHA-256 or <code>X-Hub-Signature</code> for SHA-1).</p>
+    <p><strong>System Property Override:</strong> The default algorithm can be overridden using the system property 
+    <code>-Djenkins.github.webhook.signature.default=SHA1</code> for backwards compatibility with legacy CI environments.</p>
 </div>

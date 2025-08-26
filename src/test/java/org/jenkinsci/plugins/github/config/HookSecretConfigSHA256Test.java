@@ -63,4 +63,26 @@ public class HookSecretConfigSHA256Test {
         assertThat("Should handle mixed case SHA-1", 
                   config2.getSignatureAlgorithm(), equalTo(SignatureAlgorithm.SHA1));
     }
+
+    @Test
+    public void shouldRespectSystemPropertyOverride() {
+        // Save original property
+        String originalProperty = System.getProperty("jenkins.github.webhook.signature.default");
+        
+        try {
+            // Test SHA1 override
+            System.setProperty("jenkins.github.webhook.signature.default", "SHA1");
+            HookSecretConfig config = new HookSecretConfig("test-credentials");
+            
+            assertThat("Should use SHA-1 when system property is set", 
+                      config.getSignatureAlgorithm(), equalTo(SignatureAlgorithm.SHA1));
+        } finally {
+            // Restore original property
+            if (originalProperty != null) {
+                System.setProperty("jenkins.github.webhook.signature.default", originalProperty);
+            } else {
+                System.clearProperty("jenkins.github.webhook.signature.default");
+            }
+        }
+    }
 }

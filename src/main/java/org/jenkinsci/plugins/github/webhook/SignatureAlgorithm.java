@@ -26,9 +26,21 @@ public enum SignatureAlgorithm {
     private final String javaAlgorithm;
 
     /**
-     * Default algorithm for new configurations - SHA-256 for security.
+     * System property to override default signature algorithm.
+     * Set to "SHA1" to use legacy SHA-1 as default for backwards compatibility.
      */
-    public static final SignatureAlgorithm DEFAULT = SHA256;
+    public static final String DEFAULT_ALGORITHM_PROPERTY = "jenkins.github.webhook.signature.default";
+
+    /**
+     * Gets the default algorithm for new configurations.
+     * Defaults to SHA-256 for security, but can be overridden via system property.
+     * This is evaluated dynamically to respect system property changes.
+     *
+     * @return the default algorithm based on current system property
+     */
+    public static SignatureAlgorithm getDefault() {
+        return getDefaultAlgorithm();
+    }
 
     SignatureAlgorithm(String prefix, String headerName, String javaAlgorithm) {
         this.prefix = prefix;
@@ -62,5 +74,25 @@ public enum SignatureAlgorithm {
      */
     public String getSignaturePrefix() {
         return prefix + "=";
+    }
+
+    /**
+     * Determines the default signature algorithm based on system property.
+     * Defaults to SHA-256 for security, but allows SHA-1 override for legacy environments.
+     *
+     * @return the default algorithm to use
+     */
+    private static SignatureAlgorithm getDefaultAlgorithm() {
+        String property = System.getProperty(DEFAULT_ALGORITHM_PROPERTY);
+        if (property == null || property.trim().isEmpty()) {
+            // No property set, use secure SHA-256 default
+            return SHA256;
+        }
+        try {
+            return SignatureAlgorithm.valueOf(property.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            // Invalid property value, default to secure SHA-256
+            return SHA256;
+        }
     }
 }

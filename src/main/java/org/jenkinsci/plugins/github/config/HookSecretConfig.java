@@ -62,7 +62,7 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
      * @since 1.45.0
      */
     public SignatureAlgorithm getSignatureAlgorithm() {
-        return signatureAlgorithm != null ? signatureAlgorithm : SignatureAlgorithm.DEFAULT;
+        return signatureAlgorithm != null ? signatureAlgorithm : SignatureAlgorithm.getDefault();
     }
 
     /**
@@ -90,7 +90,7 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
      */
     private Object readResolve() {
         if (signatureAlgorithm == null) {
-            signatureAlgorithm = SignatureAlgorithm.DEFAULT;
+            signatureAlgorithm = SignatureAlgorithm.getDefault();
         }
         return this;
     }
@@ -100,14 +100,14 @@ public class HookSecretConfig extends AbstractDescribableImpl<HookSecretConfig> 
      */
     private SignatureAlgorithm parseSignatureAlgorithm(String algorithmName) {
         if (algorithmName == null || algorithmName.trim().isEmpty()) {
-            return SignatureAlgorithm.DEFAULT;
+            return SignatureAlgorithm.getDefault();
         }
 
         try {
             return SignatureAlgorithm.valueOf(algorithmName.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
             // Default to SHA-256 for invalid input
-            return SignatureAlgorithm.DEFAULT;
+            return SignatureAlgorithm.getDefault();
         }
     }
 
