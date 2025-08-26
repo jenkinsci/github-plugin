@@ -74,8 +74,8 @@ public @interface RequirePostWithGHHookPayload {
          * @since 1.45.0
          */
         public static final String SIGNATURE_HEADER_SHA256 = "X-Hub-Signature-256";
-        private static final String SHA1_PREFIX = "sha1=";
-        private static final String SHA256_PREFIX = "sha256=";
+        public static final String SHA1_PREFIX = "sha1=";
+        public static final String SHA256_PREFIX = "sha256=";
 
         @Override
         public Object invoke(StaplerRequest2 req, StaplerResponse2 rsp, Object instance, Object[] arguments)
