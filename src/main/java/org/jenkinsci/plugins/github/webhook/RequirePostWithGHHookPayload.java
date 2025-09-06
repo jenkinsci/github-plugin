@@ -27,8 +27,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static com.cloudbees.jenkins.GitHubWebHook.X_INSTANCE_IDENTITY;
 import static com.google.common.base.Charsets.UTF_8;
@@ -61,12 +59,23 @@ public @interface RequirePostWithGHHookPayload {
     class Processor extends Interceptor {
         private static final Logger LOGGER = getLogger(Processor.class);
         /**
-         * Header key being used for the payload signatures.
+         * Header key being used for the legacy SHA-1 payload signatures.
          *
          * @see <a href=https://developer.github.com/webhooks/>Developer manual</a>
+         * @deprecated Use SHA-256 signatures with X-Hub-Signature-256 header
          */
+        @Deprecated
         public static final String SIGNATURE_HEADER = "X-Hub-Signature";
-        private static final String SHA1_PREFIX = "sha1=";
+        /**
+         * Header key being used for the SHA-256 payload signatures (recommended).
+         *
+         * @see <a href="https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks">
+         *      GitHub Documentation</a>
+         * @since 1.45.0
+         */
+        public static final String SIGNATURE_HEADER_SHA256 = "X-Hub-Signature-256";
+        public static final String SHA1_PREFIX = "sha1=";
+        public static final String SHA256_PREFIX = "sha256=";
 
         @Override
         public Object invoke(StaplerRequest2 req, StaplerResponse2 rsp, Object instance, Object[] arguments)
@@ -139,25 +148,66 @@ public @interface RequirePostWithGHHookPayload {
          * if a hook secret is specified in the GitHub plugin config.
          * If no hook secret is configured, then the signature is ignored.
          *
+         * Uses the configured signature algorithm (SHA-256 by default, SHA-1 for legacy support).
+         *
          * @param req Incoming request.
          * @throws InvocationTargetException if any of preconditions is not satisfied
          */
         protected void shouldProvideValidSignature(StaplerRequest2 req, Object[] args)
                 throws InvocationTargetException {
-            List<Secret> secrets = GitHubPlugin.configuration().getHookSecretConfigs().stream().
-                    map(HookSecretConfig::getHookSecret).filter(Objects::nonNull).collect(Collectors.toList());
+            List<HookSecretConfig> secretConfigs = GitHubPlugin.configuration().getHookSecretConfigs();
 
-            if (!secrets.isEmpty()) {
-                Optional<String> signHeader = Optional.fromNullable(req.getHeader(SIGNATURE_HEADER));
-                isTrue(signHeader.isPresent(), "Signature was expected, but not provided");
+            if (!secretConfigs.isEmpty()) {
+                boolean validSignatureFound = false;
 
-                String digest = substringAfter(signHeader.get(), SHA1_PREFIX);
-                LOGGER.trace("Trying to verify sign from header {}", signHeader.get());
-                isTrue(
-                        secrets.stream().anyMatch(secret ->
-                                GHWebhookSignature.webhookSignature(payloadFrom(req, args), secret).matches(digest)),
-                        String.format("Provided signature [%s] did not match to calculated", digest)
-                );
+                for (HookSecretConfig config : secretConfigs) {
+                    Secret secret = config.getHookSecret();
+                    if (secret == null) {
+                        continue;
+                    }
+
+                    SignatureAlgorithm algorithm = config.getSignatureAlgorithm();
+                    String headerName = algorithm.getHeaderName();
+                    String expectedPrefix = algorithm.getSignaturePrefix();
+
+                    Optional<String> signHeader = Optional.fromNullable(req.getHeader(headerName));
+                    if (!signHeader.isPresent()) {
+                        LOGGER.debug("No signature header {} found for algorithm {}", headerName, algorithm);
+                        continue;
+                    }
+
+                    String fullSignature = signHeader.get();
+                    if (!fullSignature.startsWith(expectedPrefix)) {
+                        LOGGER.debug("Signature header {} does not start with expected prefix {}",
+                                   fullSignature, expectedPrefix);
+                        continue;
+                    }
+
+                    String digest = substringAfter(fullSignature, expectedPrefix);
+                    LOGGER.trace("Verifying {} signature from header {}", algorithm, fullSignature);
+
+                    boolean isValid = GHWebhookSignature.webhookSignature(payloadFrom(req, args), secret)
+                                                        .matches(digest, algorithm);
+
+                    if (isValid) {
+                        validSignatureFound = true;
+                        // Log deprecation warning for SHA-1 usage
+                        if (algorithm == SignatureAlgorithm.SHA1) {
+                            LOGGER.warn("Using deprecated SHA-1 signature validation. "
+                                      + "Consider upgrading webhook configuration to use SHA-256 "
+                                      + "for enhanced security.");
+                        } else {
+                            LOGGER.debug("Successfully validated {} signature", algorithm);
+                        }
+                        break;
+                    } else {
+                        LOGGER.debug("Signature validation failed for algorithm {}", algorithm);
+                    }
+                }
+
+                isTrue(validSignatureFound,
+                       "No valid signature found. Ensure webhook is configured with a supported signature algorithm "
+                       + "(SHA-256 recommended, SHA-1 for legacy compatibility).");
             }
         }
 
