@@ -5,10 +5,10 @@ import io.jenkins.plugins.casc.Configurator;
 import io.jenkins.plugins.casc.ConfiguratorRegistry;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
+import io.jenkins.plugins.casc.misc.junit.jupiter.WithJenkinsConfiguredWithCode;
 import io.jenkins.plugins.casc.model.CNode;
 import io.jenkins.plugins.casc.model.Mapping;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -18,17 +18,24 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.*;
+import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withApiUrl;
+import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withApiUrlS;
+import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withClientCacheSize;
+import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withClientCacheSizeS;
+import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withCredsId;
+import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withCredsIdS;
+import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withIsManageHooks;
+import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withIsManageHooksS;
+import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withName;
+import static org.jenkinsci.plugins.github.test.GitHubServerConfigMatcher.withNameS;
 
-public class ConfigAsCodeTest {
-
-    @Rule
-    public JenkinsConfiguredWithCodeRule r = new JenkinsConfiguredWithCodeRule();
+@WithJenkinsConfiguredWithCode
+class ConfigAsCodeTest {
 
     @SuppressWarnings("deprecation")
     @Test
     @ConfiguredWithCode("configuration-as-code.yml")
-    public void shouldSupportConfigurationAsCode() throws Exception {
+    void shouldSupportConfigurationAsCode(JenkinsConfiguredWithCodeRule r) throws Exception {
 
         GitHubPluginConfig gitHubPluginConfig = GitHubPluginConfig.all().get(GitHubPluginConfig.class);
 
@@ -66,7 +73,7 @@ public class ConfigAsCodeTest {
 
     @Test
     @ConfiguredWithCode("configuration-as-code.yml")
-    public void exportConfiguration() throws Exception {
+    void exportConfiguration(JenkinsConfiguredWithCodeRule r) throws Exception {
         GitHubPluginConfig globalConfiguration = GitHubPluginConfig.all().get(GitHubPluginConfig.class);
 
         ConfiguratorRegistry registry = ConfiguratorRegistry.get();

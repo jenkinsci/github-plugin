@@ -1,35 +1,34 @@
 package com.coravy.hudson.plugins.github;
 
-import com.tngtech.java.junit.dataprovider.DataProvider;
-import com.tngtech.java.junit.dataprovider.DataProviderRunner;
-import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import hudson.MarkupText;
 import hudson.plugins.git.GitChangeSet;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.jvnet.hudson.test.Issue;
+
 import java.util.ArrayList;
 import java.util.Random;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.jvnet.hudson.test.Issue;
 
 import static java.lang.String.format;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@RunWith(DataProviderRunner.class)
-public class GithubLinkAnnotatorTest {
+class GithubLinkAnnotatorTest {
 
-    private final static String GITHUB_URL = "http://github.com/juretta/iphone-project-tools";
-    private final static String SHA1 = "badbeef136cd854f4dd6fa40bf94c0c657681dd5";
-    private final static Random RANDOM = new Random();
+    private static final String GITHUB_URL = "http://github.com/juretta/iphone-project-tools";
+    private static final String SHA1 = "badbeef136cd854f4dd6fa40bf94c0c657681dd5";
+    private static final Random RANDOM = new Random();
     private final String expectedChangeSetAnnotation = " ("
             + "<a href='" + GITHUB_URL + "/commit/" + SHA1 + "'>"
             + "commit: " + SHA1.substring(0, 7)
             + "</a>)";
     private static GitChangeSet changeSet;
 
-    @Before
-    public void createChangeSet() throws Exception {
+    @BeforeEach
+    void createChangeSet() throws Exception {
         ArrayList<String> lines = new ArrayList<String>();
         lines.add("commit " + SHA1);
         lines.add("tree 66236cf9a1ac0c589172b450ed01f019a5697c49");
@@ -56,8 +55,7 @@ public class GithubLinkAnnotatorTest {
         };
     }
 
-    @DataProvider
-    public static Object[][] annotations() {
+    static Object[][] annotations() {
         return new Object[][]{
             genActualAndExpected("Closes"),
             genActualAndExpected("Close"),
@@ -66,36 +64,38 @@ public class GithubLinkAnnotatorTest {
         };
     }
 
-    @Test
-    @UseDataProvider("annotations")
-    public void inputIsExpected(String input, String expected) throws Exception {
+    @ParameterizedTest
+    @MethodSource("annotations")
+    void inputIsExpected(String input, String expected) throws Exception {
         assertThat(format("For input '%s'", input),
                 annotate(input, null),
                 is(expected));
     }
 
-    @Test
-    @UseDataProvider("annotations")
-    public void inputIsExpectedWithChangeSet(String input, String expected) throws Exception {
+    @ParameterizedTest
+    @MethodSource("annotations")
+    void inputIsExpectedWithChangeSet(String input, String expected) throws Exception {
         assertThat(format("For changeset input '%s'", input),
                 annotate(input, changeSet),
                 is(expected + expectedChangeSetAnnotation));
     }
 
     //Test to verify that fake url starting with sentences like javascript are not validated
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     @Issue("SECURITY-3246")
-    public void urlValidationTest() {
+    void urlValidationTest() {
         GithubLinkAnnotator annotator = new GithubLinkAnnotator();
-        annotator.annotate(new GithubUrl("javascript:alert(1); //"), null, null);
+        assertThrows(IllegalArgumentException.class, () ->
+                annotator.annotate(new GithubUrl("javascript:alert(1); //"), null, null));
     }
 
     //Test to verify that fake url are not validated
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     @Issue("SECURITY-3246")
-    public void urlHtmlAttributeValidationTest() {
+    void urlHtmlAttributeValidationTest() {
         GithubLinkAnnotator annotator = new GithubLinkAnnotator();
-        annotator.annotate(new GithubUrl("a' onclick=alert(777) foo='bar/\n"), null, null);
+        assertThrows(IllegalArgumentException.class, () ->
+                annotator.annotate(new GithubUrl("a' onclick=alert(777) foo='bar/\n"), null, null));
     }
 
     private String annotate(final String originalText, GitChangeSet changeSet) {
