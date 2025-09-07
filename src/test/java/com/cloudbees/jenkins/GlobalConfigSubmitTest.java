@@ -1,82 +1,100 @@
 package com.cloudbees.jenkins;
 
+import jenkins.model.Jenkins;
 import org.htmlunit.html.HtmlForm;
-import org.htmlunit.html.HtmlPage;
+import org.htmlunit.html.HtmlTextInput;
 import org.jenkinsci.plugins.github.GitHubPlugin;
-import org.junit.Ignore;
+import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.hudson.test.JenkinsRule;
-import org.xml.sax.SAXException;
-
-import java.io.IOException;
-import java.net.URL;
+import org.jvnet.hudson.test.JenkinsSessionRule;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * Test Class for {@link GitHubPushTrigger}.
  *
- * @author Seiji Sogabe
+ * @author Seiji Sogabe, Frank Genois
  */
-@Ignore("Have troubles with memory consumption")
 public class GlobalConfigSubmitTest {
-
-    public static final String OVERRIDE_HOOK_URL_CHECKBOX = "_.isOverrideHookUrl";
     public static final String HOOK_URL_INPUT = "_.hookUrl";
 
-    private static final String WEBHOOK_URL = "http://jenkinsci.example.com/jenkins/github-webhook/";
-
     @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    public JenkinsSessionRule sessions = new JenkinsSessionRule();
 
     @Test
-    public void shouldSetHookUrl() throws Exception {
-        HtmlForm form = globalConfig();
-
-        form.getInputByName(OVERRIDE_HOOK_URL_CHECKBOX).setChecked(true);
-        form.getInputByName(HOOK_URL_INPUT).setValue(WEBHOOK_URL);
-        jenkins.submit(form);
-
-        assertThat(GitHubPlugin.configuration().getHookUrl(), equalTo(new URL(WEBHOOK_URL)));
-    }
-
-    @Test
-    public void shouldNotSetHookUrl() throws Exception {
-        GitHubPlugin.configuration().setHookUrl(WEBHOOK_URL);
-
-        HtmlForm form = globalConfig();
-
-        form.getInputByName(OVERRIDE_HOOK_URL_CHECKBOX).setChecked(false);
-        form.getInputByName(HOOK_URL_INPUT).setValue("http://foo");
-        jenkins.submit(form);
-
-        assertThat(GitHubPlugin.configuration().getHookUrl(), equalTo(new URL(WEBHOOK_URL)));
+    public void shouldBeAbleToParseAnEmptyConfig() throws Throwable {
+        sessions.then(r -> {
+            GitHubPluginConfig githubPluginConfig = GitHubPlugin.configuration();
+            assertThat("empty config by default", githubPluginConfig.getConfigs().isEmpty());
+            assertFalse("no override hook url by default", githubPluginConfig.isOverrideHookUrl());
+            assertEquals(
+                "uses default url by default",
+                getDefaultHookUrl(),
+                githubPluginConfig.getHookUrl().toString()
+            );
+        });
     }
 
     @Test
-    public void shouldNotOverrideAPreviousHookUrlIfNotChecked() throws Exception {
-        GitHubPlugin.configuration().setHookUrl(WEBHOOK_URL);
+    public void shouldBeAbleToSetCustomHook() throws Throwable {
+        sessions.then(r -> {
+            HtmlForm config = r.createWebClient().goTo("configure").getFormByName("config");
+            HtmlTextInput textbox = config.getInputByName(HOOK_URL_INPUT);
+            textbox.setText("http://jenkinsci.example.com/jenkins/github-webhook/");
+            r.submit(config);
 
-        HtmlForm form = globalConfig();
+            assertEquals(
+                "global config page let us edit the webhook url",
+                "http://jenkinsci.example.com/jenkins/github-webhook/",
+                GitHubPlugin.configuration().getHookUrl().toString()
+            );
+        });
 
-        form.getInputByName(OVERRIDE_HOOK_URL_CHECKBOX).setChecked(false);
-        form.getInputByName(HOOK_URL_INPUT).setValue("");
-        jenkins.submit(form);
-
-        assertThat(GitHubPlugin.configuration().getHookUrl(), equalTo(new URL(WEBHOOK_URL)));
+        sessions.then(r -> {
+            assertEquals(
+                    "webhook url still present after restart of Jenkins",
+                    "http://jenkinsci.example.com/jenkins/github-webhook/",
+                    GitHubPlugin.configuration().getHookUrl().toString()
+            );
+        });
     }
 
-    public HtmlForm globalConfig() throws IOException, SAXException {
-        JenkinsRule.WebClient client = configureWebClient();
-        HtmlPage p = client.goTo("configure");
-        return p.getFormByName("config");
+    @Test
+    public void shouldSetDefaultHookUrlWhenLeftEmpty() throws Throwable {
+        sessions.then(r -> {
+            HtmlForm config = r.createWebClient().goTo("configure").getFormByName("config");
+            HtmlTextInput textbox = config.getInputByName(HOOK_URL_INPUT);
+            textbox.setText("");
+            r.submit(config);
+
+            assertEquals(
+                    "global config page let us edit the webhook url",
+                    getDefaultHookUrl(),
+                    GitHubPlugin.configuration().getHookUrl().toString()
+            );
+        });
     }
 
-    private JenkinsRule.WebClient configureWebClient() {
-        JenkinsRule.WebClient client = jenkins.createWebClient();
-        client.setJavaScriptEnabled(true);
-        return client;
+    @Test
+    public void shouldSetDefaultHookUrlWhenGivenMalformedUrl() throws Throwable {
+        sessions.then(r -> {
+            HtmlForm config = r.createWebClient().goTo("configure").getFormByName("config");
+            HtmlTextInput textbox = config.getInputByName(HOOK_URL_INPUT);
+            textbox.setText("I'm not a URL!");
+            r.submit(config);
+
+            assertEquals(
+                    "global config page let us edit the webhook url",
+                    getDefaultHookUrl(),
+                    GitHubPlugin.configuration().getHookUrl().toString()
+            );
+        });
+    }
+
+    public String getDefaultHookUrl() {
+        return Jenkins.getInstance().getRootUrl() + "github-webhook/";
     }
 }
