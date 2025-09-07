@@ -1,16 +1,16 @@
 # Functional contribution
 
-We are welcome for any contribution. But every new feature implemented in this plugin should:
+We welcome any contribution. But every new feature implemented in this plugin should:
 
-- Be useful enough for lot of people (should not cover only your professional case).
-- Should not break existing use cases and should avoid breaking the backward compatibility in existing APIs.
-  - If the compatibility break is required, it should be well justified.
+- Be useful enough for many people (should cover more than just your professional case).
+- Should not break existing use cases and should avoid breaking backward compatibility in existing APIs.
+  - If a compatibility break is required, it should be well justified.
     [Guide](https://wiki.eclipse.org/Evolving_Java-based_APIs_2)
-    and [jenkins solutions](https://wiki.jenkins-ci.org/display/JENKINS/Hint+on+retaining+backward+compatibility) can help to retain the backward compatibility.
+    and [jenkins solutions](https://wiki.jenkins-ci.org/display/JENKINS/Hint+on+retaining+backward+compatibility) can help to retain backward compatibility.
 - Should be easily maintained (so maintainers need some time to think about architecture of implementation).
 - Have at least one test for positive use case.
 
-This plugin is used by lot of people, so it should be stable enough. Please ensure your change is compatible at least with the last LTS line.
+This plugin is used by many people, so it should be stable. Please ensure your change is compatible at least with the last LTS line.
 Any core dependency upgrade must be justified.
 
 # Code Style Guidelines
@@ -20,9 +20,9 @@ Checkstyle rules are more important than this document.
 
 ## Resulting from long experience
 
-* To the largest extent possible, all fields shall be private. Use an IDE to generate the getters and setters.
-* If a class has more than one `volatile` member field, it is probable that there are subtle race conditions. Please consider where appropriate encapsulation of the multiple fields into an immutable value object replace the multiple `volatile` member fields with a single `volatile` reference to the value object (or perhaps better yet an `AtomicReference` to allow for `compareAndSet` - if compare-and-set logic is appropriate).
-* If it is `Serializable` it shall have a `serialVersionUID` field. Unless code has shipped to users, the initial value of the `serialVersionUID` field shall be `1L`.
+- To the largest extent possible, all fields should be private. Use an IDE to generate the getters and setters.
+- If a class has more than one `volatile` member field, it is probable that there are subtle race conditions. Please consider, where appropriate, encapsulation of multiple fields into an immutable value object. That is, to replace multiple `volatile` member fields with a single `volatile` reference to the value object (or perhaps better yet an `AtomicReference` to allow for `compareAndSet` - if compare-and-set logic is appropriate).
+- If it is `Serializable`, it should have a `serialVersionUID` field. Unless code has shipped to users, the initial value of the `serialVersionUID` field should be `1L`.
 
 ## Indentation
 
@@ -32,12 +32,12 @@ Checkstyle rules are more important than this document.
 ## Field Naming Conventions
 
 1. "hungarian"-style notation is banned (e.g. instance variable names preceded by an 'm', etc.).
-2. If the field is `static final` then it shall be named in `ALL_CAPS_WITH_UNDERSCORES`.
+2. If the field is `static final`, then it should be named as `ALL_CAPS_WITH_UNDERSCORES`.
 3. Start variable names with a lowercase letter and use camelCase rather than under_scores.
 4. Spelling and abbreviations: If the word is widely used in the JVM runtime, stick with the spelling/abbreviation in the JVM runtime, e.g. `color` over `colour`, `sync` over `synch`, `async` over `asynch`, etc.
 5. It is acceptable to use `i`, `j`, `k` for loop indices and iterators. If you need more than three, you are likely doing something wrong and as such you shall either use full descriptive names or refactor.
 6. It is acceptable to use `e` for the exception in a `try...catch` block.
-7. You shall never use `l` (i.e. lower case `L`) as a variable name.
+7. Never use `l` (i.e. lower case `L`) as a variable name.
 
 ## Line Length
 
@@ -45,32 +45,33 @@ To the greatest extent possible, please wrap lines to ensure that they do not ex
 
 ## Maven POM file layout
 
-* The `pom.xml` file shall use the sequencing of elements as defined by the `mvn tidy:pom` command (after any indenting fix-up).
-* If you are introducing a property to the `pom.xml` the property must be used in at least two distinct places in the model or a comment justifying the use of a property shall be provided.
-* If the `<plugin>` is in the groupId `org.apache.maven.plugins` you shall omit the `<groupId>`.
-* All `<plugin>` entries shall have an explicit version defined unless inherited from the parent.
+- The `pom.xml` file should use the sequencing of elements as defined by the `mvn tidy:pom` command (after any indenting fix-up).
+- If you are introducing a property to the `pom.xml`, the property must be used in at least two distinct places in the model, or a comment justifying the use of a property should be provided.
+- If the `<plugin>` is in the groupId `org.apache.maven.plugins`, you should omit the `<groupId>`.
+- All `<plugin>` entries should have an explicit version defined unless inherited from the parent.
 
 ## Java code style
 
 ### Imports
 
-* For code in `src/main`:
-    - `*` imports are banned.
-    - `static` imports are preferred until not mislead.
-* For code in `src/test`:
-    - `*` imports of anything other than JUnit classes and Hamcrest matchers are banned.
+- For code in `src/main`:
+  - `*` imports are banned.
+  - `static` imports are preferred until not mislead.
+- For code in `src/test`:
+  - `*` imports of anything other than JUnit classes and Hamcrest matchers are banned.
 
 ### Annotation placement
 
-* Annotations on classes, interfaces, annotations, enums, methods, fields and local variables shall be on the lines immediately preceding the line where modifier(s) (e.g. `public` / `protected` / `private` / `final`, etc) would be appropriate.
-* Annotations on method arguments shall, to the largest extent possible, be on the same line as the method argument (and, if present, before the `final` modifier).
+- Annotations on classes, interfaces, annotations, enums, methods, fields and local variables should be on the lines immediately preceding the line where modifier(s) (e.g. `public` / `protected` / `private` / `final`, etc) would be appropriate.
+- Annotations on method arguments should, to the largest extent possible, be on the same line as the method argument (and, if present, before the `final` modifier).
 
 ### Javadoc
 
-* Each class shall have a Javadoc comment.
-* Unless the method is `private`, it shall have a Javadoc comment.
-* Getters and Setters shall have a Javadoc comment. The following is prefered:
-    ```
+- Each class should have a Javadoc comment.
+- Unless the method is `private`, it should have a Javadoc comment.
+- Getters and Setters should have a Javadoc comment. The following is prefered:
+
+    ```java
     /**
      * The count of widgets
      */
@@ -94,7 +95,8 @@ To the greatest extent possible, please wrap lines to ensure that they do not ex
         this.widgetCount = widgetCount;
     }
     ```
-* When adding a new class / interface / etc, it shall have a `@since` doc comment. The version shall be `FIXME` (or `TODO`) to indicate that the person merging the change should replace the `FIXME` with the next release version number. The fields and methods within a class/interface (but not nested classes) will be assumed to have the `@since` annotation of their class/interface unless a different `@since` annotation is present.
+
+- When adding a new class / interface / etc, it should have a `@since` doc comment. The version should be `FIXME` (or `TODO`) to indicate that the person merging the change should replace the `FIXME` with the next release version number. The fields and methods within a class/interface (but not nested classes) will be assumed to have the `@since` annotation of their class/interface unless a different `@since` annotation is present.
 
 ### IDE Configuration
 
