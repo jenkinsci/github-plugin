@@ -162,7 +162,7 @@ public @interface RequirePostWithGHHookPayload {
 
                 for (HookSecretConfig config : secretConfigs) {
                     Secret secret = config.getHookSecret();
-                    if(secret == null) {
+                    if (secret == null) {
                         continue;
                     }
 
