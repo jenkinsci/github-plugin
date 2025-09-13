@@ -13,6 +13,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
+import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.kohsuke.github.GHEvent;
 
@@ -88,6 +89,7 @@ public class GitHubWebHookFullTest {
     }
 
     @Test
+    @Issue("JENKINS-76080")
     public void shouldWorkWithoutSecretParseJsonWebHookFromGH() throws Exception {
         String hash = "notused";
         String hash256 = "a17ea241b16bc285513afd659651a2456e7c44273abe3c3d0c08febe3ef10063";
