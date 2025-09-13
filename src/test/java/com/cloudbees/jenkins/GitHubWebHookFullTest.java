@@ -30,8 +30,7 @@ import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.commons.lang3.ClassUtils.PACKAGE_SEPARATOR;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.jenkinsci.plugins.github.test.HookSecretHelper.removeSecretIn;
-import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecretIn;
+import static org.jenkinsci.plugins.github.test.HookSecretHelper.*;
 import static org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload.Processor.*;
 
 /**
@@ -83,6 +82,22 @@ public class GitHubWebHookFullTest {
         given().spec(spec)
                 .header(eventHeader(GHEvent.PUSH))
                 .header(JSON_CONTENT_TYPE)
+                .body(classpath("payloads/push.json"))
+                .log().all()
+                .expect().log().all().statusCode(SC_OK).request().post(getPath());
+    }
+
+    @Test
+    public void shouldWorkWithoutSecretParseJsonWebHookFromGH() throws Exception {
+        String hash = "notused";
+        String hash256 = "a17ea241b16bc285513afd659651a2456e7c44273abe3c3d0c08febe3ef10063";
+        removeSecretIn(config);
+        storeGitHubPluginConfigWithNullSecret(config);
+        given().spec(spec)
+                .header(eventHeader(GHEvent.PUSH))
+                .header(JSON_CONTENT_TYPE)
+                .header(SIGNATURE_HEADER, format("sha1=%s", hash))
+                .header(SIGNATURE_HEADER_SHA256, format("%s%s", SHA256_PREFIX, hash256))
                 .body(classpath("payloads/push.json"))
                 .log().all()
                 .expect().log().all().statusCode(SC_OK).request().post(getPath());

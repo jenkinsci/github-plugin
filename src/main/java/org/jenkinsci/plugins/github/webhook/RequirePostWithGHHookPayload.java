@@ -162,9 +162,6 @@ public @interface RequirePostWithGHHookPayload {
 
                 for (HookSecretConfig config : secretConfigs) {
                     Secret secret = config.getHookSecret();
-                    if (secret == null) {
-                        continue;
-                    }
 
                     SignatureAlgorithm algorithm = config.getSignatureAlgorithm();
                     String headerName = algorithm.getHeaderName();
