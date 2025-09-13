@@ -40,7 +40,6 @@ public class GHWebhookSignature {
      */
     public static GHWebhookSignature webhookSignature(String payload, Secret secret) {
         checkNotNull(payload, "Payload can't be null");
-        checkNotNull(secret, "Secret should be defined to compute sign");
         return new GHWebhookSignature(payload, secret);
     }
 
@@ -69,19 +68,34 @@ public class GHWebhookSignature {
         return computeSignature(HMAC_SHA256_ALGORITHM);
     }
     /**
-     * Computes HMAC signature using the specified algorithm.
+     * Computes HMAC or plain hash signature depending on whether secret is set.
      *
-     * @param algorithm The HMAC algorithm to use (e.g., "HmacSHA1", "HmacSHA256")
-     * @return HMAC digest as hex string, or INVALID_SIGNATURE on error
+     * @param algorithm The algorithm to use (e.g., "HmacSHA1", "HmacSHA256", "SHA-1", "SHA-256")
+     * @return digest as hex string, or INVALID_SIGNATURE on error
      */
     private String computeSignature(String algorithm) {
         try {
-            final SecretKeySpec keySpec = new SecretKeySpec(secret.getPlainText().getBytes(UTF_8), algorithm);
-            final Mac mac = Mac.getInstance(algorithm);
-            mac.init(keySpec);
-            final byte[] rawHMACBytes = mac.doFinal(payload.getBytes(UTF_8));
+            byte[] rawBytes;
 
-            return Hex.encodeHexString(rawHMACBytes);
+            if (secret != null) {
+                // Use HMAC
+                final Mac mac = Mac.getInstance(algorithm);
+                final SecretKeySpec keySpec = new SecretKeySpec(secret.getPlainText().getBytes(UTF_8), algorithm);
+                mac.init(keySpec);
+                rawBytes = mac.doFinal(payload.getBytes(UTF_8));
+            } else {
+                // Fall back to plain hash
+                final MessageDigest digest;
+                if (algorithm.startsWith("Hmac")) {
+                    // map HmacSHA256 -> SHA-256, HmacSHA1 -> SHA-1, etc.
+                    digest = MessageDigest.getInstance(algorithm.replace("Hmac", ""));
+                } else {
+                    digest = MessageDigest.getInstance(algorithm);
+                }
+                rawBytes = digest.digest(payload.getBytes(UTF_8));
+            }
+
+            return Hex.encodeHexString(rawBytes);
         } catch (Exception e) {
             LOGGER.error("Error computing {} signature", algorithm, e);
             return INVALID_SIGNATURE;

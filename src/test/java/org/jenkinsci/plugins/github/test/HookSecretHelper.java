@@ -9,6 +9,7 @@ import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.config.HookSecretConfig;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,12 @@ public class HookSecretHelper {
      * @param secretText The secret/key.
      */
     public static void storeSecretIn(GitHubPluginConfig config, final String secretText) {
+        final StringCredentialsImpl credentials = createCredentail(secretText);
+
+        config.setHookSecretConfigs(Collections.singletonList(new HookSecretConfig(credentials.getId())));
+    }
+
+    private static @NotNull StringCredentialsImpl createCredentail(String secretText) {
         final StringCredentialsImpl credentials = new StringCredentialsImpl(
                 CredentialsScope.GLOBAL,
                 UUID.randomUUID().toString(),
@@ -53,16 +60,22 @@ public class HookSecretHelper {
                 }
             }
         });
-
-        config.setHookSecretConfigs(Collections.singletonList(new HookSecretConfig(credentials.getId())));
+        return credentials;
     }
-    
+
     /**
      * Stores the secret and sets it as the current hook secret.
      * @param secretText The secret/key.
      */
     public static void storeSecret(final String secretText) {
         storeSecretIn(Jenkins.getInstance().getDescriptorByType(GitHubPluginConfig.class), secretText);
+    }
+
+    /**
+     * Stores the secret and sets it as the current hook secret.
+     */
+    public static void storeGitHubPluginConfigWithNullSecret(GitHubPluginConfig config) {
+        config.setHookSecretConfigs(Collections.singletonList(new HookSecretConfig(null)));
     }
 
     /**
