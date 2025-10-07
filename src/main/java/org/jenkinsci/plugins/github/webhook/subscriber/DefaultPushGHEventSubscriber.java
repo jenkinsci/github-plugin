@@ -92,13 +92,18 @@ public class DefaultPushGHEventSubscriber extends GHEventsSubscriber {
                             LOGGER.debug("Considering to poke {}", fullDisplayName);
                             if (GitHubRepositoryNameContributor.parseAssociatedNames(job)
                                     .contains(changedRepository)) {
-                                LOGGER.info("Poked {}", fullDisplayName);
-                                trigger.onPost(GitHubTriggerEvent.create()
-                                        .withTimestamp(event.getTimestamp())
-                                        .withOrigin(event.getOrigin())
-                                        .withTriggeredByUser(pusherName)
-                                        .build()
-                                );
+                                if (trigger.isUserIgnored(pusherName)) {
+                                    LOGGER.debug("Skipped {} because pusher '{}' is in the ignored users list",
+                                            fullDisplayName, pusherName);
+                                } else {
+                                    LOGGER.info("Poked {}", fullDisplayName);
+                                    trigger.onPost(GitHubTriggerEvent.create()
+                                            .withTimestamp(event.getTimestamp())
+                                            .withOrigin(event.getOrigin())
+                                            .withTriggeredByUser(pusherName)
+                                            .build()
+                                    );
+                                }
                             } else {
                                 LOGGER.debug("Skipped {} because it doesn't have a matching repository.",
                                         fullDisplayName);
