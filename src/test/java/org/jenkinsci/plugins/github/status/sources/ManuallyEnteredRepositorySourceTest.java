@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.github.status.sources;
 
+import hudson.EnvVars;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import org.junit.Test;
@@ -12,6 +13,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.io.PrintStream;
 import java.util.List;
 
+import org.mockito.ArgumentMatchers;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.mockito.Mockito.doReturn;
@@ -21,6 +23,8 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ManuallyEnteredRepositorySourceTest {
+
+    public static final String EXPANDED = "expanded";
     @Mock(answer = Answers.RETURNS_MOCKS)
     private Run run;
 
@@ -29,6 +33,9 @@ public class ManuallyEnteredRepositorySourceTest {
 
     @Mock(answer = Answers.RETURNS_MOCKS)
     private PrintStream logger;
+
+    @Mock(answer = Answers.RETURNS_MOCKS)
+    private EnvVars env;
 
     @Test
     public void nullName() {
@@ -39,4 +46,15 @@ public class ManuallyEnteredRepositorySourceTest {
         verify(listener).getLogger();
         verify(logger).printf(eq("Unable to match %s with a GitHub repository.%n"), eq("a"));
     }
+
+    @Test
+    public void shouldExpandRepositorySource() {
+        when(run.getEnvironment(listener)).thenReturn(env);
+        when(env.expand(ArgumentMatchers.anyString())).thenReturn(EXPANDED);
+
+        List<String> repos = new ManuallyEnteredRepositorySource("").repos(run, listener);
+        assertThat("size", repos.size(), 1);
+        assertThat("size", repos[0], EXPANDED);
+    }
+
 }
