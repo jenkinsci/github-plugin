@@ -98,32 +98,32 @@ To the greatest extent possible, please wrap lines to ensure that they do not ex
 
 ### IDE Configuration
 
-* Eclipse, by and large the IDE defaults are acceptable with the following changes:
-    - Tab policy to `Spaces only`.
-    - Indent statements within `switch` body.
-    - Maximum line width `120`.
-    - Line wrapping, ensure all to `wrap where necessary`.
-    - Organize imports alphabetically, no grouping.
-* NetBeans, by and large the IDE defaults are acceptable with the following changes:
-    - Tabs and Indents:
-        + Change Right Margin to `120`.
-        + Indent case statements in switch.
-    - Wrapping:
-        + Change all the `Never` values to `If Long`.
-        + Select the checkbox for Wrap After Assignment Operators.
-* IntelliJ, by and large the IDE defaults are acceptable with the following changes:
-    - Wrapping and Braces:
-        + Change `Do not wrap` to `Wrap if long`.
-        + Change `Do not force` to `Always`.
-    - Javadoc:
-        + Disable generating `<p/>` on empty lines.
-    - Imports:
-        + Class count to use import with '*': `9999`.
-        + Names count to use static import with '*': `99999`.
-        + Import Layout:
-            * import all other imports.
-            * blank line.
-            * import static all other imports.
+- Eclipse: by and large the IDE defaults are acceptable with the following changes:
+  - Tab policy to `Spaces only`.
+  - Indent statements within `switch` body.
+  - Maximum line width `120`.
+  - Line wrapping, ensure all to `wrap where necessary`.
+  - Organize imports alphabetically, no grouping.
+- NetBeans: by and large the IDE defaults are acceptable with the following changes:
+  - Tabs and Indents:
+    - Change Right Margin to `120`.
+    - Indent case statements in switch.
+  - Wrapping:
+    - Change all the `Never` values to `If Long`.
+    - Select the checkbox for Wrap After Assignment Operators.
+- IntelliJ: by and large the IDE defaults are acceptable with the following changes:
+  - Wrapping and Braces:
+    - Change `Do not wrap` to `Wrap if long`.
+    - Change `Do not force` to `Always`.
+  - Javadoc:
+    - Disable generating `<p/>` on empty lines.
+  - Imports:
+    - Class count to use import with '*': `9999`.
+    - Names count to use static import with '*': `99999`.
+      - Import Layout:
+        - import all other imports.
+        - blank line.
+        - import static all other imports.
 
 ## Issues
 
