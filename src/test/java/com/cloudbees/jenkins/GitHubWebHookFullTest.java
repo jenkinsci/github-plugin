@@ -13,6 +13,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
+import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.kohsuke.github.GHEvent;
 
@@ -30,8 +31,7 @@ import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.commons.lang3.ClassUtils.PACKAGE_SEPARATOR;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.jenkinsci.plugins.github.test.HookSecretHelper.removeSecretIn;
-import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecretIn;
+import static org.jenkinsci.plugins.github.test.HookSecretHelper.*;
 import static org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload.Processor.*;
 
 /**
@@ -86,6 +86,54 @@ public class GitHubWebHookFullTest {
                 .body(classpath("payloads/push.json"))
                 .log().all()
                 .expect().log().all().statusCode(SC_OK).request().post(getPath());
+    }
+
+    @Test
+    @Issue("JENKINS-76080")
+    public void shouldWorkWithoutSecretAndNoSignatureHeaderWebHookFromGH() throws Exception {
+        removeSecretIn(config);
+        given().spec(spec)
+                .header(eventHeader(GHEvent.PUSH))
+                .header(JSON_CONTENT_TYPE)
+                .body(classpath("payloads/push.json"))
+                .log().all()
+                .expect().log().all().statusCode(SC_OK).request().post(getPath());
+    }
+
+    @Test
+    @Issue("JENKINS-76080")
+    public void shouldNotWorkWithoutSecretAndNoSignatureHeaderWebHookFromGH() throws Exception {
+        removeSecretIn(config);
+        storeGitHubPluginConfigWithNullSecret(config);
+        given().spec(spec)
+                .header(eventHeader(GHEvent.PUSH))
+                .header(JSON_CONTENT_TYPE)
+                .body(classpath("payloads/push.json"))
+                .log().all()
+                .expect().log().all().statusCode(SC_BAD_REQUEST).request().post(getPath());
+    }
+
+    /**
+     * <a href="https://docs.github.com/en/webhooks/webhook-events-and-payloads">Github Webhook Docs</a>
+     * X-Hub-Signature and X-Hub-Signature-256 are only sent when a webhook is configured with a secret
+     * Therefor if Jenkins Github plugin is configured with without a secret and receives a webhook with
+     * X-Hub-Signature and X-Hub-Signature-256 headers, it should fail
+     */
+    @Test
+    @Issue("JENKINS-76080")
+    public void shouldNotWorkWithoutSecretParseJsonWebHookFromGH() throws Exception {
+        String hash = "notused";
+        String hash256 = "a17ea241b16bc285513afd659651a2456e7c44273abe3c3d0c08febe3ef10063";
+        removeSecretIn(config);
+        storeGitHubPluginConfigWithNullSecret(config);
+        given().spec(spec)
+                .header(eventHeader(GHEvent.PUSH))
+                .header(JSON_CONTENT_TYPE)
+                .header(SIGNATURE_HEADER, format("sha1=%s", hash))
+                .header(SIGNATURE_HEADER_SHA256, format("%s%s", SHA256_PREFIX, hash256))
+                .body(classpath("payloads/push.json"))
+                .log().all()
+                .expect().log().all().statusCode(SC_BAD_REQUEST).request().post(getPath());
     }
 
 
