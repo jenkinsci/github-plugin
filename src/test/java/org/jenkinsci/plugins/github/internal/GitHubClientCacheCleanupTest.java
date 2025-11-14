@@ -21,10 +21,9 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.nio.file.Files.newDirectoryStream;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.clearRedundantCaches;
 import static org.jenkinsci.plugins.github.internal.GitHubClientCacheOps.getBaseCacheDir;
-import static org.junit.Assume.assumeThat;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 /**
  * @author lanwen (Merkushev Kirill)
@@ -43,11 +42,9 @@ class GitHubClientCacheCleanupTest {
             .stubUser();
 
     @BeforeEach
-    void setUp(JenkinsRule rule) throws Exception {
+    void setUp(JenkinsRule rule) {
+        assumeFalse(Functions.isWindows(), "ignore for windows (dunno how to fix it without win - heed help!)");
         jRule = rule;
-        assumeThat("ignore for windows (dunno how to fix it without win - heed help!)",
-                Functions.isWindows(), is(false)
-        );
     }
 
     @Test

@@ -11,6 +11,8 @@ import org.kohsuke.stapler.StaplerRequest2;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -27,12 +29,13 @@ import static org.mockito.Mockito.when;
  */
 @WithJenkins
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class RequirePostWithGHHookPayloadTest {
 
     private static final String SECRET_CONTENT = "secret";
     private static final String PAYLOAD = "sample payload";
 
-    @Mock(strictness = Mock.Strictness.LENIENT)
+    @Mock
     private StaplerRequest2 req;
 
     private JenkinsRule jenkinsRule;
@@ -41,7 +44,7 @@ class RequirePostWithGHHookPayloadTest {
     private RequirePostWithGHHookPayload.Processor processor;
 
     @BeforeEach
-    void setSecret(JenkinsRule rule) throws Exception {
+    void setUp(JenkinsRule rule) {
         jenkinsRule = rule;
         storeSecret(SECRET_CONTENT);
     }
