@@ -1,7 +1,7 @@
 package org.jenkinsci.plugins.github.config;
 
 import org.jenkinsci.plugins.github.webhook.SignatureAlgorithm;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -11,10 +11,10 @@ import static org.hamcrest.Matchers.equalTo;
  * 
  * @since 1.45.0
  */
-public class HookSecretConfigSHA256Test {
+class HookSecretConfigSHA256Test {
 
     @Test
-    public void shouldDefaultToSHA256Algorithm() {
+    void shouldDefaultToSHA256Algorithm() {
         HookSecretConfig config = new HookSecretConfig("test-credentials");
         
         assertThat("Should default to SHA-256 algorithm", 
@@ -22,7 +22,7 @@ public class HookSecretConfigSHA256Test {
     }
 
     @Test
-    public void shouldAcceptExplicitSHA256Algorithm() {
+    void shouldAcceptExplicitSHA256Algorithm() {
         HookSecretConfig config = new HookSecretConfig("test-credentials", "SHA256");
         
         assertThat("Should use explicitly set SHA-256 algorithm", 
@@ -30,7 +30,7 @@ public class HookSecretConfigSHA256Test {
     }
 
     @Test
-    public void shouldAcceptSHA1Algorithm() {
+    void shouldAcceptSHA1Algorithm() {
         HookSecretConfig config = new HookSecretConfig("test-credentials", "SHA1");
         
         assertThat("Should use explicitly set SHA-1 algorithm", 
@@ -38,7 +38,7 @@ public class HookSecretConfigSHA256Test {
     }
 
     @Test
-    public void shouldDefaultToSHA256WhenNullAlgorithmProvided() {
+    void shouldDefaultToSHA256WhenNullAlgorithmProvided() {
         HookSecretConfig config = new HookSecretConfig("test-credentials", null);
         
         assertThat("Should default to SHA-256 when null algorithm provided", 
@@ -46,7 +46,7 @@ public class HookSecretConfigSHA256Test {
     }
 
     @Test
-    public void shouldDefaultToSHA256WhenInvalidAlgorithmProvided() {
+    void shouldDefaultToSHA256WhenInvalidAlgorithmProvided() {
         HookSecretConfig config = new HookSecretConfig("test-credentials", "INVALID");
         
         assertThat("Should default to SHA-256 when invalid algorithm provided", 
@@ -54,7 +54,7 @@ public class HookSecretConfigSHA256Test {
     }
 
     @Test
-    public void shouldBeCaseInsensitive() {
+    void shouldBeCaseInsensitive() {
         HookSecretConfig config1 = new HookSecretConfig("test-credentials", "sha256");
         HookSecretConfig config2 = new HookSecretConfig("test-credentials", "Sha1");
         
@@ -65,7 +65,7 @@ public class HookSecretConfigSHA256Test {
     }
 
     @Test
-    public void shouldRespectSystemPropertyOverride() {
+    void shouldRespectSystemPropertyOverride() {
         // Save original property
         String originalProperty = System.getProperty("jenkins.github.webhook.signature.default");
         

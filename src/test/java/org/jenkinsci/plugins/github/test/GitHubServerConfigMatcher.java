@@ -5,10 +5,6 @@ import io.jenkins.plugins.casc.model.Mapping;
 import org.hamcrest.FeatureMatcher;
 import org.hamcrest.Matcher;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 import static org.hamcrest.Matchers.is;
 import static org.jenkinsci.plugins.github.config.GitHubServerConfig.tokenFor;
@@ -17,7 +13,6 @@ import static org.jenkinsci.plugins.github.config.GitHubServerConfig.tokenFor;
  * @author lanwen (Merkushev Kirill)
  */
 public final class GitHubServerConfigMatcher {
-    private static final Logger LOG = LoggerFactory.getLogger(GitHubServerConfigMatcher.class);
 
     private GitHubServerConfigMatcher() {
     }

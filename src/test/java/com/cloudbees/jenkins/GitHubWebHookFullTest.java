@@ -5,28 +5,27 @@ import com.google.common.net.HttpHeaders;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.Header;
 import io.restassured.specification.RequestSpecification;
+import jakarta.inject.Inject;
 import org.apache.commons.io.IOUtils;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.webhook.GHEventHeader;
 import org.jenkinsci.plugins.github.webhook.GHEventPayload;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.kohsuke.github.GHEvent;
 
-import jakarta.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.EncoderConfig.encoderConfig;
 import static io.restassured.config.RestAssuredConfig.newConfig;
-import static java.lang.String.format;
 import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static jakarta.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static jakarta.servlet.http.HttpServletResponse.SC_OK;
+import static java.lang.String.format;
 import static org.apache.commons.lang3.ClassUtils.PACKAGE_SEPARATOR;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
@@ -37,6 +36,7 @@ import static org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload.
 /**
  * @author lanwen (Merkushev Kirill)
  */
+@WithJenkins
 public class GitHubWebHookFullTest {
 
     // GitHub doesn't send the charset per docs, so re-use the exact content-type from the handler
@@ -48,37 +48,28 @@ public class GitHubWebHookFullTest {
     public static final String NOT_NULL_VALUE = "nonnull";
 
     private RequestSpecification spec;
-    
+
     @Inject
     private GitHubPluginConfig config;
 
-    @ClassRule
-    public static JenkinsRule jenkins = new JenkinsRule();
+    private JenkinsRule jenkins;
 
-    @Rule
-    public ExternalResource inject = new ExternalResource() {
-        @Override
-        protected void before() throws Throwable {
-            jenkins.getInstance().getInjector().injectMembers(GitHubWebHookFullTest.this);
-        }
-    };
+    @BeforeEach
+    void before(JenkinsRule rule) throws Throwable {
+        jenkins = rule;
+        jenkins.getInstance().getInjector().injectMembers(this);
 
-    @Rule
-    public ExternalResource setup = new ExternalResource() {
-        @Override
-        protected void before() throws Throwable {
-            spec = new RequestSpecBuilder()
-                    .setConfig(newConfig()
-                            .encoderConfig(encoderConfig()
-                                    .defaultContentCharset(Charsets.UTF_8.name())
-                                    // GitHub doesn't add charsets, so don't test with them
-                                    .appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-                    .build();
-        }
-    };
+        spec = new RequestSpecBuilder()
+                .setConfig(newConfig()
+                        .encoderConfig(encoderConfig()
+                                .defaultContentCharset(Charsets.UTF_8.name())
+                                // GitHub doesn't add charsets, so don't test with them
+                                .appendDefaultContentCharsetToContentTypeIfUndefined(false)))
+                .build();
+    }
 
     @Test
-    public void shouldParseJsonWebHookFromGH() throws Exception {
+    void shouldParseJsonWebHookFromGH() throws Exception {
         removeSecretIn(config);
         given().spec(spec)
                 .header(eventHeader(GHEvent.PUSH))
@@ -90,11 +81,11 @@ public class GitHubWebHookFullTest {
 
 
     @Test
-    public void shouldParseJsonWebHookFromGHWithSignHeader() throws Exception {
+    void shouldParseJsonWebHookFromGHWithSignHeader() throws Exception {
         String hash = "355e155fc3d10c4e5f2c6086a01281d2e947d932";
         String hash256 = "85e61999573c7023720a12375e1e55d18a0870e1ef880736f6ffc9273d0519e3";
         String secret = "123";
-        
+
         storeSecretIn(config, secret);
         given().spec(spec)
                 .header(eventHeader(GHEvent.PUSH))
@@ -107,7 +98,7 @@ public class GitHubWebHookFullTest {
     }
 
     @Test
-    public void shouldParseFormWebHookOrServiceHookFromGH() throws Exception {
+    void shouldParseFormWebHookOrServiceHookFromGH() throws Exception {
         given().spec(spec)
                 .header(eventHeader(GHEvent.PUSH))
                 .header(FORM_CONTENT_TYPE)
@@ -117,7 +108,7 @@ public class GitHubWebHookFullTest {
     }
 
     @Test
-    public void shouldParsePingFromGH() throws Exception {
+    void shouldParsePingFromGH() throws Exception {
         given().spec(spec)
                 .header(eventHeader(GHEvent.PING))
                 .header(JSON_CONTENT_TYPE)
@@ -130,7 +121,7 @@ public class GitHubWebHookFullTest {
     }
 
     @Test
-    public void shouldReturnErrOnEmptyPayloadAndHeader() throws Exception {
+    void shouldReturnErrOnEmptyPayloadAndHeader() throws Exception {
         given().spec(spec)
                 .log().all()
                 .expect().log().all()
@@ -141,7 +132,7 @@ public class GitHubWebHookFullTest {
     }
 
     @Test
-    public void shouldReturnErrOnEmptyPayload() throws Exception {
+    void shouldReturnErrOnEmptyPayload() throws Exception {
         given().spec(spec)
                 .header(eventHeader(GHEvent.PUSH))
                 .log().all()
@@ -153,7 +144,7 @@ public class GitHubWebHookFullTest {
     }
 
     @Test
-    public void shouldReturnErrOnGetReq() throws Exception {
+    void shouldReturnErrOnGetReq() throws Exception {
         given().spec(spec)
                 .log().all().expect().log().all()
                 .statusCode(SC_METHOD_NOT_ALLOWED)
@@ -162,7 +153,7 @@ public class GitHubWebHookFullTest {
     }
 
     @Test
-    public void shouldProcessSelfTest() throws Exception {
+    void shouldProcessSelfTest() throws Exception {
         given().spec(spec)
                 .header(new Header(GitHubWebHook.URL_VALIDATION_HEADER, NOT_NULL_VALUE))
                 .log().all()
@@ -194,7 +185,7 @@ public class GitHubWebHookFullTest {
             throw new RuntimeException(format("Can't load %s for class %s", path, clazz), e);
         }
     }
-    
+
     private String getPath(){
         return jenkins.getInstance().getRootUrl() + GitHubWebHook.URLNAME.concat("/");
     }

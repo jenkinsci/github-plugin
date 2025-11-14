@@ -1,7 +1,7 @@
 package org.jenkinsci.plugins.github.webhook;
 
 import hudson.util.Secret;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -11,7 +11,7 @@ import static org.hamcrest.Matchers.equalTo;
  * 
  * @since 1.45.0
  */
-public class GHWebhookSignatureSHA256Test {
+class GHWebhookSignatureSHA256Test {
 
     private static final String SECRET_CONTENT = "It's a Secret to Everybody";
     private static final String PAYLOAD = "Hello, World!";
@@ -19,7 +19,7 @@ public class GHWebhookSignatureSHA256Test {
     private static final String EXPECTED_SHA256_DIGEST = "757107ea0eb2509fc211221cce984b8a37570b6d7586c22c46f4379c8b043e17";
 
     @Test
-    public void shouldComputeCorrectSHA256Signature() {
+    void shouldComputeCorrectSHA256Signature() {
         Secret secret = Secret.fromString(SECRET_CONTENT);
         GHWebhookSignature signature = GHWebhookSignature.webhookSignature(PAYLOAD, secret);
         
@@ -30,7 +30,7 @@ public class GHWebhookSignatureSHA256Test {
     }
 
     @Test
-    public void shouldValidateSHA256SignatureCorrectly() {
+    void shouldValidateSHA256SignatureCorrectly() {
         Secret secret = Secret.fromString(SECRET_CONTENT);
         GHWebhookSignature signature = GHWebhookSignature.webhookSignature(PAYLOAD, secret);
         
@@ -40,7 +40,7 @@ public class GHWebhookSignatureSHA256Test {
     }
 
     @Test
-    public void shouldRejectInvalidSHA256Signature() {
+    void shouldRejectInvalidSHA256Signature() {
         Secret secret = Secret.fromString(SECRET_CONTENT);
         GHWebhookSignature signature = GHWebhookSignature.webhookSignature(PAYLOAD, secret);
         
@@ -51,7 +51,7 @@ public class GHWebhookSignatureSHA256Test {
     }
 
     @Test
-    public void shouldRejectSHA1SignatureWhenExpectingSHA256() {
+    void shouldRejectSHA1SignatureWhenExpectingSHA256() {
         String secretContent = "test-secret";
         Secret secret = Secret.fromString(secretContent);
         GHWebhookSignature signature = GHWebhookSignature.webhookSignature(PAYLOAD, secret);
@@ -65,7 +65,7 @@ public class GHWebhookSignatureSHA256Test {
     }
 
     @Test
-    public void shouldHandleDifferentPayloads() {
+    void shouldHandleDifferentPayloads() {
         Secret secret = Secret.fromString(SECRET_CONTENT);
         String payload1 = "payload1";
         String payload2 = "payload2";

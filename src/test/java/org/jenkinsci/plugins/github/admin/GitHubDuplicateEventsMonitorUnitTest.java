@@ -11,15 +11,15 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import com.github.benmanes.caffeine.cache.Ticker;
 import org.jenkinsci.plugins.github.extension.GHSubscriberEvent;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.For;
 import org.kohsuke.github.GHEvent;
 
 @For(GitHubDuplicateEventsMonitor.DuplicateEventsSubscriber.class)
-public class GitHubDuplicateEventsMonitorUnitTest {
+class GitHubDuplicateEventsMonitorUnitTest {
 
     @Test
-    public void onEventShouldTrackEventAndKeepTrackOfLastDuplicate() {
+    void onEventShouldTrackEventAndKeepTrackOfLastDuplicate() {
         var subscriber = new GitHubDuplicateEventsMonitor.DuplicateEventsSubscriber();
 
         var now = Instant.parse("2025-02-05T03:00:00Z");
@@ -71,7 +71,7 @@ public class GitHubDuplicateEventsMonitorUnitTest {
     }
 
     @Test
-    public void checkOldEntriesAreExpiredAfter10Minutes() {
+    void checkOldEntriesAreExpiredAfter10Minutes() {
         var subscriber = new GitHubDuplicateEventsMonitor.DuplicateEventsSubscriber();
 
         var now = Instant.parse("2025-02-05T03:00:00Z");

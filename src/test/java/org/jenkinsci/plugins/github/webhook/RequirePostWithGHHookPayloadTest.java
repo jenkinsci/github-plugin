@@ -1,31 +1,36 @@
 package org.jenkinsci.plugins.github.webhook;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.lang.reflect.InvocationTargetException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecret;
 import static org.jenkinsci.plugins.github.test.HookSecretHelper.removeSecret;
+import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecret;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 /**
  * @author lanwen (Merkushev Kirill)
  */
-@RunWith(MockitoJUnitRunner.class)
-public class RequirePostWithGHHookPayloadTest {
+@WithJenkins
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class RequirePostWithGHHookPayloadTest {
 
     private static final String SECRET_CONTENT = "secret";
     private static final String PAYLOAD = "sample payload";
@@ -33,106 +38,108 @@ public class RequirePostWithGHHookPayloadTest {
     @Mock
     private StaplerRequest2 req;
 
-    @Rule
-    public JenkinsRule jenkinsRule = new JenkinsRule();
+    private JenkinsRule jenkinsRule;
 
     @Spy
     private RequirePostWithGHHookPayload.Processor processor;
 
-    @Before
-    public void setSecret() {
+    @BeforeEach
+    void setUp(JenkinsRule rule) {
+        jenkinsRule = rule;
         storeSecret(SECRET_CONTENT);
     }
 
     @Test
-    public void shouldPassOnlyPost() throws Exception {
+    void shouldPassOnlyPost() throws Exception {
         when(req.getMethod()).thenReturn("POST");
         new RequirePostWithGHHookPayload.Processor().shouldBePostMethod(req);
     }
 
-    @Test(expected = InvocationTargetException.class)
-    public void shouldNotPassOnNotPost() throws Exception {
+    @Test
+    void shouldNotPassOnNotPost() {
         when(req.getMethod()).thenReturn("GET");
-        new RequirePostWithGHHookPayload.Processor().shouldBePostMethod(req);
+        assertThrows(InvocationTargetException.class, () ->
+                new RequirePostWithGHHookPayload.Processor().shouldBePostMethod(req));
     }
 
     @Test
-    public void shouldPassOnGHEventAndNotBlankPayload() throws Exception {
+    void shouldPassOnGHEventAndNotBlankPayload() throws Exception {
         new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
                 new Object[]{GHEvent.PUSH, "{}"});
     }
 
-    @Test(expected = InvocationTargetException.class)
-    public void shouldNotPassOnNullGHEventAndNotBlankPayload() throws Exception {
-        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
-                new Object[]{null, "{}"});
+    @Test
+    void shouldNotPassOnNullGHEventAndNotBlankPayload() {
+        assertThrows(InvocationTargetException.class, () ->
+                new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
+                        new Object[]{null, "{}"}));
     }
 
-    @Test(expected = InvocationTargetException.class)
-    public void shouldNotPassOnGHEventAndBlankPayload() throws Exception {
-        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
-                new Object[]{GHEvent.PUSH, " "});
+    @Test
+    void shouldNotPassOnGHEventAndBlankPayload() {
+        assertThrows(InvocationTargetException.class, () ->
+                new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
+                        new Object[]{GHEvent.PUSH, " "}));
     }
 
-    @Test(expected = InvocationTargetException.class)
-    public void shouldNotPassOnNulls() throws Exception {
-        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
-                new Object[]{null, null});
+    @Test
+    void shouldNotPassOnNulls() {
+        assertThrows(InvocationTargetException.class, () ->
+                new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
+                        new Object[]{null, null}));
     }
 
-    @Test(expected = InvocationTargetException.class)
-    public void shouldNotPassOnGreaterCountOfArgs() throws Exception {
-        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
-                new Object[]{GHEvent.PUSH, "{}", " "}
-        );
+    @Test
+    void shouldNotPassOnGreaterCountOfArgs() {
+        assertThrows(InvocationTargetException.class, () ->
+                new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
+                        new Object[]{GHEvent.PUSH, "{}", " "}
+                ));
     }
 
-    @Test(expected = InvocationTargetException.class)
-    public void shouldNotPassOnLessCountOfArgs() throws Exception {
-        new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
-                new Object[]{GHEvent.PUSH}
-        );
+    @Test
+    void shouldNotPassOnLessCountOfArgs() {
+        assertThrows(InvocationTargetException.class, () ->
+                new RequirePostWithGHHookPayload.Processor().shouldContainParseablePayload(
+                        new Object[]{GHEvent.PUSH}
+                ));
     }
 
     @Test
     @Issue("JENKINS-37481")
-    public void shouldPassOnAbsentSignatureInRequestIfSecretIsNotConfigured() throws Exception {
-        doReturn(PAYLOAD).when(processor).payloadFrom(req, null);
+    void shouldPassOnAbsentSignatureInRequestIfSecretIsNotConfigured() throws Exception {
         removeSecret();
 
         processor.shouldProvideValidSignature(req, null);
     }
 
-    @Test(expected = InvocationTargetException.class)
+    @Test
     @Issue("JENKINS-48012")
-    public void shouldNotPassOnAbsentSignatureInRequest() throws Exception {
-        doReturn(PAYLOAD).when(processor).payloadFrom(req, null);
-
-        processor.shouldProvideValidSignature(req, null);
-    }
-
-    @Test(expected = InvocationTargetException.class)
-    public void shouldNotPassOnInvalidSignature() throws Exception {
-        final String signature = "sha1=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3";
-
-        when(req.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
-        doReturn(PAYLOAD).when(processor).payloadFrom(req, null);
-
-        processor.shouldProvideValidSignature(req, null);
-    }
-
-    @Test(expected = InvocationTargetException.class)
-    public void shouldNotPassOnMalformedSignature() throws Exception {
-        final String signature = "49d5f5cf800a81f257324912969a2d325d13d3fc";
-
-        when(req.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
-        doReturn(PAYLOAD).when(processor).payloadFrom(req, null);
-
-        processor.shouldProvideValidSignature(req, null);
+    void shouldNotPassOnAbsentSignatureInRequest() {
+        assertThrows(InvocationTargetException.class, () ->
+                processor.shouldProvideValidSignature(req, null));
     }
 
     @Test
-    public void shouldPassWithValidSignature() throws Exception {
+    void shouldNotPassOnInvalidSignature() {
+        final String signature = "sha1=a94a8fe5ccb19ba61c4c0873d391e987982fbbd3";
+        when(req.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
+        doReturn(PAYLOAD).when(processor).payloadFrom(req, null);
+        assertThrows(InvocationTargetException.class, () ->
+                processor.shouldProvideValidSignature(req, null));
+    }
+
+    @Test
+    void shouldNotPassOnMalformedSignature() {
+        final String signature = "49d5f5cf800a81f257324912969a2d325d13d3fc";
+        when(req.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
+        doReturn(PAYLOAD).when(processor).payloadFrom(req, null);
+        assertThrows(InvocationTargetException.class, () ->
+                processor.shouldProvideValidSignature(req, null));
+    }
+
+    @Test
+    void shouldPassWithValidSignature() throws Exception {
         final String signature = "sha1=49d5f5cf800a81f257324912969a2d325d13d3fc";
         final String signature256 = "sha256=569beaec8ea1c9deccec283d0bb96aeec0a77310c70875343737ae72cffa7044";
 
@@ -145,7 +152,7 @@ public class RequirePostWithGHHookPayloadTest {
 
     @Test
     @Issue("JENKINS-37481")
-    public void shouldIgnoreSignHeaderOnNotDefinedSignInConfig() throws Exception {
+    void shouldIgnoreSignHeaderOnNotDefinedSignInConfig() throws Exception {
         removeSecret();
         final String signature = "sha1=49d5f5cf800a81f257324912969a2d325d13d3fc";
 
@@ -155,7 +162,7 @@ public class RequirePostWithGHHookPayloadTest {
     }
 
     @Test
-    public void shouldReturnValidPayloadOnApplicationJson() {
+    void shouldReturnValidPayloadOnApplicationJson() {
         final String payload = "test";
 
         doReturn(GHEventPayload.PayloadHandler.APPLICATION_JSON).when(req).getContentType();
@@ -166,7 +173,7 @@ public class RequirePostWithGHHookPayloadTest {
     }
 
     @Test
-    public void shouldReturnValidPayloadOnFormUrlEncoded() {
+    void shouldReturnValidPayloadOnFormUrlEncoded() {
         final String payload = "test";
 
         doReturn(GHEventPayload.PayloadHandler.FORM_URLENCODED).when(req).getContentType();

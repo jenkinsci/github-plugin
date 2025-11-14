@@ -1,6 +1,6 @@
 package org.jenkinsci.plugins.github.webhook;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -10,10 +10,10 @@ import static org.hamcrest.Matchers.equalTo;
  * 
  * @since 1.45.0
  */
-public class SignatureAlgorithmTest {
+class SignatureAlgorithmTest {
 
     @Test
-    public void shouldHaveCorrectSHA256Properties() {
+    void shouldHaveCorrectSHA256Properties() {
         SignatureAlgorithm algorithm = SignatureAlgorithm.SHA256;
         
         assertThat("SHA-256 prefix", algorithm.getPrefix(), equalTo("sha256"));
@@ -23,7 +23,7 @@ public class SignatureAlgorithmTest {
     }
 
     @Test
-    public void shouldHaveCorrectSHA1Properties() {
+    void shouldHaveCorrectSHA1Properties() {
         SignatureAlgorithm algorithm = SignatureAlgorithm.SHA1;
         
         assertThat("SHA-1 prefix", algorithm.getPrefix(), equalTo("sha1"));
@@ -33,7 +33,7 @@ public class SignatureAlgorithmTest {
     }
 
     @Test
-    public void shouldDefaultToSHA256() {
+    void shouldDefaultToSHA256() {
         assertThat("Default algorithm should be SHA-256", 
                   SignatureAlgorithm.getDefault(), equalTo(SignatureAlgorithm.SHA256));
     }

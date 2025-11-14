@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>5.9</version>
+        <version>5.28</version>
         <relativePath />
     </parent>
 
@@ -54,6 +54,7 @@
         <jenkins.baseline>2.504</jenkins.baseline>
         <jenkins.version>${jenkins.baseline}.1</jenkins.version>
         <release.skipTests>false</release.skipTests>
+        <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
         <tagNameFormat>v@{project.version}</tagNameFormat>
     </properties>
 
@@ -139,6 +140,11 @@
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- For GlobalMatrixAuthorizationStrategy -->
         <dependency>
@@ -173,13 +179,6 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-job</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.tngtech.java</groupId>
-            <artifactId>junit-dataprovider</artifactId>
-            <version>1.13.1</version>
             <scope>test</scope>
         </dependency>
 
