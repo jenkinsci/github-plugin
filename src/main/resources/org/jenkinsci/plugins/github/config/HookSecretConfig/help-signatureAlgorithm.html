@@ -1,0 +1,13 @@
+<div>
+    <p>Choose the signature algorithm for webhook validation:</p>
+    <ul>
+        <li><strong>SHA-256 (Recommended):</strong> Modern, secure HMAC signature validation using the 
+            <code>X-Hub-Signature-256</code> header. This is GitHub's recommended approach for enhanced security.</li>
+        <li><strong>SHA-1 (Legacy):</strong> Legacy HMAC signature validation using the 
+            <code>X-Hub-Signature</code> header. Only use this for existing webhooks during migration period.</li>
+    </ul>
+    <p><strong>Note:</strong> When changing algorithms, ensure your GitHub webhook configuration uses the corresponding 
+    signature header (<code>X-Hub-Signature-256</code> for SHA-256 or <code>X-Hub-Signature</code> for SHA-1).</p>
+    <p><strong>System Property Override:</strong> The default algorithm can be overridden using the system property 
+    <code>-Djenkins.github.webhook.signature.default=SHA1</code> for backwards compatibility with legacy CI environments.</p>
+</div>

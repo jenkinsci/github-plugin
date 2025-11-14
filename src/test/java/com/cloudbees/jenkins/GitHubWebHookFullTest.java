@@ -31,7 +31,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.jenkinsci.plugins.github.test.HookSecretHelper.removeSecretIn;
 import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecretIn;
-import static org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER;
+import static org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload.Processor.*;
 
 /**
  * @author lanwen (Merkushev Kirill)
@@ -83,6 +83,7 @@ public class GitHubWebHookFullTest {
     @Test
     void shouldParseJsonWebHookFromGHWithSignHeader() throws Exception {
         String hash = "355e155fc3d10c4e5f2c6086a01281d2e947d932";
+        String hash256 = "85e61999573c7023720a12375e1e55d18a0870e1ef880736f6ffc9273d0519e3";
         String secret = "123";
 
         storeSecretIn(config, secret);
@@ -90,6 +91,7 @@ public class GitHubWebHookFullTest {
                 .header(eventHeader(GHEvent.PUSH))
                 .header(JSON_CONTENT_TYPE)
                 .header(SIGNATURE_HEADER, format("sha1=%s", hash))
+                .header(SIGNATURE_HEADER_SHA256, format("%s%s", SHA256_PREFIX, hash256))
                 .body(classpath(String.format("payloads/ping_hash_%s_secret_%s.json", hash, secret)))
                 .log().all()
                 .expect().log().all().statusCode(SC_OK).request().post(getPath());

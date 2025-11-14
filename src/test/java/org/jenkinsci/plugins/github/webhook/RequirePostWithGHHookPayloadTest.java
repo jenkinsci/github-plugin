@@ -138,8 +138,10 @@ class RequirePostWithGHHookPayloadTest {
     @Test
     void shouldPassWithValidSignature() throws Exception {
         final String signature = "sha1=49d5f5cf800a81f257324912969a2d325d13d3fc";
+        final String signature256 = "sha256=569beaec8ea1c9deccec283d0bb96aeec0a77310c70875343737ae72cffa7044";
 
         when(req.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER)).thenReturn(signature);
+        when(req.getHeader(RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER_SHA256)).thenReturn(signature256);
         doReturn(PAYLOAD).when(processor).payloadFrom(req, null);
 
         processor.shouldProvideValidSignature(req, null);

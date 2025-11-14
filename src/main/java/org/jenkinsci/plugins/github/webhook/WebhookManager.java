@@ -6,7 +6,7 @@ import com.google.common.base.Predicate;
 import hudson.model.Item;
 import hudson.model.Job;
 import hudson.util.Secret;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.config.HookSecretConfig;
@@ -174,7 +174,7 @@ public class WebhookManager {
         com.google.common.base.Optional<GHRepository> repoWithAdminAccess = reposAllowedtoManageWebhooks
                 .firstMatch(withAdminAccess());
         if (!repoWithAdminAccess.isPresent()) {
-            LOGGER.debug("None of the github repos configured have admin access for: {}", name);
+            LOGGER.info("None of the github repos configured have admin access for: {}", name);
             return null;
         }
         GHRepository repo = repoWithAdminAccess.get();
