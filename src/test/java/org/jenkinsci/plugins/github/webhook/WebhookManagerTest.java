@@ -11,12 +11,13 @@ import hudson.model.Item;
 import hudson.plugins.git.GitSCM;
 import org.jenkinsci.plugins.github.GitHubPlugin;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.WithoutJenkins;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.kohsuke.github.GHEvent;
 import org.kohsuke.github.GHHook;
 import org.kohsuke.github.GHRepository;
@@ -24,7 +25,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -36,12 +37,12 @@ import java.util.Map;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Lists.asList;
 import static com.google.common.collect.Lists.newArrayList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecretIn;
 import static org.jenkinsci.plugins.github.webhook.WebhookManager.forHookUrl;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.kohsuke.github.GHEvent.CREATE;
 import static org.kohsuke.github.GHEvent.PULL_REQUEST;
 import static org.kohsuke.github.GHEvent.PUSH;
@@ -51,8 +52,8 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -62,15 +63,15 @@ import static org.mockito.Mockito.when;
 /**
  * @author lanwen (Merkushev Kirill)
  */
-@RunWith(MockitoJUnitRunner.class)
+@WithJenkins
+@ExtendWith(MockitoExtension.class)
 public class WebhookManagerTest {
 
     public static final GitSCM GIT_SCM = new GitSCM("ssh://git@github.com/dummy/dummy.git");
     public static final URL HOOK_ENDPOINT = endpoint("http://hook.endpoint/");
     public static final URL ANOTHER_HOOK_ENDPOINT = endpoint("http://another.url/");
 
-    @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    private JenkinsRule jenkins;
 
     @Spy
     private WebhookManager manager = forHookUrl(HOOK_ENDPOINT);
@@ -87,15 +88,20 @@ public class WebhookManagerTest {
     @Captor
     ArgumentCaptor<Map<String, String>> captor;
 
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        jenkins = rule;
+    }
+
     @Test
-    public void shouldDoNothingOnNoAdminRights() throws Exception {
+    void shouldDoNothingOnNoAdminRights() throws Exception {
         manager.unregisterFor(nonactive, newArrayList(active));
         verify(manager, never()).withAdminAccess();
         verify(manager, never()).fetchHooks();
     }
 
     @Test
-    public void shouldSearchBothWebAndServiceHookOnNonActiveName() throws Exception {
+    void shouldSearchBothWebAndServiceHookOnNonActiveName() throws Exception {
         doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
 
@@ -107,7 +113,7 @@ public class WebhookManagerTest {
     }
 
     @Test
-    public void shouldSearchOnlyServiceHookOnActiveName() throws Exception {
+    void shouldSearchOnlyServiceHookOnActiveName() throws Exception {
         doReturn(newArrayList(repo)).when(active).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
 
@@ -120,7 +126,7 @@ public class WebhookManagerTest {
 
     @Test
     @WithoutJenkins
-    public void shouldMatchAdminAccessWhenTrue() throws Exception {
+    void shouldMatchAdminAccessWhenTrue() throws Exception {
         when(repo.hasAdminAccess()).thenReturn(true);
 
         assertThat("has admin access", manager.withAdminAccess().apply(repo), is(true));
@@ -128,7 +134,7 @@ public class WebhookManagerTest {
 
     @Test
     @WithoutJenkins
-    public void shouldMatchAdminAccessWhenFalse() throws Exception {
+    void shouldMatchAdminAccessWhenFalse() throws Exception {
         when(repo.hasAdminAccess()).thenReturn(false);
 
         assertThat("has no admin access", manager.withAdminAccess().apply(repo), is(false));
@@ -136,7 +142,7 @@ public class WebhookManagerTest {
 
     @Test
     @WithoutJenkins
-    public void shouldMatchWebHook() {
+    void shouldMatchWebHook() {
         lenient().when(repo.hasAdminAccess()).thenReturn(false);
 
         GHHook hook = hook(HOOK_ENDPOINT, PUSH);
@@ -146,7 +152,7 @@ public class WebhookManagerTest {
 
     @Test
     @WithoutJenkins
-    public void shouldNotMatchOtherUrlWebHook() {
+    void shouldNotMatchOtherUrlWebHook() {
         lenient().when(repo.hasAdminAccess()).thenReturn(false);
 
         GHHook hook = hook(ANOTHER_HOOK_ENDPOINT, PUSH);
@@ -156,7 +162,7 @@ public class WebhookManagerTest {
     }
 
     @Test
-    public void shouldMergeEventsOnRegisterNewAndDeleteOldOnes() throws IOException {
+    void shouldMergeEventsOnRegisterNewAndDeleteOldOnes() throws IOException {
         doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
         Predicate<GHHook> del = spy(Predicate.class);
@@ -172,7 +178,7 @@ public class WebhookManagerTest {
     }
 
     @Test
-    public void shouldNotReplaceAlreadyRegisteredHook() throws IOException {
+    void shouldNotReplaceAlreadyRegisteredHook() throws IOException {
         doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
 
@@ -185,8 +191,8 @@ public class WebhookManagerTest {
     }
 
     @Test
-    @Issue( "JENKINS-62116" )
-    public void shouldNotReplaceAlreadyRegisteredHookWithMoreEvents() throws IOException {
+    @Issue("JENKINS-62116")
+    void shouldNotReplaceAlreadyRegisteredHookWithMoreEvents() throws IOException {
         doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
 
@@ -200,7 +206,7 @@ public class WebhookManagerTest {
 
 
     @Test
-    public void shouldNotAddPushEventByDefaultForProjectWithoutTrigger() throws IOException {
+    void shouldNotAddPushEventByDefaultForProjectWithoutTrigger() throws IOException {
         FreeStyleProject project = jenkins.createFreeStyleProject();
         project.setScm(GIT_SCM);
 
@@ -209,7 +215,7 @@ public class WebhookManagerTest {
     }
 
     @Test
-    public void shouldAddPushEventByDefault() throws IOException {
+    void shouldAddPushEventByDefault() throws IOException {
         FreeStyleProject project = jenkins.createFreeStyleProject();
         project.addTrigger(new GitHubPushTrigger());
         project.setScm(GIT_SCM);
@@ -219,7 +225,7 @@ public class WebhookManagerTest {
     }
 
     @Test
-    public void shouldReturnNullOnGettingEmptyEventsListToSubscribe() throws IOException {
+    void shouldReturnNullOnGettingEmptyEventsListToSubscribe() throws IOException {
         doReturn(newArrayList(repo)).when(active).resolve(any(Predicate.class));
         when(repo.hasAdminAccess()).thenReturn(true);
 
@@ -229,7 +235,7 @@ public class WebhookManagerTest {
     }
 
     @Test
-    public void shouldSelectOnlyHookManagedCreds() {
+    void shouldSelectOnlyHookManagedCreds() {
         GitHubServerConfig conf = new GitHubServerConfig("");
         conf.setManageHooks(false);
         GitHubPlugin.configuration().getConfigs().add(conf);
@@ -239,7 +245,7 @@ public class WebhookManagerTest {
     }
 
     @Test
-    public void shouldNotSelectCredsWithCustomHost() {
+    void shouldNotSelectCredsWithCustomHost() {
         GitHubServerConfig conf = new GitHubServerConfig("");
         conf.setApiUrl(ANOTHER_HOOK_ENDPOINT.toString());
         conf.setManageHooks(false);
@@ -250,7 +256,7 @@ public class WebhookManagerTest {
     }
 
     @Test
-    public void shouldSendSecretIfDefined() throws Exception {
+    void shouldSendSecretIfDefined() throws Exception {
         String secretText = "secret_text";
 
         storeSecretIn(GitHubPlugin.configuration(), secretText);

@@ -2,22 +2,29 @@ package com.coravy.hudson.plugins.github;
 
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.structs.DescribableHelper;
-import org.junit.Ignore;
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-@Ignore("It failed to instantiate class org.jenkinsci.plugins.workflow.flow.FlowDefinition - dunno how to fix it")
-public class GithubProjectPropertyTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+@WithJenkins
+@Disabled("It failed to instantiate class org.jenkinsci.plugins.workflow.flow.FlowDefinition - dunno how to fix it")
+class GithubProjectPropertyTest {
+
+    private JenkinsRule j;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        j = rule;
+    }
 
     @Test
-    public void configRoundTrip() throws Exception {
+    void configRoundTrip() throws Exception {
         WorkflowJob p = j.jenkins.createProject(WorkflowJob.class, "p");
         j.configRoundtrip(p);
         assertNull(p.getProperty(GithubProjectProperty.class));

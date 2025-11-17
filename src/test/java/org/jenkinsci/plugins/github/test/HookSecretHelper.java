@@ -27,7 +27,7 @@ public class HookSecretHelper {
 
     /**
      * Stores the secret and sets it as the current hook secret.
-     * 
+     *
      * @param config where to save
      * @param secretText The secret/key.
      */
@@ -56,13 +56,13 @@ public class HookSecretHelper {
 
         config.setHookSecretConfigs(Collections.singletonList(new HookSecretConfig(credentials.getId())));
     }
-    
+
     /**
      * Stores the secret and sets it as the current hook secret.
      * @param secretText The secret/key.
      */
     public static void storeSecret(final String secretText) {
-        storeSecretIn(Jenkins.getInstance().getDescriptorByType(GitHubPluginConfig.class), secretText);
+        storeSecretIn(Jenkins.get().getDescriptorByType(GitHubPluginConfig.class), secretText);
     }
 
     /**
@@ -78,6 +78,6 @@ public class HookSecretHelper {
      * Unsets the current hook secret.
      */
     public static void removeSecret() {
-        removeSecretIn(Jenkins.getInstance().getDescriptorByType(GitHubPluginConfig.class));
+        removeSecretIn(Jenkins.get().getDescriptorByType(GitHubPluginConfig.class));
     }
 }

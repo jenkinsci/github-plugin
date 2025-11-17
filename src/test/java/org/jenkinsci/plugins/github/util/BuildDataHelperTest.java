@@ -1,10 +1,8 @@
 package org.jenkinsci.plugins.github.util;
 
 import hudson.plugins.git.util.BuildData;
-
-import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
 
 import java.util.ArrayList;
@@ -20,16 +18,16 @@ import static org.hamcrest.Matchers.nullValue;
 /**
  * @author Manuel de la Peña
  */
-@RunWith(Enclosed.class)
-public class BuildDataHelperTest {
+class BuildDataHelperTest {
 
-	public static class WhenBuildingRegularJobs {
+	@Nested
+	class WhenBuildingRegularJobs {
 
 		private static final String GITHUB_USERNAME = "user1";
 
 		@Test
 		@Issue("JENKINS-53149")
-		public void shouldCalculateDataBuildFromProject() throws Exception {
+		void shouldCalculateDataBuildFromProject() throws Exception {
 			BuildData projectBuildData = new BuildData();
 			projectBuildData.remoteUrls = new HashSet<>();
 
@@ -48,7 +46,7 @@ public class BuildDataHelperTest {
 
 		@Test
 		@Issue("JENKINS-53149")
-		public void shouldCalculateDataBuildFromProjectWithTwoBuildDatas() throws Exception {
+		void shouldCalculateDataBuildFromProjectWithTwoBuildDatas() throws Exception {
 			BuildData sharedLibBuildData = new BuildData();
 			sharedLibBuildData.remoteUrls = new HashSet<>();
 
@@ -74,7 +72,7 @@ public class BuildDataHelperTest {
 
 		@Test
 		@Issue("JENKINS-53149")
-		public void shouldCalculateDataBuildFromProjectWithEmptyBuildDatas() throws Exception {
+		void shouldCalculateDataBuildFromProjectWithEmptyBuildDatas() throws Exception {
 			BuildData buildData = BuildDataHelper.calculateBuildData(
 				"master", "project/master", Collections.EMPTY_LIST);
 
@@ -83,7 +81,7 @@ public class BuildDataHelperTest {
 
 		@Test
 		@Issue("JENKINS-53149")
-		public void shouldCalculateDataBuildFromProjectWithNullBuildDatas() throws Exception {
+		void shouldCalculateDataBuildFromProjectWithNullBuildDatas() throws Exception {
 			BuildData buildData = BuildDataHelper.calculateBuildData(
 				"master", "project/master", null);
 
@@ -92,13 +90,14 @@ public class BuildDataHelperTest {
 
 	}
 
-	public static class WhenBuildingOrganizationJobs {
+	@Nested
+	class WhenBuildingOrganizationJobs {
 
 		private static final String ORGANIZATION_NAME = "Organization";
 
 		@Test
 		@Issue("JENKINS-53149")
-		public void shouldCalculateDataBuildFromProject() throws Exception {
+		void shouldCalculateDataBuildFromProject() throws Exception {
 			BuildData projectBuildData = new BuildData();
 			projectBuildData.remoteUrls = new HashSet<>();
 
@@ -117,7 +116,7 @@ public class BuildDataHelperTest {
 
 		@Test
 		@Issue("JENKINS-53149")
-		public void shouldCalculateDataBuildFromProjectWithTwoBuildDatas() throws Exception {
+		void shouldCalculateDataBuildFromProjectWithTwoBuildDatas() throws Exception {
 			BuildData sharedLibBuildData = new BuildData();
 			sharedLibBuildData.remoteUrls = new HashSet<>();
 
@@ -143,7 +142,7 @@ public class BuildDataHelperTest {
 
 		@Test
 		@Issue("JENKINS-53149")
-		public void shouldCalculateDataBuildFromProjectWithEmptyBuildDatas() throws Exception {
+		void shouldCalculateDataBuildFromProjectWithEmptyBuildDatas() throws Exception {
 			BuildData buildData = BuildDataHelper.calculateBuildData(
 				"master", ORGANIZATION_NAME + "/project/master", Collections.EMPTY_LIST);
 
@@ -152,7 +151,7 @@ public class BuildDataHelperTest {
 
 		@Test
 		@Issue("JENKINS-53149")
-		public void shouldCalculateDataBuildFromProjectWithNullBuildDatas() throws Exception {
+		void shouldCalculateDataBuildFromProjectWithNullBuildDatas() throws Exception {
 			BuildData buildData = BuildDataHelper.calculateBuildData(
 				"master", ORGANIZATION_NAME + "/project/master", null);
 

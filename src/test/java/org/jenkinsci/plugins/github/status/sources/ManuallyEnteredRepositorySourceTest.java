@@ -2,12 +2,12 @@ package org.jenkinsci.plugins.github.status.sources;
 
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.kohsuke.github.GHRepository;
 import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.PrintStream;
 import java.util.List;
@@ -19,8 +19,8 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
-public class ManuallyEnteredRepositorySourceTest {
+@ExtendWith(MockitoExtension.class)
+class ManuallyEnteredRepositorySourceTest {
     @Mock(answer = Answers.RETURNS_MOCKS)
     private Run run;
 
@@ -31,7 +31,7 @@ public class ManuallyEnteredRepositorySourceTest {
     private PrintStream logger;
 
     @Test
-    public void nullName() {
+    void nullName() {
         ManuallyEnteredRepositorySource instance = spy(new ManuallyEnteredRepositorySource("a"));
         doReturn(logger).when(listener).getLogger();
         List<GHRepository> repos = instance.repos(run, listener);

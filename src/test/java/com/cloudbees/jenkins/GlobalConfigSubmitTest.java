@@ -3,9 +3,10 @@ package com.cloudbees.jenkins;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlPage;
 import org.jenkinsci.plugins.github.GitHubPlugin;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -20,18 +21,23 @@ import static org.hamcrest.Matchers.startsWith;
  *
  * @author Seiji Sogabe
  */
-public class GlobalConfigSubmitTest {
+@WithJenkins
+class GlobalConfigSubmitTest {
 
-    public static final String OVERRIDE_HOOK_URL_CHECKBOX = "isOverrideHookUrl";
-    public static final String HOOK_URL_INPUT = "hookUrl";
+    private static final String OVERRIDE_HOOK_URL_CHECKBOX = "isOverrideHookUrl";
+  private static final String HOOK_URL_INPUT = "hookUrl";
 
     private static final String WEBHOOK_URL = "http://jenkinsci.example.com/jenkins/github-webhook/";
 
-    @Rule
-    public JenkinsRule jenkins = new JenkinsRule();
+    private JenkinsRule jenkins;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        jenkins = rule;
+    }
 
     @Test
-    public void shouldSetHookUrl() throws Exception {
+    void shouldSetHookUrl() throws Exception {
         HtmlForm form = globalConfig();
 
         form.getInputByName(OVERRIDE_HOOK_URL_CHECKBOX).setChecked(true);
@@ -42,7 +48,7 @@ public class GlobalConfigSubmitTest {
     }
 
     @Test
-    public void shouldResetHookUrlIfNotChecked() throws Exception {
+    void shouldResetHookUrlIfNotChecked() throws Exception {
         GitHubPlugin.configuration().setHookUrl(WEBHOOK_URL);
 
         HtmlForm form = globalConfig();
@@ -54,7 +60,7 @@ public class GlobalConfigSubmitTest {
         assertThat(GitHubPlugin.configuration().getHookUrl().toString(), startsWith(jenkins.jenkins.getRootUrl()));
     }
 
-    public HtmlForm globalConfig() throws IOException, SAXException {
+    private HtmlForm globalConfig() throws IOException, SAXException {
         JenkinsRule.WebClient client = configureWebClient();
         HtmlPage p = client.goTo("configure");
         return p.getFormByName("config");

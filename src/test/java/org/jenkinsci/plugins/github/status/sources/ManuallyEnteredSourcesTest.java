@@ -3,21 +3,21 @@ package org.jenkinsci.plugins.github.status.sources;
 import hudson.EnvVars;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.when;
 
 /**
  * @author lanwen (Merkushev Kirill)
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ManuallyEnteredSourcesTest {
 
     public static final String EXPANDED = "expanded";
@@ -32,7 +32,7 @@ public class ManuallyEnteredSourcesTest {
 
 
     @Test
-    public void shouldExpandContext() throws Exception {
+    void shouldExpandContext() throws Exception {
         when(run.getEnvironment(listener)).thenReturn(env);
         when(env.expand(ArgumentMatchers.anyString())).thenReturn(EXPANDED);
 
@@ -41,7 +41,7 @@ public class ManuallyEnteredSourcesTest {
     }
 
     @Test
-    public void shouldExpandSha() throws Exception {
+    void shouldExpandSha() throws Exception {
         when(run.getEnvironment(listener)).thenReturn(env);
         when(env.expand(ArgumentMatchers.anyString())).thenReturn(EXPANDED);
 
@@ -50,7 +50,7 @@ public class ManuallyEnteredSourcesTest {
     }
 
     @Test
-    public void shouldExpandBackref() throws Exception {
+    void shouldExpandBackref() throws Exception {
         when(run.getEnvironment(listener)).thenReturn(env);
         when(env.expand(ArgumentMatchers.anyString())).thenReturn(EXPANDED);
 

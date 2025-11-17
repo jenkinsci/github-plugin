@@ -5,19 +5,19 @@ import hudson.plugins.git.GitSCM;
 import hudson.plugins.git.util.Build;
 import hudson.plugins.git.util.BuildData;
 import hudson.util.FormValidation;
+import jakarta.inject.Inject;
 import org.eclipse.jgit.lib.ObjectId;
 import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor;
 import org.jenkinsci.plugins.github.webhook.subscriber.DefaultPushGHEventListenerTest;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
-import jakarta.inject.Inject;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +30,8 @@ import static org.jenkinsci.plugins.github.webhook.subscriber.DefaultPushGHEvent
 /**
  * @author lanwen (Merkushev Kirill)
  */
-public class GitHubPushTriggerTest {
+@WithJenkins
+class GitHubPushTriggerTest {
     private static final GitHubRepositoryName REPO = new GitHubRepositoryName("host", "user", "repo");
     private static final GitSCM REPO_GIT_SCM = new GitSCM("git://host/user/repo.git");
 
@@ -40,11 +41,11 @@ public class GitHubPushTriggerTest {
     @Inject
     private GitHubPushTrigger.DescriptorImpl descriptor;
 
-    @Rule
-    public JenkinsRule jRule = new JenkinsRule();
+    private JenkinsRule jRule;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        jRule = rule;
         jRule.getInstance().getInjector().injectMembers(this);
     }
 
@@ -53,7 +54,7 @@ public class GitHubPushTriggerTest {
      */
     @Test
     @Issue("JENKINS-27136")
-    public void shouldStartWorkflowByTrigger() throws Exception {
+    void shouldStartWorkflowByTrigger() throws Exception {
         WorkflowJob job = jRule.getInstance().createProject(WorkflowJob.class, "test-workflow-job");
         GitHubPushTrigger trigger = new GitHubPushTrigger();
         trigger.start(job, false);
@@ -79,7 +80,7 @@ public class GitHubPushTriggerTest {
 
     @Test
     @Issue("JENKINS-24690")
-    public void shouldReturnWaringOnHookProblem() throws Exception {
+    void shouldReturnWaringOnHookProblem() throws Exception {
         monitor.registerProblem(REPO, new IOException());
         FreeStyleProject job = jRule.createFreeStyleProject();
         job.setScm(REPO_GIT_SCM);
@@ -89,7 +90,7 @@ public class GitHubPushTriggerTest {
     }
 
     @Test
-    public void shouldReturnOkOnNoAnyProblem() throws Exception {
+    void shouldReturnOkOnNoAnyProblem() throws Exception {
         FreeStyleProject job = jRule.createFreeStyleProject();
         job.setScm(REPO_GIT_SCM);
 

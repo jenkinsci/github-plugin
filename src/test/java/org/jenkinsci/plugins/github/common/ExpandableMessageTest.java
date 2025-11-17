@@ -9,10 +9,11 @@ import hudson.model.ParametersAction;
 import hudson.model.ParametersDefinitionProperty;
 import hudson.model.StringParameterDefinition;
 import hudson.model.StringParameterValue;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestBuilder;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +25,8 @@ import static org.hamcrest.Matchers.startsWith;
 /**
  * @author lanwen (Merkushev Kirill)
  */
-public class ExpandableMessageTest {
+@WithJenkins
+class ExpandableMessageTest {
 
     public static final String ENV_VAR_JOB_NAME = "JOB_NAME";
     public static final String CUSTOM_BUILD_PARAM = "FOO";
@@ -32,11 +34,15 @@ public class ExpandableMessageTest {
     public static final String MSG_FORMAT = "%s - %s - %s";
     public static final String DEFAULT_TOKEN_TEMPLATE = "${ENV, var=\"%s\"}";
 
-    @Rule
-    public JenkinsRule jRule = new JenkinsRule();
+    private JenkinsRule jRule;
+
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        jRule = rule;
+    }
 
     @Test
-    public void shouldExpandEnvAndBuildVars() throws Exception {
+    void shouldExpandEnvAndBuildVars() throws Exception {
         MessageExpander expander = new MessageExpander(new ExpandableMessage(
                 format(MSG_FORMAT,
                         asVar(ENV_VAR_JOB_NAME),

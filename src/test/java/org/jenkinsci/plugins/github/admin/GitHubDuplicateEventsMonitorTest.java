@@ -4,7 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.net.URL;
@@ -16,26 +16,27 @@ import org.htmlunit.html.HtmlElementUtil;
 import org.htmlunit.html.HtmlPage;
 import org.jenkinsci.plugins.github.Messages;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.mockito.Mockito;
 import org.xml.sax.SAXException;
 
 import hudson.ExtensionList;
 
-public class GitHubDuplicateEventsMonitorTest {
+@WithJenkins
+class GitHubDuplicateEventsMonitorTest {
 
-    @Rule
-    public JenkinsRule j = new JenkinsRule();
+    private JenkinsRule j;
 
     private GitHubDuplicateEventsMonitor monitor;
     private WebClient wc;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        j = rule;
         monitor = ExtensionList.lookupSingleton(GitHubDuplicateEventsMonitor.class);
         j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
         wc = j.createWebClient();
@@ -43,7 +44,7 @@ public class GitHubDuplicateEventsMonitorTest {
     }
 
     @Test
-    public void testAdminMonitorDisplaysForDuplicateEvents() throws Exception {
+    void testAdminMonitorDisplaysForDuplicateEvents() throws Exception {
         try (var mockSubscriber = Mockito.mockStatic(GHEventsSubscriber.class)) {
             var subscribers = j.jenkins.getExtensionList(GHEventsSubscriber.class);
             /* Other type of subscribers are removed to avoid them invoking event processing. At this
