@@ -35,6 +35,7 @@ import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.Stapler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,8 +68,54 @@ import static org.jenkinsci.plugins.github.util.JobInfoHelpers.asParameterizedJo
  */
 public class GitHubPushTrigger extends Trigger<Job<?, ?>> implements GitHubTrigger {
 
+    private String ignoredUsers;
+
     @DataBoundConstructor
     public GitHubPushTrigger() {
+    }
+
+    /**
+     * Gets the newline-separated list of usernames to ignore.
+     *
+     * @return the ignored users list, or null if not configured
+     * @since FIXME
+     */
+    public String getIgnoredUsers() {
+        return ignoredUsers;
+    }
+
+    /**
+     * Sets the newline-separated list of usernames whose push events should be ignored.
+     * The list will be trimmed of leading/trailing whitespace.
+     *
+     * @param ignoredUsers the newline-separated list of usernames to ignore
+     * @since FIXME
+     */
+    @DataBoundSetter
+    public void setIgnoredUsers(String ignoredUsers) {
+        this.ignoredUsers = Util.fixEmptyAndTrim(ignoredUsers);
+    }
+
+    /**
+     * Checks if the given username should be ignored.
+     * Username comparison is case-insensitive.
+     *
+     * @param username the username to check
+     * @return true if the user should be ignored, false otherwise
+     * @since FIXME
+     */
+    public boolean isUserIgnored(String username) {
+        if (isEmpty(ignoredUsers) || isEmpty(username)) {
+            return false;
+        }
+        String[] ignoredUserArray = ignoredUsers.split("[\\r\\n]+");
+        for (String ignoredUser : ignoredUserArray) {
+            String trimmedUser = ignoredUser.trim();
+            if (!trimmedUser.isEmpty() && trimmedUser.equalsIgnoreCase(username)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

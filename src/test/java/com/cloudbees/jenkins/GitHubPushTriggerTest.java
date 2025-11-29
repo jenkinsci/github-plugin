@@ -26,6 +26,8 @@ import static com.cloudbees.jenkins.GitHubWebHookFullTest.classpath;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.jenkinsci.plugins.github.webhook.subscriber.DefaultPushGHEventListenerTest.TRIGGERED_BY_USER_FROM_RESOURCE;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author lanwen (Merkushev Kirill)
@@ -96,5 +98,40 @@ class GitHubPushTriggerTest {
 
         FormValidation validation = descriptor.doCheckHookRegistered(job);
         assertThat("all ok", validation.kind, is(FormValidation.Kind.OK));
+    }
+
+    @Test
+    public void shouldIgnoreSingleUser() {
+        GitHubPushTrigger trigger = new GitHubPushTrigger();
+        trigger.setIgnoredUsers("ignored-user");
+
+        assertTrue("user should be ignored", trigger.isUserIgnored("ignored-user"));
+        assertTrue("user should be ignored", trigger.isUserIgnored("IGNORED-user"));
+        assertFalse("user should not be ignored", trigger.isUserIgnored("another-user"));
+        assertFalse("user should not be ignored", trigger.isUserIgnored(""));
+        assertFalse("user should not be ignored", trigger.isUserIgnored(null));
+    }
+
+    @Test
+    public void shouldIgnoreMultipleUsers() {
+        GitHubPushTrigger trigger = new GitHubPushTrigger();
+        trigger.setIgnoredUsers(" user1 \nUsEr2\nuser3");
+
+        assertTrue("user should be ignored", trigger.isUserIgnored("user1"));
+        assertTrue("user should be ignored", trigger.isUserIgnored("user2"));
+        assertTrue("user should be ignored", trigger.isUserIgnored("USER3"));
+        assertFalse("user should not be ignored", trigger.isUserIgnored("user4"));
+        assertFalse("user should not be ignored", trigger.isUserIgnored(""));
+        assertFalse("user should not be ignored", trigger.isUserIgnored(null));
+    }
+
+    @Test
+    public void shouldHandleEmptyIgnoredUsers() {
+        GitHubPushTrigger trigger = new GitHubPushTrigger();
+        trigger.setIgnoredUsers("");
+
+        assertFalse("user should not be ignored", trigger.isUserIgnored("user4"));
+        assertFalse("user should not be ignored", trigger.isUserIgnored(""));
+        assertFalse("user should not be ignored", trigger.isUserIgnored(null));
     }
 }
