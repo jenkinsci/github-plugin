@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>5.28</version>
+        <version>5.2102.v5f5fe09fccf1</version>
         <relativePath />
     </parent>
 
@@ -52,7 +52,7 @@
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
         <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
         <jenkins.baseline>2.504</jenkins.baseline>
-        <jenkins.version>${jenkins.baseline}.1</jenkins.version>
+        <jenkins.version>${jenkins.baseline}.3</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
         <tagNameFormat>v@{project.version}</tagNameFormat>
@@ -186,7 +186,7 @@
         <dependency>
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>
-            <version>3.12.1</version>
+            <version>3.13.2</version>
             <scope>test</scope>
         </dependency>
 
@@ -204,7 +204,7 @@
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
                 <artifactId>bom-${jenkins.baseline}.x</artifactId>
-                <version>4710.v016f0a_07e34d</version>
+                <version>5804.v80587a_38d937</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
