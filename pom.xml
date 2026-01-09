@@ -52,7 +52,7 @@
         <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
         <!-- https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
         <jenkins.baseline>2.504</jenkins.baseline>
-        <jenkins.version>${jenkins.baseline}.1</jenkins.version>
+        <jenkins.version>${jenkins.baseline}.3</jenkins.version>
         <release.skipTests>false</release.skipTests>
         <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
         <tagNameFormat>v@{project.version}</tagNameFormat>
@@ -204,9 +204,16 @@
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
                 <artifactId>bom-${jenkins.baseline}.x</artifactId>
-                <version>4710.v016f0a_07e34d</version>
+                <version>5804.v80587a_38d937</version>
                 <scope>import</scope>
                 <type>pom</type>
+            </dependency>
+            <!-- TODO until in BOM -->
+            <dependency>
+                <groupId>org.jenkins-ci.plugins</groupId>
+                <artifactId>credentials</artifactId>
+                <!-- TODO https://github.com/jenkinsci/credentials-plugin/pull/1003 -->
+                <version>1469.vb_13b_4cfb_391d</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
