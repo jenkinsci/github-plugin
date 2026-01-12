@@ -2,7 +2,6 @@ package org.jenkinsci.plugins.github.config;
 
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
-import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -21,13 +20,10 @@ import hudson.util.Secret;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collections;
-import java.util.List;
 import jenkins.model.Jenkins;
 import jenkins.scm.api.SCMName;
 import org.apache.commons.lang3.StringUtils;
 import org.jenkinsci.plugins.github.internal.GitHubLoginFunction;
-import org.jenkinsci.plugins.github.util.FluentIterableWrapper;
 import org.jenkinsci.plugins.github.util.misc.NullSafeFunction;
 import org.jenkinsci.plugins.github.util.misc.NullSafePredicate;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
@@ -41,14 +37,11 @@ import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.cloudbees.plugins.credentials.CredentialsMatchers.filter;
-import static com.cloudbees.plugins.credentials.CredentialsMatchers.withId;
-import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials;
+import static com.cloudbees.plugins.credentials.CredentialsProvider.findCredentialByIdInItemGroup;
 import static com.cloudbees.plugins.credentials.domains.URIRequirementBuilder.fromUri;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 /**
  * This object represents configuration of each credentials-github pair.
@@ -287,20 +280,14 @@ public class GitHubServerConfig extends AbstractDescribableImpl<GitHubServerConf
      */
     @NonNull
     public static Optional<Secret> secretFor(String credentialsId) {
-        List<StringCredentials> creds = filter(
-                lookupCredentials(StringCredentials.class,
-                        Jenkins.getInstance(), ACL.SYSTEM,
-                        Collections.<DomainRequirement>emptyList()),
-                withId(trimToEmpty(credentialsId))
-        );
-
-        return FluentIterableWrapper.from(creds)
-                .transform(new NullSafeFunction<StringCredentials, Secret>() {
-                    @Override
-                    protected Secret applyNullSafe(@NonNull StringCredentials input) {
-                        return input.getSecret();
-                    }
-                }).first();
+        if (credentialsId == null) {
+            return Optional.absent();
+        }
+        var creds = findCredentialByIdInItemGroup(credentialsId, StringCredentials.class, null, null, null);
+        if (creds == null) {
+            return Optional.absent();
+        }
+        return Optional.of(creds.getSecret());
     }
 
     /**
