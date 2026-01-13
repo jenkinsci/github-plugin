@@ -2,6 +2,14 @@ package com.cloudbees.jenkins.GitHubPushTrigger
 
 import com.cloudbees.jenkins.GitHubPushTrigger
 
+def f = namespace(lib.FormTagLib)
+
+f.advanced() {
+    f.entry(title: _('Ignored Users'), field: 'ignoredUsers') {
+        f.textarea()
+    }
+}
+
 tr {
     td(colspan: 4) {
         def url = descriptor.getCheckMethod('hookRegistered').toCheckUrl()
