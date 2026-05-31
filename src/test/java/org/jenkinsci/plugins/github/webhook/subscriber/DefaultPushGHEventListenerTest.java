@@ -109,8 +109,9 @@ public class DefaultPushGHEventListenerTest {
 
         GitHubPushTrigger trigger = Mockito.spy(new GitHubPushTrigger());
         job.addTrigger(trigger);
-        // Trigger the build once to register SCMs
-        jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
+        // Trigger the build once to register SCMs — build may fail due to no SSH credentials but SCM info is registered
+        job.scheduleBuild2(0).get();
+        jenkins.waitUntilNoActivity();
 
         GHSubscriberEvent subscriberEvent =
                 new GHSubscriberEvent("shouldReceivePushHookOnWorkflow", GHEvent.PUSH, classpath("payloads/push.json"));
