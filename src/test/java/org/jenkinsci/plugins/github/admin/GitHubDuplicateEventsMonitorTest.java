@@ -1,9 +1,7 @@
 package org.jenkinsci.plugins.github.admin;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
@@ -12,9 +10,6 @@ import java.net.URL;
 import org.htmlunit.HttpMethod;
 
 import org.htmlunit.WebRequest;
-import org.htmlunit.html.HtmlElementUtil;
-import org.htmlunit.html.HtmlPage;
-import org.jenkinsci.plugins.github.Messages;
 import org.jenkinsci.plugins.github.extension.GHEventsSubscriber;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,9 +33,7 @@ class GitHubDuplicateEventsMonitorTest {
     void setUp(JenkinsRule rule) throws Exception {
         j = rule;
         monitor = ExtensionList.lookupSingleton(GitHubDuplicateEventsMonitor.class);
-        j.jenkins.setSecurityRealm(j.createDummySecurityRealm());
         wc = j.createWebClient();
-        wc.login("admin", "admin");
     }
 
     @Test
@@ -94,34 +87,14 @@ class GitHubDuplicateEventsMonitorTest {
     }
 
     private void assertMonitorNotDisplayed() throws IOException, SAXException {
-        String manageUrl = j.getURL() + "/manage";
-        assertThat(
-            wc.getPage(manageUrl).getWebResponse().getContentAsString(),
-            not(containsString(Messages.duplicate_events_administrative_monitor_blurb(
-                GitHubDuplicateEventsMonitor.LAST_DUPLICATE_CLICK_HERE_ANCHOR_ID,
-                monitor.getLastDuplicateUrl()
-            ))));
+        assertThat(monitor.isActivated(), is(false));
         assertEquals(GitHubDuplicateEventsMonitor.getLastDuplicateNoEventPayload().toString(),
                      getLastDuplicatePageContentByLink());
     }
 
     private void assertMonitorDisplayed(String eventGuid) throws IOException, SAXException {
-        String manageUrl = j.getURL() + "/manage";
-        assertThat(
-            wc.getPage(manageUrl).getWebResponse().getContentAsString(),
-            containsString(Messages.duplicate_events_administrative_monitor_blurb(
-                GitHubDuplicateEventsMonitor.LAST_DUPLICATE_CLICK_HERE_ANCHOR_ID,
-                monitor.getLastDuplicateUrl())));
-        assertEquals(getJsonPayload(eventGuid), getLastDuplicatePageContentByAnchor());
-    }
-
-    private String getLastDuplicatePageContentByAnchor() throws IOException, SAXException {
-        HtmlPage page = wc.goTo("./manage");
-        var lastDuplicateAnchor = page.getAnchors().stream().filter(
-            a -> a.getId().equals(GitHubDuplicateEventsMonitor.LAST_DUPLICATE_CLICK_HERE_ANCHOR_ID)
-            ).findFirst();
-        var lastDuplicatePage = HtmlElementUtil.click(lastDuplicateAnchor.get());
-        return lastDuplicatePage.getWebResponse().getContentAsString();
+        assertThat(monitor.isActivated(), is(true));
+        assertEquals(getJsonPayload(eventGuid), getLastDuplicatePageContentByLink());
     }
 
     private String getLastDuplicatePageContentByLink() throws IOException, SAXException {

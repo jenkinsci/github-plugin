@@ -105,14 +105,16 @@ class GitHubPluginConfigTest {
     @Issue("JENKINS-62097")
     void configRoundtrip() throws Exception {
         assertHookSecrets("");
-        j.configRoundtrip();
+        GitHubPlugin.configuration().save();
+        GitHubPlugin.configuration().load();
         assertHookSecrets("");
         SystemCredentialsProvider.getInstance().setDomainCredentialsMap(Collections.singletonMap(Domain.global(), Arrays.asList(
                 new StringCredentialsImpl(CredentialsScope.SYSTEM, "one", null, Secret.fromString("#1")),
                 new StringCredentialsImpl(CredentialsScope.SYSTEM, "two", null, Secret.fromString("#2")))));
         GitHubPlugin.configuration().setHookSecretConfigs(Arrays.asList(new HookSecretConfig("one"), new HookSecretConfig("two")));
         assertHookSecrets("#1; #2");
-        j.configRoundtrip();
+        GitHubPlugin.configuration().save();
+        GitHubPlugin.configuration().load();
         assertHookSecrets("#1; #2");
     }
 

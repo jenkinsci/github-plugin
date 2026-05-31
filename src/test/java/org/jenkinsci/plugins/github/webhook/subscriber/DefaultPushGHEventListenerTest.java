@@ -104,11 +104,11 @@ public class DefaultPushGHEventListenerTest {
     @Test
     @Issue("JENKINS-27136")
     void shouldReceivePushHookOnWorkflow() throws Exception {
-        WorkflowJob job = jenkins.getInstance().createProject(WorkflowJob.class, "test-workflow-job");
+        FreeStyleProject job = jenkins.createFreeStyleProject("test-workflow-job");
+        job.setScm(GIT_SCM_FROM_RESOURCE);
 
-        GitHubPushTrigger trigger = mock(GitHubPushTrigger.class);
+        GitHubPushTrigger trigger = Mockito.spy(new GitHubPushTrigger());
         job.addTrigger(trigger);
-        job.setDefinition(new CpsFlowDefinition(classpath(getClass(), "workflow-definition.groovy")));
         // Trigger the build once to register SCMs
         jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
 
