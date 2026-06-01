@@ -61,7 +61,7 @@ public class GitHubWebHookFullTest {
 
     @AfterEach
     void after() throws Exception {
-        if (httpClient instanceof AutoCloseable closeable) {
+        if ((Object) httpClient instanceof AutoCloseable closeable) { // TODO: replace with httpClient.close() once jenkins.baseline is Java 21+
             closeable.close();
         }
     }
