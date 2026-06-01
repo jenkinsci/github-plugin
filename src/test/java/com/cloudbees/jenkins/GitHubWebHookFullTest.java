@@ -16,6 +16,7 @@ import org.kohsuke.github.GHEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Locale;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -43,6 +44,7 @@ import static org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload.
 @WithJenkins
 public class GitHubWebHookFullTest {
 
+    // GitHub doesn't send the charset per docs, so re-use the exact content-type from the handler
     public static final String APPLICATION_JSON = GHEventPayload.PayloadHandler.APPLICATION_JSON;
     public static final String FORM = GHEventPayload.PayloadHandler.FORM_URLENCODED;
 
@@ -73,7 +75,7 @@ public class GitHubWebHookFullTest {
                 HttpRequest.newBuilder(URI.create(getPath()))
                         .POST(HttpRequest.BodyPublishers.ofString(classpath("payloads/push.json")))
                         .header("Content-Type", APPLICATION_JSON)
-                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PUSH.name().toLowerCase())
+                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PUSH.name().toLowerCase(Locale.ROOT))
                         .build(),
                 HttpResponse.BodyHandlers.ofString());
         assertThat("status", response.statusCode(), is(SC_OK));
@@ -91,7 +93,7 @@ public class GitHubWebHookFullTest {
                         .POST(HttpRequest.BodyPublishers.ofString(
                                 classpath(format("payloads/ping_hash_%s_secret_%s.json", hash, secret))))
                         .header("Content-Type", APPLICATION_JSON)
-                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PUSH.name().toLowerCase())
+                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PUSH.name().toLowerCase(Locale.ROOT))
                         .header(SIGNATURE_HEADER, format("sha1=%s", hash))
                         .header(SIGNATURE_HEADER_SHA256, format("%s%s", SHA256_PREFIX, hash256))
                         .build(),
@@ -106,7 +108,7 @@ public class GitHubWebHookFullTest {
                 HttpRequest.newBuilder(URI.create(getPath()))
                         .POST(HttpRequest.BodyPublishers.ofString(encoded))
                         .header("Content-Type", FORM)
-                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PUSH.name().toLowerCase())
+                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PUSH.name().toLowerCase(Locale.ROOT))
                         .build(),
                 HttpResponse.BodyHandlers.ofString());
         assertThat("status", response.statusCode(), is(SC_OK));
@@ -118,7 +120,7 @@ public class GitHubWebHookFullTest {
                 HttpRequest.newBuilder(URI.create(getPath()))
                         .POST(HttpRequest.BodyPublishers.ofString(classpath("payloads/ping.json")))
                         .header("Content-Type", APPLICATION_JSON)
-                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PING.name().toLowerCase())
+                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PING.name().toLowerCase(Locale.ROOT))
                         .build(),
                 HttpResponse.BodyHandlers.ofString());
         assertThat("status", response.statusCode(), is(SC_OK));
@@ -140,7 +142,7 @@ public class GitHubWebHookFullTest {
         HttpResponse<String> response = httpClient.send(
                 HttpRequest.newBuilder(URI.create(getPath()))
                         .POST(HttpRequest.BodyPublishers.noBody())
-                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PUSH.name().toLowerCase())
+                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PUSH.name().toLowerCase(Locale.ROOT))
                         .build(),
                 HttpResponse.BodyHandlers.ofString());
         assertThat("status", response.statusCode(), is(SC_BAD_REQUEST));
