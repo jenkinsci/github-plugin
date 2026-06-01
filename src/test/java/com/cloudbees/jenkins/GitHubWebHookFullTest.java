@@ -15,9 +15,11 @@ import org.kohsuke.github.GHEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 
 import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static jakarta.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
@@ -91,7 +93,7 @@ public class GitHubWebHookFullTest {
 
     @Test
     void shouldParseFormWebHookOrServiceHookFromGH() throws Exception {
-        String encoded = "payload=" + java.net.URLEncoder.encode(classpath("payloads/push.json"), "UTF-8");
+        String encoded = "payload=" + URLEncoder.encode(classpath("payloads/push.json"), StandardCharsets.UTF_8);
         HttpResponse<String> response = httpClient.send(
                 HttpRequest.newBuilder(URI.create(getPath()))
                         .POST(HttpRequest.BodyPublishers.ofString(encoded))
