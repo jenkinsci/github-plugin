@@ -6,6 +6,7 @@ import org.apache.commons.io.IOUtils;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.webhook.GHEventHeader;
 import org.jenkinsci.plugins.github.webhook.GHEventPayload;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -50,6 +51,13 @@ public class GitHubWebHookFullTest {
 
     private JenkinsRule jenkins;
     private HttpClient httpClient;
+
+    @AfterEach
+    void after() throws Exception {
+        if (httpClient instanceof AutoCloseable closeable) {
+            closeable.close();
+        }
+    }
 
     @BeforeEach
     void before(JenkinsRule rule) throws Throwable {
