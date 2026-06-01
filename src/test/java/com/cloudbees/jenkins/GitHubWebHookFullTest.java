@@ -52,18 +52,18 @@ public class GitHubWebHookFullTest {
     private JenkinsRule jenkins;
     private HttpClient httpClient;
 
-    @AfterEach
-    void after() throws Exception {
-        if (httpClient instanceof AutoCloseable closeable) {
-            closeable.close();
-        }
-    }
-
     @BeforeEach
     void before(JenkinsRule rule) throws Throwable {
         jenkins = rule;
         jenkins.getInstance().getInjector().injectMembers(this);
         httpClient = HttpClient.newHttpClient();
+    }
+
+    @AfterEach
+    void after() throws Exception {
+        if (httpClient instanceof AutoCloseable closeable) {
+            closeable.close();
+        }
     }
 
     @Test
