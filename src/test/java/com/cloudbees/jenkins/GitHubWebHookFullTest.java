@@ -1,15 +1,12 @@
 package com.cloudbees.jenkins;
 
 import com.google.common.base.Charsets;
-import com.google.common.net.HttpHeaders;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.http.Header;
-import io.restassured.specification.RequestSpecification;
 import jakarta.inject.Inject;
 import org.apache.commons.io.IOUtils;
 import org.jenkinsci.plugins.github.config.GitHubPluginConfig;
 import org.jenkinsci.plugins.github.webhook.GHEventHeader;
 import org.jenkinsci.plugins.github.webhook.GHEventPayload;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -18,20 +15,28 @@ import org.kohsuke.github.GHEvent;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.util.Locale;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.config.EncoderConfig.encoderConfig;
-import static io.restassured.config.RestAssuredConfig.newConfig;
 import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static jakarta.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.ClassUtils.PACKAGE_SEPARATOR;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.jenkinsci.plugins.github.test.HookSecretHelper.removeSecretIn;
 import static org.jenkinsci.plugins.github.test.HookSecretHelper.storeSecretIn;
-import static org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload.Processor.*;
+import static org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload.Processor.SHA256_PREFIX;
+import static org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER;
+import static org.jenkinsci.plugins.github.webhook.RequirePostWithGHHookPayload.Processor.SIGNATURE_HEADER_SHA256;
 
 /**
  * @author lanwen (Merkushev Kirill)
@@ -43,42 +48,38 @@ public class GitHubWebHookFullTest {
     public static final String APPLICATION_JSON = GHEventPayload.PayloadHandler.APPLICATION_JSON;
     public static final String FORM = GHEventPayload.PayloadHandler.FORM_URLENCODED;
 
-    public static final Header JSON_CONTENT_TYPE = new Header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON);
-    public static final Header FORM_CONTENT_TYPE = new Header(HttpHeaders.CONTENT_TYPE, FORM);
-    public static final String NOT_NULL_VALUE = "nonnull";
-
-    private RequestSpecification spec;
-
     @Inject
     private GitHubPluginConfig config;
 
     private JenkinsRule jenkins;
+    private HttpClient httpClient;
 
     @BeforeEach
     void before(JenkinsRule rule) throws Throwable {
         jenkins = rule;
         jenkins.getInstance().getInjector().injectMembers(this);
+        httpClient = HttpClient.newHttpClient();
+    }
 
-        spec = new RequestSpecBuilder()
-                .setConfig(newConfig()
-                        .encoderConfig(encoderConfig()
-                                .defaultContentCharset(Charsets.UTF_8.name())
-                                // GitHub doesn't add charsets, so don't test with them
-                                .appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-                .build();
+    @AfterEach
+    void after() throws Exception {
+        if ((Object) httpClient instanceof AutoCloseable closeable) { // TODO: replace with httpClient.close() once jenkins.baseline is Java 21+
+            closeable.close();
+        }
     }
 
     @Test
     void shouldParseJsonWebHookFromGH() throws Exception {
         removeSecretIn(config);
-        given().spec(spec)
-                .header(eventHeader(GHEvent.PUSH))
-                .header(JSON_CONTENT_TYPE)
-                .body(classpath("payloads/push.json"))
-                .log().all()
-                .expect().log().all().statusCode(SC_OK).request().post(getPath());
+        HttpResponse<String> response = httpClient.send(
+                HttpRequest.newBuilder(URI.create(getPath()))
+                        .POST(HttpRequest.BodyPublishers.ofString(classpath("payloads/push.json")))
+                        .header("Content-Type", APPLICATION_JSON)
+                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PUSH.name().toLowerCase(Locale.ROOT))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertThat("status", response.statusCode(), is(SC_OK));
     }
-
 
     @Test
     void shouldParseJsonWebHookFromGHWithSignHeader() throws Exception {
@@ -87,89 +88,91 @@ public class GitHubWebHookFullTest {
         String secret = "123";
 
         storeSecretIn(config, secret);
-        given().spec(spec)
-                .header(eventHeader(GHEvent.PUSH))
-                .header(JSON_CONTENT_TYPE)
-                .header(SIGNATURE_HEADER, format("sha1=%s", hash))
-                .header(SIGNATURE_HEADER_SHA256, format("%s%s", SHA256_PREFIX, hash256))
-                .body(classpath(String.format("payloads/ping_hash_%s_secret_%s.json", hash, secret)))
-                .log().all()
-                .expect().log().all().statusCode(SC_OK).request().post(getPath());
+        HttpResponse<String> response = httpClient.send(
+                HttpRequest.newBuilder(URI.create(getPath()))
+                        .POST(HttpRequest.BodyPublishers.ofString(
+                                classpath(format("payloads/ping_hash_%s_secret_%s.json", hash, secret))))
+                        .header("Content-Type", APPLICATION_JSON)
+                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PUSH.name().toLowerCase(Locale.ROOT))
+                        .header(SIGNATURE_HEADER, format("sha1=%s", hash))
+                        .header(SIGNATURE_HEADER_SHA256, format("%s%s", SHA256_PREFIX, hash256))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertThat("status", response.statusCode(), is(SC_OK));
     }
 
     @Test
     void shouldParseFormWebHookOrServiceHookFromGH() throws Exception {
-        given().spec(spec)
-                .header(eventHeader(GHEvent.PUSH))
-                .header(FORM_CONTENT_TYPE)
-                .formParam("payload", classpath("payloads/push.json"))
-                .log().all()
-                .expect().log().all().statusCode(SC_OK).request().post(getPath());
+        String encoded = "payload=" + URLEncoder.encode(classpath("payloads/push.json"), StandardCharsets.UTF_8);
+        HttpResponse<String> response = httpClient.send(
+                HttpRequest.newBuilder(URI.create(getPath()))
+                        .POST(HttpRequest.BodyPublishers.ofString(encoded))
+                        .header("Content-Type", FORM)
+                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PUSH.name().toLowerCase(Locale.ROOT))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertThat("status", response.statusCode(), is(SC_OK));
     }
 
     @Test
     void shouldParsePingFromGH() throws Exception {
-        given().spec(spec)
-                .header(eventHeader(GHEvent.PING))
-                .header(JSON_CONTENT_TYPE)
-                .body(classpath("payloads/ping.json"))
-                .log().all()
-                .expect().log().all()
-                .statusCode(SC_OK)
-                .request()
-                .post(getPath());
+        HttpResponse<String> response = httpClient.send(
+                HttpRequest.newBuilder(URI.create(getPath()))
+                        .POST(HttpRequest.BodyPublishers.ofString(classpath("payloads/ping.json")))
+                        .header("Content-Type", APPLICATION_JSON)
+                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PING.name().toLowerCase(Locale.ROOT))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertThat("status", response.statusCode(), is(SC_OK));
     }
 
     @Test
     void shouldReturnErrOnEmptyPayloadAndHeader() throws Exception {
-        given().spec(spec)
-                .log().all()
-                .expect().log().all()
-                .statusCode(SC_BAD_REQUEST)
-                .body(containsString("Hook should contain event type"))
-                .request()
-                .post(getPath());
+        HttpResponse<String> response = httpClient.send(
+                HttpRequest.newBuilder(URI.create(getPath()))
+                        .POST(HttpRequest.BodyPublishers.noBody())
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertThat("status", response.statusCode(), is(SC_BAD_REQUEST));
+        assertThat("body", response.body(), containsString("Hook should contain event type"));
     }
 
     @Test
     void shouldReturnErrOnEmptyPayload() throws Exception {
-        given().spec(spec)
-                .header(eventHeader(GHEvent.PUSH))
-                .log().all()
-                .expect().log().all()
-                .statusCode(SC_BAD_REQUEST)
-                .body(containsString("Hook should contain payload"))
-                .request()
-                .post(getPath());
+        HttpResponse<String> response = httpClient.send(
+                HttpRequest.newBuilder(URI.create(getPath()))
+                        .POST(HttpRequest.BodyPublishers.noBody())
+                        .header(GHEventHeader.PayloadHandler.EVENT_HEADER, GHEvent.PUSH.name().toLowerCase(Locale.ROOT))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertThat("status", response.statusCode(), is(SC_BAD_REQUEST));
+        assertThat("body", response.body(), containsString("Hook should contain payload"));
     }
 
     @Test
     void shouldReturnErrOnGetReq() throws Exception {
-        given().spec(spec)
-                .log().all().expect().log().all()
-                .statusCode(SC_METHOD_NOT_ALLOWED)
-                .request()
-                .get(getPath());
+        HttpResponse<String> response = httpClient.send(
+                HttpRequest.newBuilder(URI.create(getPath()))
+                        .GET()
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertThat("status", response.statusCode(), is(SC_METHOD_NOT_ALLOWED));
     }
 
     @Test
     void shouldProcessSelfTest() throws Exception {
-        given().spec(spec)
-                .header(new Header(GitHubWebHook.URL_VALIDATION_HEADER, NOT_NULL_VALUE))
-                .log().all()
-                .expect().log().all()
-                .statusCode(SC_OK)
-                .header(GitHubWebHook.X_INSTANCE_IDENTITY, notNullValue())
-                .request()
-                .post(getPath());
+        HttpResponse<String> response = httpClient.send(
+                HttpRequest.newBuilder(URI.create(getPath()))
+                        .POST(HttpRequest.BodyPublishers.noBody())
+                        .header(GitHubWebHook.URL_VALIDATION_HEADER, "nonnull")
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertThat("status", response.statusCode(), is(SC_OK));
+        assertThat("identity header", response.headers().firstValue(GitHubWebHook.X_INSTANCE_IDENTITY).orElse(null), notNullValue());
     }
 
-    public Header eventHeader(GHEvent event) {
-        return eventHeader(event.name().toLowerCase());
-    }
-
-    public Header eventHeader(String event) {
-        return new Header(GHEventHeader.PayloadHandler.EVENT_HEADER, event);
+    private String getPath() {
+        return jenkins.getInstance().getRootUrl() + GitHubWebHook.URLNAME.concat("/");
     }
 
     public static String classpath(String path) {
@@ -184,9 +187,5 @@ public class GitHubWebHookFullTest {
         } catch (IOException e) {
             throw new RuntimeException(format("Can't load %s for class %s", path, clazz), e);
         }
-    }
-
-    private String getPath(){
-        return jenkins.getInstance().getRootUrl() + GitHubWebHook.URLNAME.concat("/");
     }
 }
