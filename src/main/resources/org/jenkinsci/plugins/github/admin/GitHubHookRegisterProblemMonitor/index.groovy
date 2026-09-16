@@ -5,20 +5,11 @@ import org.jenkinsci.plugins.github.admin.GitHubHookRegisterProblemMonitor
 import org.jenkinsci.plugins.github.webhook.WebhookManager
 
 def f = namespace(lib.FormTagLib);
-def st = namespace('jelly:stapler')
 def l = namespace(lib.LayoutTagLib)
 
-l.layout(title: _('page.title'), permission: app.ADMINISTER) {
-    l.header() {
-        link(rel: 'stylesheet', type: 'text/css', href: "${rootURL}${h.getResourcePath()}/plugin/github/css/monitor.css")
-    }
-    st.include(page: 'sidepanel.jelly', it: app)
-    l.main_panel {
-        div(class: 'gh-page') {
-
-            h1 {
-                text(_('page.title'))
-            }
+l.settings_subpage(title: _('page.title'), permission: app.ADMINISTER) {
+    link(rel: 'stylesheet', type: 'text/css', href: "${rootURL}${h.getResourcePath()}/plugin/github/css/monitor.css")
+    div(class: 'gh-page') {
 
             div {
                 p {
@@ -129,5 +120,4 @@ l.layout(title: _('page.title'), permission: app.ADMINISTER) {
                 }
             }
         }
-    }
 }
