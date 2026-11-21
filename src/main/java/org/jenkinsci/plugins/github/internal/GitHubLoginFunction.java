@@ -12,7 +12,7 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
 import org.kohsuke.github.RateLimitHandler;
-import org.kohsuke.github.extras.okhttp3.OkHttpConnector;
+import org.kohsuke.github.extras.okhttp3.OkHttpGitHubConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +47,19 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
 
     private static final OkHttpClient BASECLIENT = JenkinsOkHttpClient.newClientBuilder(new OkHttpClient()).build();
     private static final Logger LOGGER = LoggerFactory.getLogger(GitHubLoginFunction.class);
+
+    private final OkHttpClient baseClient;
+
+    public GitHubLoginFunction() {
+        this(BASECLIENT);
+    }
+
+    /**
+     * @param baseClient client to derive each connection's client from; tests pass their own
+     */
+    GitHubLoginFunction(OkHttpClient baseClient) {
+        this.baseClient = baseClient;
+    }
 
     /**
      * Called by {@link #apply(Object)}
@@ -106,8 +119,8 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
      *
      * @return connector to be used as backend for client
      */
-    private OkHttpConnector connector(GitHubServerConfig config) {
-        OkHttpClient.Builder builder = BASECLIENT.newBuilder()
+    private OkHttpGitHubConnector connector(GitHubServerConfig config) {
+        OkHttpClient.Builder builder = baseClient.newBuilder()
             .proxy(getProxy(defaultIfBlank(config.getApiUrl(), GITHUB_URL)));
 
 
@@ -116,6 +129,6 @@ public class GitHubLoginFunction extends NullSafeFunction<GitHubServerConfig, Gi
             builder.cache(cache);
         }
 
-        return new OkHttpConnector(builder.build());
+        return new OkHttpGitHubConnector(builder.build());
     }
 }

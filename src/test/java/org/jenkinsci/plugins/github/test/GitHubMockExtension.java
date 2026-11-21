@@ -4,6 +4,7 @@ import com.cloudbees.jenkins.GitHubRepositoryName;
 import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import hudson.Functions;
 import hudson.model.Item;
 import org.jenkinsci.plugins.github.config.GitHubServerConfig;
 
@@ -60,6 +61,10 @@ public class GitHubMockExtension extends WireMockExtension {
     public GitHubServerConfig serverConfig() {
         GitHubServerConfig conf = new GitHubServerConfig("creds");
         conf.setApiUrl("http://localhost:" + getPort());
+        if (Functions.isWindows()) {
+            // the open disk cache would keep JENKINS_HOME from being deleted, see GitHubClientCacheCleanupTest
+            conf.setClientCacheSize(0);
+        }
         return conf;
     }
 
