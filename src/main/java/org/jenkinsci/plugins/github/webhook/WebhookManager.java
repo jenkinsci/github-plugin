@@ -189,44 +189,82 @@ public class WebhookManager {
      *
      * @return function to register hooks for given events
      */
+    /**
+     * Outcome of a repository webhook registration.
+     */
+    public enum RegistrationOutcome {
+        CREATED,
+        ALREADY_REGISTERED,
+        FAILED
+    }
+
+    /**
+     * Register the merged event set for a single repository. When refreshExisting is true,
+     * replace an existing hook even if the event set matches. GitHub does not return a
+     * webhook's secret, so the secret cannot be compared with the Jenkins configuration.
+     *
+     * @param name repository to register
+     * @param events events requested by all jobs using the repository
+     * @param refreshExisting whether to refresh existing webhook configuration (including secret)
+     * @return registration outcome
+     */
+    public RegistrationOutcome registerRepository(GitHubRepositoryName name, List<GHEvent> events,
+                                                   boolean refreshExisting) {
+        return registerRepositoryInternal(name, events, refreshExisting).outcome;
+    }
+
     protected Function<GitHubRepositoryName, GHHook> createHookSubscribedTo(final List<GHEvent> events) {
         return new NullSafeFunction<GitHubRepositoryName, GHHook>() {
             @Override
             protected GHHook applyNullSafe(@NonNull GitHubRepositoryName name) {
-                try {
-                    GHRepository repo = repoWithWebhookAccess(name);
-                    if (repo == null) {
-                        return null;
-                    }
-
-                    Validate.notEmpty(events, "Events list for hook can't be empty");
-
-                    Set<GHHook> hooks = from(fetchHooks().apply(repo))
-                            .filter(webhookFor(endpoint))
-                            .toSet();
-
-                    Set<GHEvent> alreadyRegistered = from(hooks)
-                            .transformAndConcat(eventsFromHook()).toSet();
-
-                    if (hooks.size() == 1 && alreadyRegistered.containsAll(events)) {
-                        LOGGER.debug("Hook already registered for events {}", events);
-                        return null;
-                    }
-
-                    Set<GHEvent> merged = from(alreadyRegistered).append(events).toSet();
-
-                    from(hooks)
-                            .filter(deleteWebhook())
-                            .filter(log("Replaced hook")).toList();
-
-                    return createWebhook(endpoint, merged).apply(repo);
-                } catch (Exception e) {
-                    LOGGER.warn("Failed to add GitHub webhook for {}", name, e);
-                    GitHubHookRegisterProblemMonitor.get().registerProblem(name, e);
-                }
-                return null;
+                return registerRepositoryInternal(name, events, false).hook;
             }
         };
+    }
+
+    private RegistrationResult registerRepositoryInternal(GitHubRepositoryName name, List<GHEvent> events,
+                                                          boolean refreshExisting) {
+        try {
+            GHRepository repo = repoWithWebhookAccess(name);
+            if (repo == null) {
+                return new RegistrationResult(RegistrationOutcome.ALREADY_REGISTERED, null);
+            }
+
+            Validate.notEmpty(events, "Events list for hook can't be empty");
+            Set<GHHook> hooks = from(fetchHooks().apply(repo))
+                    .filter(webhookFor(endpoint))
+                    .toSet();
+            Set<GHEvent> alreadyRegistered = from(hooks)
+                    .transformAndConcat(eventsFromHook()).toSet();
+
+            if (!refreshExisting && hooks.size() == 1 && alreadyRegistered.containsAll(events)) {
+                LOGGER.debug("Hook already registered for {} (events: {})", name, events);
+                return new RegistrationResult(RegistrationOutcome.ALREADY_REGISTERED, null);
+            }
+
+            Set<GHEvent> merged = from(alreadyRegistered).append(events).toSet();
+
+            from(hooks)
+                    .filter(deleteWebhook())
+                    .filter(log("Replaced hook")).toList();
+
+            GHHook created = createWebhook(endpoint, merged).apply(repo);
+            return new RegistrationResult(RegistrationOutcome.CREATED, created);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to add GitHub webhook for {}", name, e);
+            GitHubHookRegisterProblemMonitor.get().registerProblem(name, e);
+            return new RegistrationResult(RegistrationOutcome.FAILED, null);
+        }
+    }
+
+    private static class RegistrationResult {
+        private final RegistrationOutcome outcome;
+        private final GHHook hook;
+
+        RegistrationResult(RegistrationOutcome outcome, GHHook hook) {
+            this.outcome = outcome;
+            this.hook = hook;
+        }
     }
 
     /**
