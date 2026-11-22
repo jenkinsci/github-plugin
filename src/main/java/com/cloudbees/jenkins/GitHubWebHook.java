@@ -1,8 +1,6 @@
 package com.cloudbees.jenkins;
 
 import com.google.common.base.Function;
-import com.cloudbees.jenkins.GitHubRepositoryName;
-import com.cloudbees.jenkins.GitHubRepositoryNameContributor;
 import hudson.Extension;
 import hudson.ExtensionPoint;
 import hudson.model.Item;
@@ -113,11 +111,6 @@ public class GitHubWebHook implements UnprotectedRootAction {
     }
 
     /**
-     * Calls {@link #registerHookFor(Job)} for every project which have subscriber
-     *
-     * @return list of jobs which jenkins tried to register hook
-     */
-    /**
      * Schedules a bulk refresh. A single task processes each unique repository once,
      * merging events from all interested jobs. Repeated clicks cannot enqueue overlapping
      * bulk runs. Existing webhooks are refreshed so changes to their secrets take effect.
@@ -140,7 +133,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
             from(GHEventsSubscriber.all())
                     .filter(GHEventsSubscriber.isApplicableFor(item))
                     .transformAndConcat(GHEventsSubscriber.extractEvents())
-                    .copyInto(events);
+                    .toList().forEach(events::add);
             if (events.isEmpty()) {
                 continue;
             }
@@ -190,7 +183,7 @@ public class GitHubWebHook implements UnprotectedRootAction {
     }
 
     /**
-     * Immutable snapshot is obtained through getters; volatile counters allow polling while
+     * A progress snapshot is obtained through getters; atomic counters allow polling while
      * the sequential queue processes the batch.
      */
     public static final class BulkRegistrationStatus {
