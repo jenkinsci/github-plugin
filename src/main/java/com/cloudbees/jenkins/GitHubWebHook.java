@@ -33,6 +33,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.jenkinsci.plugins.github.webhook.WebhookManager;
 import org.jenkinsci.plugins.github.webhook.WebhookManager.RegistrationOutcome;
 
@@ -188,9 +189,9 @@ public class GitHubWebHook implements UnprotectedRootAction {
      */
     public static final class BulkRegistrationStatus {
         private final int total;
-        private final java.util.concurrent.atomic.AtomicInteger created = new java.util.concurrent.atomic.AtomicInteger();
-        private final java.util.concurrent.atomic.AtomicInteger skipped = new java.util.concurrent.atomic.AtomicInteger();
-        private final java.util.concurrent.atomic.AtomicInteger failed = new java.util.concurrent.atomic.AtomicInteger();
+        private final AtomicInteger created = new AtomicInteger();
+        private final AtomicInteger skipped = new AtomicInteger();
+        private final AtomicInteger failed = new AtomicInteger();
         private volatile boolean completed;
 
         private BulkRegistrationStatus(int total) {
