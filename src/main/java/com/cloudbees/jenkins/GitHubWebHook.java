@@ -28,6 +28,14 @@ import org.slf4j.LoggerFactory;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import java.net.URL;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.jenkinsci.plugins.github.webhook.WebhookManager;
+import org.jenkinsci.plugins.github.webhook.WebhookManager.RegistrationOutcome;
 
 import static hudson.model.Computer.threadPoolForRemoting;
 import static org.apache.commons.lang3.Validate.notNull;
@@ -60,6 +68,8 @@ public class GitHubWebHook implements UnprotectedRootAction {
     public static final String X_GITHUB_DELIVERY = "X-GitHub-Delivery";
 
     private final transient SequentialExecutionQueue queue = new SequentialExecutionQueue(threadPoolForRemoting);
+    private transient volatile BulkRegistrationStatus bulkRegistrationStatus = BulkRegistrationStatus.empty();
+    private transient boolean bulkRegistrationPending;
 
     @Override
     public String getIconFileName() {
@@ -102,16 +112,153 @@ public class GitHubWebHook implements UnprotectedRootAction {
     }
 
     /**
-     * Calls {@link #registerHookFor(Job)} for every project which have subscriber
+     * Schedules a bulk refresh. A single task processes each unique repository once,
+     * merging events from all interested jobs. Repeated clicks cannot enqueue overlapping
+     * bulk runs. Existing webhooks are refreshed so changes to their secrets take effect.
      *
-     * @return list of jobs which jenkins tried to register hook
+     * @return the participating Jenkins items; this is not a success count
      */
-    public List<Item> reRegisterAllHooks() {
-        return from(getJenkinsInstance().getAllItems(Item.class))
+    public synchronized List<Item> reRegisterAllHooks() {
+        List<Item> items = from(getJenkinsInstance().getAllItems(Item.class))
                 .filter(isBuildable())
                 .filter(isAlive())
-                .transform(reRegisterHookForJob())
                 .toList();
+
+        if (bulkRegistrationPending) {
+            return items;
+        }
+
+        Map<GitHubRepositoryName, Set<GHEvent>> grouped = new LinkedHashMap<>();
+        for (Item item : items) {
+            Set<GHEvent> events = new LinkedHashSet<>();
+            from(GHEventsSubscriber.all())
+                    .filter(GHEventsSubscriber.isApplicableFor(item))
+                    .transformAndConcat(GHEventsSubscriber.extractEvents())
+                    .toList().forEach(events::add);
+            if (events.isEmpty()) {
+                continue;
+            }
+            for (GitHubRepositoryName name : GitHubRepositoryNameContributor.parseAssociatedNames(item)) {
+                grouped.computeIfAbsent(name, ignored -> new LinkedHashSet<>()).addAll(events);
+            }
+        }
+
+        URL hookUrl;
+        try {
+            hookUrl = GitHubPlugin.configuration().getHookUrl();
+        } catch (GHPluginConfigException e) {
+            LOGGER.error("Skip registration of GHHook ({})", e.getMessage());
+            bulkRegistrationStatus = BulkRegistrationStatus.failedConfiguration(grouped.size());
+            return items;
+        }
+
+        BulkRegistrationStatus status = new BulkRegistrationStatus(grouped.size());
+        bulkRegistrationStatus = status;
+        bulkRegistrationPending = true;
+        try {
+            queue.execute(() -> {
+                try {
+                    WebhookManager manager = forHookUrl(hookUrl);
+                    grouped.forEach((name, events) -> {
+                        RegistrationOutcome result = manager.registerRepository(name,
+                                new ArrayList<>(events), true);
+                        status.record(result);
+                    });
+                } finally {
+                    status.complete();
+                    synchronized (GitHubWebHook.this) {
+                        bulkRegistrationPending = false;
+                    }
+                }
+            });
+        } catch (RuntimeException e) {
+            bulkRegistrationPending = false;
+            status.failToQueue();
+            throw e;
+        }
+        return items;
+    }
+
+    public BulkRegistrationStatus getBulkRegistrationStatus() {
+        return bulkRegistrationStatus;
+    }
+
+    /**
+     * A progress snapshot is obtained through getters; atomic counters allow polling while
+     * the sequential queue processes the batch.
+     */
+    public static final class BulkRegistrationStatus {
+        private final int total;
+        private final AtomicInteger created = new AtomicInteger();
+        private final AtomicInteger skipped = new AtomicInteger();
+        private final AtomicInteger failed = new AtomicInteger();
+        private volatile boolean completed;
+
+        private BulkRegistrationStatus(int total) {
+            this.total = total;
+        }
+
+        static BulkRegistrationStatus empty() {
+            BulkRegistrationStatus result = new BulkRegistrationStatus(0);
+            result.complete();
+            return result;
+        }
+
+        static BulkRegistrationStatus failedConfiguration(int total) {
+            BulkRegistrationStatus result = new BulkRegistrationStatus(total);
+            result.failed.set(total);
+            result.complete();
+            return result;
+        }
+
+        private void record(RegistrationOutcome outcome) {
+            switch (outcome) {
+                case CREATED:
+                    created.incrementAndGet();
+                    break;
+                case ALREADY_REGISTERED:
+                    skipped.incrementAndGet();
+                    break;
+                case FAILED:
+                    failed.incrementAndGet();
+                    break;
+                default:
+                    throw new IllegalStateException("Unknown registration outcome: " + outcome);
+            }
+        }
+
+        private void complete() {
+            completed = true;
+        }
+
+        private void failToQueue() {
+            failed.set(total);
+            complete();
+        }
+
+        public int getTotal() {
+            return total;
+        }
+
+        public int getCreated() {
+            return created.get();
+        }
+
+        public int getSkipped() {
+            return skipped.get();
+        }
+
+        public int getFailed() {
+            return failed.get();
+        }
+
+        public int getPending() {
+            return total - getCreated() - getSkipped() - getFailed();
+        }
+
+        public boolean isCompleted() {
+            return completed;
+        }
     }
 
     /**

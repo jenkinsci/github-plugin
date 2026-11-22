@@ -10,7 +10,6 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.XmlFile;
 import hudson.model.Descriptor;
-import hudson.model.Item;
 import hudson.security.Permission;
 import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
@@ -238,10 +237,26 @@ public class GitHubPluginConfig extends GlobalConfiguration {
             return FormValidation.warning("Works only when Jenkins manages hooks (one or more creds specified)");
         }
 
-        List<Item> registered = GitHubWebHook.get().reRegisterAllHooks();
+        GitHubWebHook hook = GitHubWebHook.get();
+        hook.reRegisterAllHooks();
+        GitHubWebHook.BulkRegistrationStatus status = hook.getBulkRegistrationStatus();
+        return FormValidation.ok("Webhook registration: %d unique repositories queued; "
+                + "%d created, %d skipped, %d failed, %d pending%s",
+                status.getTotal(), status.getCreated(), status.getSkipped(),
+                status.getFailed(), status.getPending(), status.isCompleted() ? " (completed)" : " (running)");
+    }
 
-        LOGGER.info("Called registerHooks() for {} items", registered.size());
-        return FormValidation.ok("Called re-register hooks for %s items", registered.size());
+    /**
+     * Return actual progress of the most recent asynchronous bulk operation.
+     */
+    @RequirePOST
+    public FormValidation doReRegisterStatus() {
+        Jenkins.getActiveInstance().checkPermission(Jenkins.MANAGE);
+        GitHubWebHook.BulkRegistrationStatus status = GitHubWebHook.get().getBulkRegistrationStatus();
+        return FormValidation.ok("Webhook registration: %d unique repositories; "
+                + "%d created, %d skipped, %d failed, %d pending%s",
+                status.getTotal(), status.getCreated(), status.getSkipped(),
+                status.getFailed(), status.getPending(), status.isCompleted() ? " (completed)" : " (running)");
     }
 
     @RequirePOST

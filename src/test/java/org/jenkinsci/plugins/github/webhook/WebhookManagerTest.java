@@ -191,6 +191,33 @@ public class WebhookManagerTest {
     }
 
     @Test
+    void shouldRefreshExistingHookWhenSecretMayHaveChanged() throws IOException {
+        doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
+        when(repo.hasAdminAccess()).thenReturn(true);
+        GHHook oldHook = hook(HOOK_ENDPOINT, PUSH);
+        when(repo.getHooks()).thenReturn(newArrayList(oldHook));
+        when(repo.createHook(anyString(), any(), anySet(), anyBoolean())).thenReturn(mock(GHHook.class));
+
+        assertThat(manager.registerRepository(nonactive, newArrayList(PUSH), true),
+                is(WebhookManager.RegistrationOutcome.CREATED));
+
+        verify(oldHook).delete();
+        verify(repo).createHook(anyString(), any(), anySet(), anyBoolean());
+    }
+
+    @Test
+    void shouldSkipExistingHookWhenNotRefreshing() throws IOException {
+        doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
+        when(repo.hasAdminAccess()).thenReturn(true);
+        GHHook oldHook = hook(HOOK_ENDPOINT, PUSH);
+        when(repo.getHooks()).thenReturn(newArrayList(oldHook));
+
+        assertThat(manager.registerRepository(nonactive, newArrayList(PUSH), false),
+                is(WebhookManager.RegistrationOutcome.ALREADY_REGISTERED));
+        verify(oldHook, never()).delete();
+    }
+
+    @Test
     @Issue("JENKINS-62116")
     void shouldNotReplaceAlreadyRegisteredHookWithMoreEvents() throws IOException {
         doReturn(newArrayList(repo)).when(nonactive).resolve(any(Predicate.class));
