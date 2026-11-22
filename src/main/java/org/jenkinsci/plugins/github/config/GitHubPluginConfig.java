@@ -86,6 +86,7 @@ public class GitHubPluginConfig extends GlobalConfiguration {
 
     public GitHubPluginConfig() {
         getConfigFile().getXStream().alias("github-server-config", GitHubServerConfig.class);
+        getConfigFile().getXStream().alias(getId(), GitHubPluginConfig.class);
         load();
     }
 
