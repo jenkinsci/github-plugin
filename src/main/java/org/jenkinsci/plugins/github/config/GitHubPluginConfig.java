@@ -10,7 +10,6 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.XmlFile;
 import hudson.model.Descriptor;
-import hudson.model.Item;
 import hudson.security.Permission;
 import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
