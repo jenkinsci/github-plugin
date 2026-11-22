@@ -140,4 +140,73 @@ public class DefaultPushGHEventListenerTest {
 
         verify(trigger, never()).onPost(Mockito.any(GitHubTriggerEvent.class));
     }
+
+    @Test
+    @WithoutJenkins
+    public void shouldNotTriggerWhenUserIsIgnored() {
+        GitHubPushTrigger trigger = mock(GitHubPushTrigger.class);
+        when(trigger.isUserIgnored(eq(TRIGGERED_BY_USER_FROM_RESOURCE))).thenReturn(true);
+
+        FreeStyleProject prj = mock(FreeStyleProject.class);
+        when(prj.getTriggers()).thenReturn(
+                Collections.singletonMap(new GitHubPushTrigger.DescriptorImpl(), trigger));
+        when(prj.getSCMs()).thenAnswer(unused -> Collections.singletonList(GIT_SCM_FROM_RESOURCE));
+        when(prj.getFullDisplayName()).thenReturn("test-job");
+
+        GHSubscriberEvent subscriberEvent =
+                new GHSubscriberEvent("shouldNotTriggerWhenUserIsIgnored", GHEvent.PUSH, classpath("payloads/push.json"));
+
+        Jenkins jenkins = mock(Jenkins.class);
+        when(jenkins.getAllItems(Item.class)).thenReturn(Collections.singletonList(prj));
+
+        ExtensionList<GitHubRepositoryNameContributor> extensionList = mock(ExtensionList.class);
+        List<GitHubRepositoryNameContributor> gitHubRepositoryNameContributorList =
+                Collections.singletonList(new GitHubRepositoryNameContributor.FromSCM());
+        when(extensionList.iterator()).thenReturn(gitHubRepositoryNameContributorList.iterator());
+        when(jenkins.getExtensionList(GitHubRepositoryNameContributor.class)).thenReturn(extensionList);
+
+        try (MockedStatic<Jenkins> mockedJenkins = mockStatic(Jenkins.class)) {
+            mockedJenkins.when(Jenkins::getInstance).thenReturn(jenkins);
+            new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
+        }
+
+        verify(trigger, never()).onPost(Mockito.any(GitHubTriggerEvent.class));
+    }
+
+    @Test
+    @WithoutJenkins
+    public void shouldTriggerWhenUserIsNotIgnored() {
+        GitHubPushTrigger trigger = mock(GitHubPushTrigger.class);
+        when(trigger.isUserIgnored(eq(TRIGGERED_BY_USER_FROM_RESOURCE))).thenReturn(false);
+
+        FreeStyleProject prj = mock(FreeStyleProject.class);
+        when(prj.getTriggers()).thenReturn(
+                Collections.singletonMap(new GitHubPushTrigger.DescriptorImpl(), trigger));
+        when(prj.getSCMs()).thenAnswer(unused -> Collections.singletonList(GIT_SCM_FROM_RESOURCE));
+        when(prj.getFullDisplayName()).thenReturn("test-job");
+
+        GHSubscriberEvent subscriberEvent =
+                new GHSubscriberEvent("shouldTriggerWhenUserIsNotIgnored", GHEvent.PUSH, classpath("payloads/push.json"));
+
+        Jenkins jenkins = mock(Jenkins.class);
+        when(jenkins.getAllItems(Item.class)).thenReturn(Collections.singletonList(prj));
+
+        ExtensionList<GitHubRepositoryNameContributor> extensionList = mock(ExtensionList.class);
+        List<GitHubRepositoryNameContributor> gitHubRepositoryNameContributorList =
+                Collections.singletonList(new GitHubRepositoryNameContributor.FromSCM());
+        when(extensionList.iterator()).thenReturn(gitHubRepositoryNameContributorList.iterator());
+        when(jenkins.getExtensionList(GitHubRepositoryNameContributor.class)).thenReturn(extensionList);
+
+        try (MockedStatic<Jenkins> mockedJenkins = mockStatic(Jenkins.class)) {
+            mockedJenkins.when(Jenkins::getInstance).thenReturn(jenkins);
+            new DefaultPushGHEventSubscriber().onEvent(subscriberEvent);
+        }
+
+        verify(trigger).onPost(eq(GitHubTriggerEvent.create()
+                .withTimestamp(subscriberEvent.getTimestamp())
+                .withOrigin("shouldTriggerWhenUserIsNotIgnored")
+                .withTriggeredByUser(TRIGGERED_BY_USER_FROM_RESOURCE)
+                .build()
+        ));
+    }
 }
