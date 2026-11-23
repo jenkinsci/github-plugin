@@ -113,8 +113,15 @@ public class GitHubPluginConfig extends GlobalConfiguration {
         return configs;
     }
 
+    /**
+     * @deprecated get GitHubServerConfig matching to exact remote GH server, filter and only then check allowToManage
+     */
+    @Deprecated
     public boolean isManageHooks() {
-        return from(getConfigs()).filter(allowedToManageHooks()).first().isPresent();
+        return from(getConfigs())
+                .filter(allowedToManageHooks())
+                .first()
+                .isPresent();
     }
 
     @DataBoundSetter
